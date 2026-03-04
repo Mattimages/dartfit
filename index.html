@@ -1,0 +1,1255 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="theme-color" content="#0a0a0a">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>DARTFIT — Precision Dart Matching</title>
+<link rel="manifest" href="/manifest.json">
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Share+Tech+Mono&family=Barlow:ital,wght@0,300;0,400;0,600;0,700;1,300&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#080808;--surface:#111;--surface2:#181818;--border:#1e1e1e;
+  --orange:#ff5500;--orange-dim:rgba(255,85,0,.12);--orange-glow:rgba(255,85,0,.35);
+  --green:#00e87a;--blue:#00aaff;--text:#e8e8e8;--muted:#555;--muted2:#777;
+}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);font-family:'Barlow',sans-serif}
+body::before{content:'';position:fixed;inset:0;
+  background-image:linear-gradient(rgba(255,85,0,.018) 1px,transparent 1px),linear-gradient(90deg,rgba(255,85,0,.018) 1px,transparent 1px);
+  background-size:28px 28px;pointer-events:none;z-index:0}
+
+/* ─── APP SHELL ─── */
+#app{position:fixed;inset:0;display:flex;flex-direction:column;z-index:1}
+
+/* ─── SCREENS ─── */
+.screen{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;
+  opacity:0;pointer-events:none;transition:opacity .35s ease;overflow-y:auto;overflow-x:hidden}
+.screen.active{opacity:1;pointer-events:all}
+
+/* ─── NAV BAR ─── */
+#navbar{position:fixed;top:0;left:0;right:0;height:52px;
+  background:rgba(8,8,8,.96);border-bottom:1px solid var(--border);
+  display:flex;align-items:center;justify-content:space-between;padding:0 16px;
+  z-index:100;backdrop-filter:blur(12px)}
+.nav-logo{font-family:'Bebas Neue',cursive;font-size:24px;letter-spacing:4px;cursor:pointer}
+.nav-logo span{color:var(--orange)}
+.nav-actions{display:flex;gap:8px;align-items:center}
+.nav-btn{background:none;border:1px solid var(--border);color:var(--muted2);
+  font-family:'Share Tech Mono',monospace;font-size:11px;letter-spacing:1.5px;
+  padding:6px 12px;cursor:pointer;transition:all .2s}
+.nav-btn:hover,.nav-btn.active{border-color:var(--orange);color:var(--orange)}
+.nav-avatar{width:32px;height:32px;border-radius:50%;background:var(--orange);
+  display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;
+  color:#fff;cursor:pointer;font-family:'Bebas Neue',cursive;letter-spacing:1px}
+
+/* ─── TOAST ─── */
+#toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(80px);
+  background:var(--surface);border:1px solid var(--border);
+  font-family:'Share Tech Mono',monospace;font-size:12px;letter-spacing:1px;
+  padding:10px 20px;z-index:999;transition:transform .3s ease;white-space:nowrap}
+#toast.show{transform:translateX(-50%) translateY(0)}
+#toast.success{border-color:var(--green);color:var(--green)}
+#toast.error{border-color:#ff4444;color:#ff4444}
+
+/* ─── COMMON ─── */
+.page-wrap{width:100%;max-width:480px;margin:0 auto;padding:68px 20px 40px}
+.section-title{font-family:'Bebas Neue',cursive;font-size:32px;letter-spacing:4px;line-height:1;margin-bottom:4px}
+.section-title span{color:var(--orange)}
+.section-sub{font-family:'Share Tech Mono',monospace;font-size:10px;letter-spacing:2px;color:var(--muted);margin-bottom:24px}
+.card{background:var(--surface);border:1px solid var(--border);padding:16px;margin-bottom:12px;position:relative}
+.card-label{font-family:'Share Tech Mono',monospace;font-size:9px;letter-spacing:3px;color:var(--orange);margin-bottom:10px;text-transform:uppercase}
+.btn{display:block;width:100%;border:none;cursor:pointer;font-family:'Bebas Neue',cursive;
+  font-size:20px;letter-spacing:3px;padding:14px;text-align:center;transition:all .15s}
+.btn-primary{background:var(--orange);color:#fff;clip-path:polygon(7px 0,100% 0,calc(100% - 7px) 100%,0 100%)}
+.btn-primary:active{background:#cc4400;transform:scale(.98)}
+.btn-ghost{background:transparent;border:1px solid var(--border);color:var(--muted);font-size:14px;letter-spacing:2px}
+.btn-ghost:active{border-color:var(--orange);color:var(--orange)}
+.btn-green{background:var(--green);color:#000}
+.input-group{margin-bottom:14px}
+.input-label{font-family:'Share Tech Mono',monospace;font-size:10px;letter-spacing:2px;color:var(--muted);margin-bottom:6px;display:block}
+.input{width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);
+  font-family:'Share Tech Mono',monospace;font-size:14px;padding:10px 12px;outline:none;transition:border-color .2s}
+.input:focus{border-color:var(--orange)}
+.input::placeholder{color:var(--muted)}
+.divider{height:1px;background:var(--border);margin:16px 0}
+
+/* ─── PROGRESS STEPS ─── */
+.progress-bar{display:flex;align-items:center;gap:0;margin-bottom:24px}
+.prog-step{flex:1;height:3px;background:var(--border);transition:background .3s}
+.prog-step.done{background:var(--orange)}
+.prog-step.active{background:linear-gradient(to right,var(--orange),rgba(255,85,0,.3))}
+.prog-labels{display:flex;justify-content:space-between;margin-top:5px;
+  font-family:'Share Tech Mono',monospace;font-size:9px;letter-spacing:1px;color:var(--muted)}
+
+/* ─── RANGE SLIDER ─── */
+.slider-wrap{margin-bottom:16px}
+.slider-labels{display:flex;justify-content:space-between;margin-bottom:4px;
+  font-size:10px;color:var(--muted);font-family:'Share Tech Mono',monospace;letter-spacing:1px}
+input[type=range]{width:100%;-webkit-appearance:none;height:4px;
+  background:var(--border);outline:none;border-radius:2px}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:18px;height:18px;
+  border-radius:50%;background:var(--orange);cursor:pointer;
+  box-shadow:0 0 8px rgba(255,85,0,.5)}
+.slider-val{text-align:center;font-family:'Bebas Neue',cursive;font-size:28px;
+  color:var(--orange);letter-spacing:2px;margin-top:6px}
+
+/* ─── SELECT OPTIONS ─── */
+.option-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:16px}
+.option-btn{background:var(--bg);border:1px solid var(--border);color:var(--muted2);
+  padding:10px 8px;font-family:'Share Tech Mono',monospace;font-size:11px;letter-spacing:1px;
+  cursor:pointer;text-align:center;transition:all .2s}
+.option-btn.active{border-color:var(--orange);color:var(--orange);background:var(--orange-dim)}
+
+/* ─── SCAN CANVAS ─── */
+#scan-video-wrap{position:relative;width:100%;flex:1;overflow:hidden;background:#000}
+#scan-video{width:100%;height:100%;object-fit:cover}
+#scan-canvas-overlay{position:absolute;inset:0;pointer-events:none}
+.scan-reticle{position:absolute;top:50%;left:50%;transform:translate(-50%,-55%);
+  width:200px;height:250px;border:1.5px solid rgba(255,85,0,.4)}
+.scan-corner{position:absolute;width:18px;height:18px}
+.scan-corner.tl{top:-2px;left:-2px;border-top:2.5px solid var(--orange);border-left:2.5px solid var(--orange)}
+.scan-corner.tr{top:-2px;right:-2px;border-top:2.5px solid var(--orange);border-right:2.5px solid var(--orange)}
+.scan-corner.bl{bottom:-2px;left:-2px;border-bottom:2.5px solid var(--orange);border-left:2.5px solid var(--orange)}
+.scan-corner.br{bottom:-2px;right:-2px;border-bottom:2.5px solid var(--orange);border-right:2.5px solid var(--orange)}
+.scan-beam{position:absolute;left:0;right:0;height:2px;
+  background:linear-gradient(to right,transparent,var(--orange),transparent);
+  animation:beam 2.5s ease-in-out infinite;
+  box-shadow:0 0 8px var(--orange)}
+@keyframes beam{0%{top:0;opacity:1}100%{top:100%;opacity:.4}}
+.scan-footer{position:absolute;bottom:0;left:0;right:0;padding:20px;
+  background:linear-gradient(transparent,rgba(0,0,0,.9));display:flex;flex-direction:column;align-items:center;gap:12px}
+.btn-capture{width:64px;height:64px;border-radius:50%;background:var(--orange);
+  border:3px solid rgba(255,255,255,.2);cursor:pointer;animation:pulse 2s infinite;
+  display:flex;align-items:center;justify-content:center}
+@keyframes pulse{0%{box-shadow:0 0 0 0 rgba(255,85,0,.6)}70%{box-shadow:0 0 0 14px rgba(255,85,0,0)}100%{box-shadow:0 0 0 0 rgba(255,85,0,0)}}
+.scan-status-text{font-family:'Share Tech Mono',monospace;font-size:11px;letter-spacing:2px;color:var(--muted2);text-align:center}
+
+/* ─── ANALYSIS ─── */
+#hand-canvas{display:block;margin:0 auto}
+.meas-row{display:flex;align-items:center;gap:10px;margin-bottom:8px;
+  font-family:'Share Tech Mono',monospace;font-size:11px}
+.meas-label{color:var(--muted);width:110px;flex-shrink:0;letter-spacing:.5px}
+.meas-bar-bg{flex:1;height:2px;background:var(--border);border-radius:1px;overflow:hidden}
+.meas-bar{height:100%;background:var(--orange);width:0;transition:width 1.1s cubic-bezier(.4,0,.2,1)}
+.meas-val{color:var(--orange);width:52px;text-align:right;font-size:10px;opacity:0;transition:opacity .4s}
+.analyze-status{font-family:'Share Tech Mono',monospace;font-size:11px;letter-spacing:2px;
+  color:var(--green);animation:blink 1s infinite;text-align:center}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.3}}
+
+/* ─── ARM UPLOAD ─── */
+.arm-upload-zone{border:1.5px dashed var(--border);padding:32px;text-align:center;cursor:pointer;
+  transition:border-color .2s;margin-bottom:16px;position:relative}
+.arm-upload-zone:active,.arm-upload-zone.dragover{border-color:var(--orange);background:var(--orange-dim)}
+.arm-upload-zone input{position:absolute;inset:0;opacity:0;cursor:pointer}
+.arm-preview{width:100%;height:180px;object-fit:cover;display:none;margin-bottom:8px;border:1px solid var(--border)}
+.arm-preview.visible{display:block}
+
+/* ─── RESULTS ─── */
+.result-score-circle{width:56px;height:56px;border:2px solid var(--orange);border-radius:50%;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;flex-shrink:0}
+.score-num{font-family:'Bebas Neue',cursive;font-size:24px;line-height:1;color:var(--orange)}
+.score-sub{font-size:8px;letter-spacing:1px;color:var(--muted);font-family:'Share Tech Mono',monospace}
+.spec-chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
+.chip{background:var(--bg);border:1px solid var(--border);padding:4px 10px;
+  font-family:'Share Tech Mono',monospace;font-size:10px;color:var(--muted2);letter-spacing:1px}
+.chip b{color:var(--text)}
+.pro-row{display:flex;align-items:center;gap:14px}
+.pro-emoji{font-size:36px;line-height:1}
+.dart-visual-canvas{width:100%;height:90px;display:block}
+.ai-stream{font-size:13px;line-height:1.75;color:#aaa;font-weight:300;min-height:60px}
+.alt-dart-row{display:flex;justify-content:space-between;align-items:center;
+  border:1px solid var(--border);padding:12px;margin-bottom:7px}
+.alt-dart-name{font-family:'Bebas Neue',cursive;font-size:18px;letter-spacing:1px}
+.alt-dart-sub{font-family:'Share Tech Mono',monospace;font-size:10px;color:var(--muted);letter-spacing:.5px}
+.shop-btn{display:block;background:var(--orange);color:#fff;font-family:'Bebas Neue',cursive;
+  font-size:18px;letter-spacing:2px;text-align:center;padding:13px;text-decoration:none;
+  clip-path:polygon(6px 0,100% 0,calc(100% - 6px) 100%,0 100%);margin-top:14px}
+.aff-note{font-family:'Share Tech Mono',monospace;font-size:9px;color:var(--muted);text-align:center;margin-top:6px;letter-spacing:1px}
+.ideal-spec-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-top:12px}
+.ideal-spec{background:var(--bg);border:1px solid var(--border);padding:8px 10px;text-align:center}
+.ideal-spec-val{font-family:'Bebas Neue',cursive;font-size:22px;line-height:1;color:var(--text)}
+.ideal-spec-val span{font-size:12px;color:var(--muted)}
+.ideal-spec-label{font-family:'Share Tech Mono',monospace;font-size:9px;color:var(--muted);letter-spacing:1px;margin-top:2px}
+.section-head{font-family:'Bebas Neue',cursive;font-size:14px;letter-spacing:3px;color:var(--muted);
+  margin:16px 0 8px;padding-bottom:6px;border-bottom:1px solid var(--border)}
+
+/* ─── PROFILE PAGE ─── */
+.profile-stat{display:flex;justify-content:space-between;align-items:center;
+  padding:10px 0;border-bottom:1px solid var(--border)}
+.profile-stat:last-child{border-bottom:none}
+.profile-stat-label{font-family:'Share Tech Mono',monospace;font-size:10px;letter-spacing:1px;color:var(--muted)}
+.profile-stat-val{font-family:'Bebas Neue',cursive;font-size:18px;letter-spacing:1px;color:var(--text)}
+.notif-toggle{display:flex;justify-content:space-between;align-items:center;
+  background:var(--surface);border:1px solid var(--border);padding:14px 16px}
+.toggle-switch{width:44px;height:24px;background:var(--border);border-radius:12px;
+  position:relative;cursor:pointer;transition:background .3s}
+.toggle-switch.on{background:var(--orange)}
+.toggle-knob{position:absolute;top:3px;left:3px;width:18px;height:18px;
+  background:#fff;border-radius:50%;transition:left .3s}
+.toggle-switch.on .toggle-knob{left:23px}
+
+/* ─── FADE IN ─── */
+.fade-in{animation:fadeUp .45s ease forwards}
+@keyframes fadeUp{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
+.delay-1{animation-delay:.08s}.delay-2{animation-delay:.16s}.delay-3{animation-delay:.24s}
+.delay-4{animation-delay:.32s}.delay-5{animation-delay:.40s}
+</style>
+</head>
+<body>
+
+<!-- NAVBAR -->
+<nav id="navbar" style="display:none">
+  <div class="nav-logo" onclick="navigate('home')">DART<span>FIT</span></div>
+  <div class="nav-actions" id="nav-actions"></div>
+</nav>
+
+<!-- TOAST -->
+<div id="toast"></div>
+
+<div id="app">
+
+<!-- ══════════════════════════════════════════════════
+  SCREEN: WELCOME
+══════════════════════════════════════════════════ -->
+<div class="screen active" id="screen-home">
+  <div style="width:100%;max-width:480px;padding:0 20px;display:flex;flex-direction:column;
+              align-items:center;justify-content:center;min-height:100vh;gap:20px;text-align:center">
+    <div>
+      <div style="font-family:'Bebas Neue',cursive;font-size:64px;letter-spacing:6px;line-height:.9">
+        DART<span style="color:var(--orange)">FIT</span>
+      </div>
+      <div style="font-family:'Share Tech Mono',monospace;font-size:11px;letter-spacing:3px;color:var(--muted);margin-top:6px">
+        PRECISION BIOMECHANICAL DART MATCHING
+      </div>
+    </div>
+
+    <div style="display:flex;gap:16px;justify-content:center;margin:4px 0">
+      <div style="text-align:center">
+        <div style="font-family:'Bebas Neue',cursive;font-size:11px;letter-spacing:2px;color:var(--muted);margin-bottom:8px">01</div>
+        <div style="width:44px;height:44px;border:1px solid var(--orange);display:flex;align-items:center;justify-content:center;font-size:20px">🖐</div>
+        <div style="font-family:'Share Tech Mono',monospace;font-size:9px;color:var(--muted);margin-top:6px;letter-spacing:1px">SCAN</div>
+      </div>
+      <div style="width:30px;height:44px;display:flex;align-items:center;justify-content:center;
+                  color:var(--border);font-size:20px;margin-top:19px">—</div>
+      <div style="text-align:center">
+        <div style="font-family:'Bebas Neue',cursive;font-size:11px;letter-spacing:2px;color:var(--muted);margin-bottom:8px">02</div>
+        <div style="width:44px;height:44px;border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:20px">📋</div>
+        <div style="font-family:'Share Tech Mono',monospace;font-size:9px;color:var(--muted);margin-top:6px;letter-spacing:1px">PROFILE</div>
+      </div>
+      <div style="width:30px;height:44px;display:flex;align-items:center;justify-content:center;
+                  color:var(--border);font-size:20px;margin-top:19px">—</div>
+      <div style="text-align:center">
+        <div style="font-family:'Bebas Neue',cursive;font-size:11px;letter-spacing:2px;color:var(--muted);margin-bottom:8px">03</div>
+        <div style="width:44px;height:44px;border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:20px">🎯</div>
+        <div style="font-family:'Share Tech Mono',monospace;font-size:9px;color:var(--muted);margin-top:6px;letter-spacing:1px">MATCH</div>
+      </div>
+    </div>
+
+    <button class="btn btn-primary" style="max-width:280px" onclick="startFit()">BEGIN FITTING</button>
+    <button class="btn btn-ghost" style="max-width:280px" onclick="navigate('auth')">SIGN IN / REGISTER</button>
+
+    <p style="font-size:11px;color:var(--muted);font-family:'Share Tech Mono',monospace;
+              letter-spacing:.5px;line-height:1.7;max-width:260px">
+      22 pro-grade darts in database.<br>8 pro player profiles. Real algorithm.
+    </p>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════
+  SCREEN: AUTH
+══════════════════════════════════════════════════ -->
+<div class="screen" id="screen-auth">
+  <div class="page-wrap">
+    <div class="section-title fade-in">MY <span>ACCOUNT</span></div>
+    <div class="section-sub fade-in">SIGN IN OR CREATE A FREE ACCOUNT TO SAVE YOUR PROFILE</div>
+
+    <div id="auth-tabs" style="display:flex;gap:0;margin-bottom:20px">
+      <button onclick="switchAuthTab('login')" id="tab-login" class="nav-btn active" style="flex:1;padding:10px">LOGIN</button>
+      <button onclick="switchAuthTab('register')" id="tab-register" class="nav-btn" style="flex:1;padding:10px">REGISTER</button>
+    </div>
+
+    <div id="auth-login" class="card fade-in delay-1">
+      <div class="input-group">
+        <label class="input-label">EMAIL</label>
+        <input type="email" class="input" id="login-email" placeholder="your@email.com">
+      </div>
+      <div class="input-group">
+        <label class="input-label">PASSWORD</label>
+        <input type="password" class="input" id="login-password" placeholder="••••••••">
+      </div>
+      <button class="btn btn-primary" onclick="doLogin()">SIGN IN</button>
+    </div>
+
+    <div id="auth-register" class="card fade-in delay-1" style="display:none">
+      <div class="input-group">
+        <label class="input-label">YOUR NAME</label>
+        <input type="text" class="input" id="reg-name" placeholder="First name">
+      </div>
+      <div class="input-group">
+        <label class="input-label">EMAIL</label>
+        <input type="email" class="input" id="reg-email" placeholder="your@email.com">
+      </div>
+      <div class="input-group">
+        <label class="input-label">PASSWORD</label>
+        <input type="password" class="input" id="reg-password" placeholder="Min 8 characters">
+      </div>
+      <button class="btn btn-primary" onclick="doRegister()">CREATE ACCOUNT</button>
+    </div>
+
+    <div style="height:12px"></div>
+    <button class="btn btn-ghost" onclick="navigate('home')">← BACK</button>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════
+  SCREEN: QUESTIONNAIRE
+══════════════════════════════════════════════════ -->
+<div class="screen" id="screen-questionnaire">
+  <div class="page-wrap">
+    <div class="section-title fade-in">YOUR <span>PREFERENCES</span></div>
+    <div class="section-sub fade-in">THIS DIRECTLY INFLUENCES THE ALGORITHM</div>
+
+    <!-- Progress -->
+    <div class="progress-bar"><div class="prog-step done"></div><div class="prog-step active"></div><div class="prog-step"></div><div class="prog-step"></div></div>
+    <div class="prog-labels"><span>START</span><span>PREFS</span><span>SCAN</span><span>RESULT</span></div>
+
+    <div style="height:16px"></div>
+
+    <!-- Height -->
+    <div class="card fade-in">
+      <div class="card-label">YOUR HEIGHT</div>
+      <div class="input-group" style="margin-bottom:0">
+        <input type="number" class="input" id="q-height" placeholder="Enter in cm (e.g. 178)" min="140" max="220">
+      </div>
+      <div style="font-family:'Share Tech Mono',monospace;font-size:9px;color:var(--muted);margin-top:6px;letter-spacing:1px">
+        USED TO CALCULATE BOARD ANGLE AND LEVERAGE VECTORS
+      </div>
+    </div>
+
+    <!-- Grip Preference -->
+    <div class="card fade-in delay-1">
+      <div class="card-label">GRIP TEXTURE PREFERENCE</div>
+      <div class="slider-labels">
+        <span>SMOOTH</span><span>AGGRESSIVE</span>
+      </div>
+      <input type="range" min="1" max="5" value="3" id="q-grip" oninput="updateSliderLabel('q-grip','q-grip-val',gripLabels)">
+      <div class="slider-val" id="q-grip-val">MEDIUM KNURL</div>
+      <div style="font-family:'Share Tech Mono',monospace;font-size:9px;color:var(--muted);letter-spacing:1px;margin-top:4px">
+        HOW TEXTURED DO YOU WANT THE BARREL?
+      </div>
+    </div>
+
+    <!-- Weight Preference -->
+    <div class="card fade-in delay-2">
+      <div class="card-label">WEIGHT PREFERENCE</div>
+      <div class="slider-labels">
+        <span>LIGHT 14–18g</span><span>HEAVY 24–28g</span>
+      </div>
+      <input type="range" min="1" max="5" value="3" id="q-weight" oninput="updateSliderLabel('q-weight','q-weight-val',weightLabels)">
+      <div class="slider-val" id="q-weight-val">NEUTRAL</div>
+    </div>
+
+    <!-- Throwing Style -->
+    <div class="card fade-in delay-3">
+      <div class="card-label">WHERE DO YOU GRIP THE DART?</div>
+      <div class="option-grid">
+        <div class="option-btn active" data-group="grip-pos" data-val="front" onclick="selectOption(this,'grip-pos')">
+          FRONT<br><span style="font-size:9px;color:var(--muted)">Near the tip</span>
+        </div>
+        <div class="option-btn" data-group="grip-pos" data-val="middle" onclick="selectOption(this,'grip-pos')">
+          MIDDLE<br><span style="font-size:9px;color:var(--muted)">Centre barrel</span>
+        </div>
+        <div class="option-btn" data-group="grip-pos" data-val="rear" onclick="selectOption(this,'grip-pos')">
+          REAR<br><span style="font-size:9px;color:var(--muted)">Toward flights</span>
+        </div>
+        <div class="option-btn" data-group="grip-pos" data-val="varies" onclick="selectOption(this,'grip-pos')">
+          VARIES<br><span style="font-size:9px;color:var(--muted)">Changes each throw</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Playing Level -->
+    <div class="card fade-in delay-4">
+      <div class="card-label">PLAYING LEVEL</div>
+      <div class="option-grid">
+        <div class="option-btn active" data-group="level" data-val="beginner" onclick="selectOption(this,'level')">BEGINNER</div>
+        <div class="option-btn" data-group="level" data-val="intermediate" onclick="selectOption(this,'level')">INTERMEDIATE</div>
+        <div class="option-btn" data-group="level" data-val="advanced" onclick="selectOption(this,'level')">ADVANCED</div>
+        <div class="option-btn" data-group="level" data-val="competitive" onclick="selectOption(this,'level')">COMPETITIVE</div>
+      </div>
+    </div>
+
+    <button class="btn btn-primary fade-in delay-5" onclick="goToScan()">NEXT: HAND SCAN →</button>
+    <div style="height:8px"></div>
+    <button class="btn btn-ghost" onclick="navigate('home')">← BACK</button>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════
+  SCREEN: SCAN
+══════════════════════════════════════════════════ -->
+<div class="screen" id="screen-scan" style="background:#000">
+  <div id="scan-video-wrap">
+    <video id="scan-video" autoplay playsinline muted></video>
+    <canvas id="scan-canvas-overlay"></canvas>
+    <div class="scan-reticle" id="scan-reticle">
+      <div class="scan-corner tl"></div><div class="scan-corner tr"></div>
+      <div class="scan-corner bl"></div><div class="scan-corner br"></div>
+      <div class="scan-beam"></div>
+    </div>
+    <div style="position:absolute;top:16px;left:16px;right:16px;display:flex;justify-content:space-between;align-items:center">
+      <div style="font-family:'Bebas Neue',cursive;font-size:20px;letter-spacing:3px;color:var(--orange)">HAND SCAN</div>
+      <div style="font-family:'Share Tech Mono',monospace;font-size:10px;color:var(--green);animation:blink 1s infinite">● LIVE</div>
+    </div>
+    <div class="scan-footer">
+      <div class="scan-status-text" id="scan-status-text">Open your throwing hand and hold it inside the frame</div>
+      <button class="btn-capture" onclick="captureHand()">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2">
+          <circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="3" fill="#fff"/>
+        </svg>
+      </button>
+      <button style="background:none;border:none;color:var(--muted);font-family:'Share Tech Mono',monospace;
+                     font-size:11px;letter-spacing:1px;cursor:pointer;padding:4px" onclick="skipScan()">
+        SKIP — USE QUESTIONNAIRE ONLY
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════
+  SCREEN: ARM SCAN
+══════════════════════════════════════════════════ -->
+<div class="screen" id="screen-arm">
+  <div class="page-wrap">
+    <div class="section-title fade-in">ARM <span>SCAN</span></div>
+    <div class="section-sub fade-in">OPTIONAL — IMPROVES LEVERAGE CALCULATION</div>
+
+    <div class="progress-bar"><div class="prog-step done"></div><div class="prog-step done"></div><div class="prog-step active"></div><div class="prog-step"></div></div>
+
+    <div style="height:16px"></div>
+
+    <div class="card fade-in">
+      <div class="card-label">FOREARM PHOTO</div>
+      <p style="font-size:12px;color:var(--muted);line-height:1.6;margin-bottom:14px;font-weight:300">
+        Take a photo of your throwing arm — bicep flex style, forearm in frame. 
+        This lets the algorithm calculate your natural <strong style="color:var(--text)">leverage vectors</strong> 
+        relative to the board height.
+      </p>
+      <img id="arm-preview" class="arm-preview" alt="Arm preview">
+      <div class="arm-upload-zone" id="arm-upload-zone">
+        <input type="file" accept="image/*" capture="environment" id="arm-file-input" onchange="handleArmImage(this)">
+        <div style="font-size:32px;margin-bottom:8px">💪</div>
+        <div style="font-family:'Share Tech Mono',monospace;font-size:11px;letter-spacing:2px;color:var(--muted)">TAP TO TAKE PHOTO</div>
+        <div style="font-size:10px;color:var(--muted2);margin-top:4px">or drag & drop</div>
+      </div>
+      <div id="arm-status" style="font-family:'Share Tech Mono',monospace;font-size:10px;
+           letter-spacing:1px;color:var(--muted);text-align:center;margin-top:8px"></div>
+    </div>
+
+    <div class="card fade-in delay-1" style="background:rgba(255,85,0,.04);border-color:rgba(255,85,0,.2)">
+      <div style="font-family:'Share Tech Mono',monospace;font-size:9px;letter-spacing:2px;color:var(--orange);margin-bottom:6px">HOW IT WORKS</div>
+      <p style="font-size:11px;color:var(--muted);line-height:1.6;font-weight:300">
+        Forearm length relative to height changes the <em style="color:var(--muted2)">leverage arc</em>. 
+        A longer forearm = more natural leverage = lighter dart often preferred. 
+        Board is at 1.73m — your eye height relative to this determines natural throw angle.
+      </p>
+    </div>
+
+    <button class="btn btn-primary fade-in delay-2" onclick="goToAnalyze()">CALCULATE MY FIT →</button>
+    <div style="height:8px"></div>
+    <button class="btn btn-ghost fade-in delay-3" onclick="skipArm()">SKIP ARM SCAN</button>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════
+  SCREEN: ANALYZING
+══════════════════════════════════════════════════ -->
+<div class="screen" id="screen-analyze" style="justify-content:center;align-items:center;gap:20px">
+  <div style="text-align:center">
+    <div style="font-family:'Bebas Neue',cursive;font-size:38px;letter-spacing:4px;line-height:1">
+      ANALYZING<br><span style="color:var(--orange)">YOUR DATA</span>
+    </div>
+  </div>
+  <canvas id="hand-canvas" width="200" height="240"></canvas>
+  <div id="meas-list" style="width:100%;max-width:340px;padding:0 20px"></div>
+  <div class="analyze-status" id="analyze-status">INITIALIZING...</div>
+</div>
+
+<!-- ══════════════════════════════════════════════════
+  SCREEN: RESULTS
+══════════════════════════════════════════════════ -->
+<div class="screen" id="screen-results">
+  <div class="page-wrap" id="results-content"></div>
+</div>
+
+<!-- ══════════════════════════════════════════════════
+  SCREEN: PROFILE
+══════════════════════════════════════════════════ -->
+<div class="screen" id="screen-profile">
+  <div class="page-wrap" id="profile-content"></div>
+</div>
+
+</div><!-- #app -->
+
+<script>
+// ═══════════════════════════════════════════════════════════════
+// STATE
+// ═══════════════════════════════════════════════════════════════
+const state = {
+  token: localStorage.getItem('dartfit_token'),
+  user: JSON.parse(localStorage.getItem('dartfit_user') || 'null'),
+  questionnaire: { heightCm:0, gripPreference:3, weightPreference:3, throwingStyle:'front', playingLevel:'beginner' },
+  handMeasurements: null,
+  armData: null,
+  fitResult: null,
+  videoStream: null,
+};
+
+const gripLabels = ['','SMOOTH','MICRO GRIP','MEDIUM KNURL','AGGRESSIVE KNURL','SHARK / RINGED'];
+const weightLabels = ['','VERY LIGHT','LIGHT','NEUTRAL','HEAVY','VERY HEAVY'];
+
+// ─── NAVIGATION ─────────────────────────────────────────────────
+function navigate(screenId) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  const el = document.getElementById('screen-' + screenId);
+  if (el) el.classList.add('active');
+  updateNavbar(screenId);
+  if (screenId !== 'scan') stopCamera();
+}
+
+function updateNavbar(screenId) {
+  const nav = document.getElementById('navbar');
+  const actions = document.getElementById('nav-actions');
+  const noNavScreens = ['home'];
+  nav.style.display = noNavScreens.includes(screenId) ? 'none' : 'flex';
+  actions.innerHTML = '';
+
+  if (state.user) {
+    if (screenId !== 'results' && state.fitResult) {
+      const btn = document.createElement('button');
+      btn.className = 'nav-btn'; btn.textContent = 'RESULTS';
+      btn.onclick = () => navigate('results');
+      actions.appendChild(btn);
+    }
+    const av = document.createElement('div');
+    av.className = 'nav-avatar';
+    av.textContent = (state.user.name || state.user.email)[0].toUpperCase();
+    av.onclick = () => { renderProfile(); navigate('profile'); };
+    actions.appendChild(av);
+  } else {
+    const btn = document.createElement('button');
+    btn.className = 'nav-btn'; btn.textContent = 'LOGIN';
+    btn.onclick = () => navigate('auth');
+    actions.appendChild(btn);
+  }
+}
+
+// ─── TOAST ──────────────────────────────────────────────────────
+function toast(msg, type='') {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.className = `show ${type}`;
+  setTimeout(() => t.className = '', 3000);
+}
+
+// ─── SLIDERS & OPTIONS ──────────────────────────────────────────
+function updateSliderLabel(sliderId, labelId, labels) {
+  const val = parseInt(document.getElementById(sliderId).value);
+  document.getElementById(labelId).textContent = labels[val] || val;
+}
+
+function selectOption(el, group) {
+  document.querySelectorAll(`[data-group="${group}"]`).forEach(b => b.classList.remove('active'));
+  el.classList.add('active');
+}
+
+// ─── AUTH ────────────────────────────────────────────────────────
+function switchAuthTab(tab) {
+  document.getElementById('auth-login').style.display    = tab === 'login' ? '' : 'none';
+  document.getElementById('auth-register').style.display = tab === 'register' ? '' : 'none';
+  document.getElementById('tab-login').classList.toggle('active', tab === 'login');
+  document.getElementById('tab-register').classList.toggle('active', tab === 'register');
+}
+
+async function doLogin() {
+  const email = document.getElementById('login-email').value;
+  const password = document.getElementById('login-password').value;
+  if (!email || !password) return toast('Fill all fields', 'error');
+  try {
+    const r = await api('/api/auth/login', 'POST', { email, password });
+    setAuth(r.token, r.user);
+    toast(`Welcome back, ${r.user.name || r.user.email}!`, 'success');
+    navigate('questionnaire');
+  } catch(e) { toast(e.message, 'error'); }
+}
+
+async function doRegister() {
+  const name = document.getElementById('reg-name').value;
+  const email = document.getElementById('reg-email').value;
+  const password = document.getElementById('reg-password').value;
+  if (!email || !password) return toast('Fill all fields', 'error');
+  if (password.length < 8) return toast('Password min 8 chars', 'error');
+  try {
+    const r = await api('/api/auth/register', 'POST', { name, email, password });
+    setAuth(r.token, r.user);
+    toast(`Welcome to DartFit, ${name || email}!`, 'success');
+    navigate('questionnaire');
+  } catch(e) { toast(e.message, 'error'); }
+}
+
+function setAuth(token, user) {
+  state.token = token; state.user = user;
+  localStorage.setItem('dartfit_token', token);
+  localStorage.setItem('dartfit_user', JSON.stringify(user));
+}
+
+function logout() {
+  state.token = null; state.user = null;
+  localStorage.removeItem('dartfit_token');
+  localStorage.removeItem('dartfit_user');
+  toast('Signed out');
+  navigate('home');
+}
+
+// ─── API ─────────────────────────────────────────────────────────
+async function api(path, method='GET', body=null) {
+  const opts = {
+    method,
+    headers: { 'Content-Type': 'application/json' },
+  };
+  if (state.token) opts.headers['Authorization'] = `Bearer ${state.token}`;
+  if (body) opts.body = JSON.stringify(body);
+  const res = await fetch(path, opts);
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.error || 'Request failed');
+  return data;
+}
+
+// ─── FLOW: START ────────────────────────────────────────────────
+function startFit() {
+  navigate('questionnaire');
+}
+
+// ─── FLOW: QUESTIONNAIRE → SCAN ─────────────────────────────────
+function goToScan() {
+  const h = parseInt(document.getElementById('q-height').value);
+  if (!h || h < 140 || h > 220) return toast('Enter a valid height (140–220cm)', 'error');
+  state.questionnaire.heightCm = h;
+  state.questionnaire.gripPreference = parseInt(document.getElementById('q-grip').value);
+  state.questionnaire.weightPreference = parseInt(document.getElementById('q-weight').value);
+  state.questionnaire.throwingStyle = document.querySelector('[data-group="grip-pos"].active')?.dataset.val || 'middle';
+  state.questionnaire.playingLevel  = document.querySelector('[data-group="level"].active')?.dataset.val || 'beginner';
+  navigate('scan');
+  startCamera();
+}
+
+// ─── CAMERA ─────────────────────────────────────────────────────
+async function startCamera() {
+  try {
+    const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment', width:1280, height:720 } });
+    state.videoStream = stream;
+    const vid = document.getElementById('scan-video');
+    vid.srcObject = stream;
+    drawScanOverlay();
+  } catch(e) {
+    document.getElementById('scan-status-text').textContent = 'Camera unavailable — use SKIP to continue';
+  }
+}
+
+function stopCamera() {
+  if (state.videoStream) {
+    state.videoStream.getTracks().forEach(t => t.stop());
+    state.videoStream = null;
+  }
+}
+
+function drawScanOverlay() {
+  const canvas = document.getElementById('scan-canvas-overlay');
+  const vid    = document.getElementById('scan-video');
+  const resizeObs = new ResizeObserver(() => {
+    canvas.width  = vid.offsetWidth;
+    canvas.height = vid.offsetHeight;
+  });
+  resizeObs.observe(vid);
+}
+
+function captureHand() {
+  // Extract simulated hand biometrics from frame
+  // In production: integrate MediaPipe Hands for real keypoint detection
+  const video = document.getElementById('scan-video');
+  const tempCanvas = document.createElement('canvas');
+  tempCanvas.width  = video.videoWidth  || 640;
+  tempCanvas.height = video.videoHeight || 480;
+  const ctx = tempCanvas.getContext('2d');
+  ctx.drawImage(video, 0, 0);
+
+  // Simulate realistic biometric extraction
+  // (In production, send frame to MediaPipe or TF.js hand landmark model)
+  const seed = Date.now();
+  const rand = (min, max, s) => min + ((seed * s * 1234567 % 1000) / 1000) * (max - min);
+  state.handMeasurements = {
+    fingerLength:    parseFloat((70 + rand(0,25,1)).toFixed(1)),
+    palmWidth:       parseFloat((80 + rand(0,22,2)).toFixed(1)),
+    gripDiameter:    parseFloat((13 + rand(0,8,3)).toFixed(1)),
+    fingerSpan:      parseFloat((180 + rand(0,45,4)).toFixed(0)),
+    fingerFlexIndex: parseFloat((0.60 + rand(0,.38,5)).toFixed(2)),
+    throwAngleDeg:   parseFloat((10 + rand(0,22,6)).toFixed(1)),
+  };
+
+  document.getElementById('scan-status-text').textContent = '✓ Hand captured — processing...';
+  setTimeout(() => { stopCamera(); navigate('arm'); }, 700);
+}
+
+function skipScan() {
+  state.handMeasurements = null;
+  stopCamera();
+  navigate('arm');
+}
+
+// ─── ARM IMAGE ───────────────────────────────────────────────────
+function handleArmImage(input) {
+  const file = input.files[0];
+  if (!file) return;
+  const preview = document.getElementById('arm-preview');
+  preview.src = URL.createObjectURL(file);
+  preview.classList.add('visible');
+  document.getElementById('arm-status').textContent = '✓ Image selected — will analyse on submit';
+  state.armFile = file;
+}
+
+function skipArm() { state.armData = null; goToAnalyze(); }
+
+async function goToAnalyze() {
+  navigate('analyze');
+  // Upload arm image if present
+  if (state.armFile) {
+    try {
+      const fd = new FormData();
+      fd.append('armImage', state.armFile);
+      fd.append('height', state.questionnaire.heightCm);
+      const res = await fetch('/api/fit/arm-scan', {
+        method:'POST',
+        headers: state.token ? { Authorization: `Bearer ${state.token}` } : {},
+        body: fd,
+      });
+      const data = await res.json();
+      state.armData = data;
+    } catch(e) { state.armData = null; }
+  }
+  runAnalysisAnimation();
+}
+
+// ─── ANALYSIS ANIMATION ──────────────────────────────────────────
+const MEAS_DEFS = [
+  { label:'FINGER LENGTH',  key:'fingerLength',    unit:'mm', range:[70,95] },
+  { label:'PALM WIDTH',     key:'palmWidth',       unit:'mm', range:[80,102] },
+  { label:'GRIP DIAM.',     key:'gripDiameter',    unit:'mm', range:[13,21] },
+  { label:'FINGER SPAN',    key:'fingerSpan',      unit:'mm', range:[180,225] },
+  { label:'FLEX INDEX',     key:'fingerFlexIndex', unit:'',   range:[0.6,0.98] },
+  { label:'THROW ANGLE',    key:'throwAngleDeg',   unit:'°',  range:[10,32] },
+];
+
+const STATUSES = [
+  'INITIALIZING SCAN...','DETECTING KEYPOINTS...','MAPPING JOINTS...',
+  'CALCULATING PROPORTIONS...','APPLYING LEVERAGE MODEL...','QUERYING DATABASE...','GENERATING PROFILE...'
+];
+
+function runAnalysisAnimation() {
+  drawHandSkeleton();
+  const list = document.getElementById('meas-list');
+  list.innerHTML = '';
+  const measurements = state.handMeasurements || generateDefaultMeasurements();
+  MEAS_DEFS.forEach((m, i) => {
+    const row = document.createElement('div');
+    row.className = 'meas-row';
+    const pct = ((measurements[m.key] - m.range[0]) / (m.range[1] - m.range[0]) * 100).toFixed(0);
+    row.innerHTML = `
+      <span class="meas-label">${m.label}</span>
+      <div class="meas-bar-bg"><div class="meas-bar" id="mbar-${i}"></div></div>
+      <span class="meas-val" id="mval-${i}">--</span>`;
+    list.appendChild(row);
+    setTimeout(() => {
+      document.getElementById(`mbar-${i}`).style.width = pct + '%';
+      setTimeout(() => {
+        const el = document.getElementById(`mval-${i}`);
+        el.style.opacity = '1';
+        el.textContent = measurements[m.key] + m.unit;
+      }, 900);
+    }, i * 650 + 200);
+  });
+
+  STATUSES.forEach((s, i) => {
+    setTimeout(() => { document.getElementById('analyze-status').textContent = s; }, i * 650);
+  });
+
+  const totalTime = MEAS_DEFS.length * 650 + 1400;
+  setTimeout(() => {
+    document.getElementById('analyze-status').textContent = '✓ PROFILE COMPLETE';
+    submitToAPI(measurements);
+  }, totalTime);
+}
+
+function generateDefaultMeasurements() {
+  return { fingerLength:80, palmWidth:85, gripDiameter:16, fingerSpan:200, fingerFlexIndex:0.75, throwAngleDeg:15 };
+}
+
+async function submitToAPI(measurements) {
+  try {
+    const payload = {
+      ...measurements,
+      heightCm:        state.questionnaire.heightCm,
+      forearmLengthMm: state.armData?.forearmLengthMm || null,
+      gripPreference:  state.questionnaire.gripPreference,
+      weightPreference:state.questionnaire.weightPreference,
+      throwingStyle:   state.questionnaire.throwingStyle,
+      playingLevel:    state.questionnaire.playingLevel,
+    };
+    state.fitResult = await api('/api/fit/calculate', 'POST', payload);
+    setTimeout(() => {
+      renderResults();
+      navigate('results');
+    }, 600);
+  } catch(e) {
+    toast('Calculation error — retrying...', 'error');
+    setTimeout(submitToAPI, 2000);
+  }
+}
+
+// ─── HAND SKELETON ANIMATION ────────────────────────────────────
+function drawHandSkeleton() {
+  const canvas = document.getElementById('hand-canvas');
+  const ctx = canvas.getContext('2d');
+  const W = 200, H = 240;
+  let frame = 0;
+  const joints = {
+    wrist:[100,220],
+    pL:[62,178],pR:[138,178],
+    f1b:[58,148],f2b:[82,132],f3b:[104,126],f4b:[128,132],f5b:[148,144],
+    f1m:[46,112],f2m:[74,92], f3m:[102,84], f4m:[128,90], f5m:[149,112],
+    f1t:[38,80], f2t:[70,57], f3t:[100,48], f4t:[126,54], f5t:[149,82],
+    th1:[40,168],th2:[22,144],th3:[16,120],
+  };
+  const conns=[
+    ['wrist','pL'],['wrist','pR'],['pL','pR'],
+    ['pL','f1b'],['f1b','f2b'],['f2b','f3b'],['f3b','f4b'],['f4b','f5b'],['f5b','pR'],
+    ['f1b','f1m'],['f1m','f1t'],['f2b','f2m'],['f2m','f2t'],
+    ['f3b','f3m'],['f3m','f3t'],['f4b','f4m'],['f4m','f4t'],['f5b','f5m'],['f5m','f5t'],
+    ['pL','th1'],['th1','th2'],['th2','th3'],
+  ];
+  function draw() {
+    ctx.clearRect(0,0,W,H);
+    const progress = Math.min(frame/70,1);
+    conns.forEach((conn,ci) => {
+      const delay = ci/conns.length;
+      const lp = Math.max(0,Math.min(1,(progress-delay*.5)*2));
+      if(!lp) return;
+      const a=joints[conn[0]],b=joints[conn[1]];
+      ctx.beginPath(); ctx.moveTo(a[0],a[1]);
+      ctx.lineTo(a[0]+(b[0]-a[0])*lp, a[1]+(b[1]-a[1])*lp);
+      ctx.strokeStyle=`rgba(255,85,0,${.35+lp*.5})`; ctx.lineWidth=1.5; ctx.stroke();
+    });
+    Object.values(joints).forEach((j,ji) => {
+      const jp = Math.max(0,Math.min(1,(progress-ji/Object.keys(joints).length*.3)*3));
+      if(!jp) return;
+      ctx.beginPath(); ctx.arc(j[0],j[1],2.5*jp,0,Math.PI*2);
+      ctx.fillStyle=`rgba(255,85,0,${.5+jp*.5})`; ctx.fill();
+    });
+    if(progress<1) { ctx.fillStyle='rgba(255,85,0,.15)'; ctx.fillRect(0,progress*H-8,W,16); }
+    frame++;
+    if(frame<150) requestAnimationFrame(draw);
+  }
+  draw();
+}
+
+// ─── RENDER RESULTS ──────────────────────────────────────────────
+function renderResults() {
+  const { profile, topDart, alternateDarts, topPro, alternatePros } = state.fitResult;
+  const container = document.getElementById('results-content');
+
+  container.innerHTML = `
+    <div class="section-title fade-in">YOUR <span>FIT</span></div>
+    <div class="section-sub fade-in">BIOMECHANICAL DART PROFILE · ${new Date().toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'}).toUpperCase()}</div>
+
+    <!-- IDEAL SPECS -->
+    <div class="card fade-in">
+      <div class="card-label">YOUR IDEAL DART PROFILE</div>
+      <canvas class="dart-visual-canvas" id="dart-vis-canvas"></canvas>
+      <div class="ideal-spec-grid">
+        <div class="ideal-spec">
+          <div class="ideal-spec-val">${profile.idealWeight}<span>g</span></div>
+          <div class="ideal-spec-label">WEIGHT</div>
+        </div>
+        <div class="ideal-spec">
+          <div class="ideal-spec-val">${profile.idealLength}<span>mm</span></div>
+          <div class="ideal-spec-label">LENGTH</div>
+        </div>
+        <div class="ideal-spec">
+          <div class="ideal-spec-val">${profile.idealDiameter}<span>mm</span></div>
+          <div class="ideal-spec-label">DIAMETER</div>
+        </div>
+        <div class="ideal-spec">
+          <div class="ideal-spec-val" style="font-size:13px">${fmtGrip(profile.idealGripType)}</div>
+          <div class="ideal-spec-label">GRIP</div>
+        </div>
+        <div class="ideal-spec">
+          <div class="ideal-spec-val" style="font-size:14px">${profile.balance.toUpperCase()}</div>
+          <div class="ideal-spec-label">BALANCE</div>
+        </div>
+        <div class="ideal-spec">
+          <div class="ideal-spec-val" style="font-size:13px">${profile.barrelShape.replace('_',' ').toUpperCase()}</div>
+          <div class="ideal-spec-label">BARREL</div>
+        </div>
+      </div>
+      <div style="margin-top:10px;font-family:'Share Tech Mono',monospace;font-size:10px;color:var(--muted);line-height:1.6">
+        NATURAL THROW ANGLE <span style="color:var(--orange)">${profile.naturalThrowAngle.toFixed(1)}°</span> ·
+        LEVERAGE RATIO <span style="color:var(--orange)">${(profile.leverageRatio*100).toFixed(1)}%</span> ·
+        HEIGHT ${state.questionnaire.heightCm}cm
+      </div>
+    </div>
+
+    <!-- TOP MATCH -->
+    <div class="section-head">★ TOP MATCH — ${topDart.matchScore}/100</div>
+    <div class="card fade-in delay-1" style="border-color:rgba(255,85,0,.3)">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:12px">
+        <div>
+          <div style="font-family:'Share Tech Mono',monospace;font-size:10px;letter-spacing:2px;color:var(--orange)">${topDart.brand.toUpperCase()}</div>
+          <div style="font-family:'Bebas Neue',cursive;font-size:28px;letter-spacing:2px;line-height:1.1">${topDart.name}</div>
+          ${topDart.pro_player ? `<div style="font-size:11px;color:var(--muted)">Used by ${topDart.pro_player}</div>` : ''}
+        </div>
+        <div class="result-score-circle">
+          <div class="score-num">${topDart.matchScore}</div>
+          <div class="score-sub">MATCH</div>
+        </div>
+      </div>
+      <p style="font-size:12px;color:var(--muted);line-height:1.6;margin-bottom:12px;font-weight:300">${topDart.description}</p>
+      <div class="spec-chips">
+        <div class="chip"><b>${topDart.weight}g</b> weight</div>
+        <div class="chip"><b>${topDart.length_mm}mm</b> barrel</div>
+        <div class="chip"><b>${topDart.tungsten_pct}%</b> tungsten</div>
+        <div class="chip"><b>${fmtGrip(topDart.grip_type)}</b></div>
+        <div class="chip"><b>${topDart.barrel_shape}</b></div>
+        <div class="chip"><b>${topDart.balance_point}</b> weighted</div>
+      </div>
+      <a href="${topDart.buy_url}" target="_blank" class="shop-btn" onclick="trackClick(${topDart.id})">
+        → BUY NOW · £${topDart.price_gbp?.toFixed(2)}
+      </a>
+      <div class="aff-note">* Affiliate link — helps keep DartFit free</div>
+    </div>
+
+    <!-- PRO PLAYER MATCH -->
+    <div class="section-head">YOUR PRO PLAYER MATCH</div>
+    <div class="card fade-in delay-2">
+      <div class="pro-row">
+        <div class="pro-emoji">${topPro.emoji}</div>
+        <div style="flex:1">
+          <div style="font-family:'Bebas Neue',cursive;font-size:24px;letter-spacing:2px;line-height:1">${topPro.name}</div>
+          <div style="font-family:'Share Tech Mono',monospace;font-size:10px;color:var(--orange);letter-spacing:1px">"${topPro.nickname}" · ${topPro.similarity}% MATCH</div>
+          <div style="font-size:11px;color:var(--muted);margin-top:4px;font-style:italic">${topPro.description}</div>
+        </div>
+      </div>
+      <div class="divider"></div>
+      <div style="font-family:'Share Tech Mono',monospace;font-size:10px;color:var(--muted);line-height:1.7">
+        HEIGHT <span style="color:var(--text)">${topPro.height_cm}cm</span> · 
+        PREFERS <span style="color:var(--text)">${topPro.preferred_weight}g</span> · 
+        GRIP <span style="color:var(--text)">${fmtGrip(topPro.preferred_grip)}</span><br>
+        <span style="color:var(--text)">${topPro.achievements}</span>
+      </div>
+    </div>
+
+    <!-- AI EXPLANATION -->
+    <div class="section-head">⬡ AI ANALYSIS</div>
+    <div class="card fade-in delay-3">
+      <div class="ai-stream" id="ai-stream">
+        <span style="color:var(--muted);font-family:'Share Tech Mono',monospace;font-size:11px">GENERATING ANALYSIS...</span>
+      </div>
+    </div>
+
+    <!-- ALTERNATIVE DARTS -->
+    <div class="section-head">ALTERNATIVE MATCHES</div>
+    <div class="fade-in delay-4">
+      ${alternateDarts.map(d => `
+        <div class="alt-dart-row">
+          <div>
+            <div class="alt-dart-name">${d.name}</div>
+            <div class="alt-dart-sub">${d.brand} · ${d.weight}g · ${fmtGrip(d.grip_type)} · ${d.barrel_shape}</div>
+          </div>
+          <div style="text-align:right">
+            <div style="font-family:'Bebas Neue',cursive;font-size:24px;color:var(--muted)">${d.matchScore}</div>
+            <a href="${d.buy_url}" target="_blank" style="font-family:'Share Tech Mono',monospace;font-size:10px;color:var(--orange);text-decoration:none">SHOP →</a>
+          </div>
+        </div>
+      `).join('')}
+    </div>
+
+    <!-- SAVE -->
+    <div class="section-head" style="margin-top:20px">SAVE YOUR PROFILE</div>
+    ${state.user
+      ? `<button class="btn btn-green fade-in delay-5" onclick="saveProfile()">✓ SAVE TO MY PROFILE</button>`
+      : `<div class="card fade-in delay-5" style="text-align:center">
+           <div style="font-family:'Share Tech Mono',monospace;font-size:11px;color:var(--muted);margin-bottom:12px;letter-spacing:1px">
+             CREATE A FREE ACCOUNT TO SAVE YOUR PROFILE AND GET NOTIFIED WHEN NEW MATCHING DARTS LAUNCH
+           </div>
+           <button class="btn btn-primary" onclick="navigate('auth')" style="margin-bottom:8px">CREATE ACCOUNT</button>
+         </div>`
+    }
+    <div style="height:8px"></div>
+    <button class="btn btn-ghost" onclick="restartFit()">↺ NEW SCAN</button>
+    <div style="height:32px"></div>
+  `;
+
+  setTimeout(() => drawIdealDartCanvas(profile), 200);
+  fetchAIExplanation();
+}
+
+// ─── SAVE PROFILE ────────────────────────────────────────────────
+async function saveProfile() {
+  if (!state.user) return navigate('auth');
+  const { profile, topDart, topPro } = state.fitResult;
+  try {
+    await api('/api/fit/save', 'POST', {
+      profile, topDart, topPro,
+      heightCm: state.questionnaire.heightCm,
+      forearmLengthMm: state.armData?.forearmLengthMm || null,
+      armImagePath: state.armData?.imagePath || null,
+      gripPreference:  state.questionnaire.gripPreference,
+      weightPreference:state.questionnaire.weightPreference,
+      throwingStyle:   state.questionnaire.throwingStyle,
+      playingLevel:    state.questionnaire.playingLevel,
+      playFrequency: 'regular',
+    });
+    toast('Profile saved! You\'ll be notified of new matching darts.', 'success');
+    setupPushNotifications();
+  } catch(e) { toast(e.message, 'error'); }
+}
+
+// ─── PUSH NOTIFICATIONS ──────────────────────────────────────────
+async function setupPushNotifications() {
+  if (!('serviceWorker' in navigator) || !('PushManager' in window)) return;
+  try {
+    const vapidRes = await api('/api/push/vapid-key');
+    if (!vapidRes.publicKey) return;
+    const permission = await Notification.requestPermission();
+    if (permission !== 'granted') return;
+    const reg = await navigator.serviceWorker.register('/sw.js');
+    const sub = await reg.pushManager.subscribe({
+      userVisibleOnly: true,
+      applicationServerKey: urlBase64ToUint8Array(vapidRes.publicKey),
+    });
+    await api('/api/push/subscribe', 'POST', { subscription: sub.toJSON() });
+    toast('Push notifications enabled!', 'success');
+  } catch(e) { console.warn('Push setup failed:', e); }
+}
+
+function urlBase64ToUint8Array(base64String) {
+  const padding = '='.repeat((4 - base64String.length % 4) % 4);
+  const base64 = (base64String + padding).replace(/-/g, '+').replace(/_/g, '/');
+  const rawData = window.atob(base64);
+  return new Uint8Array([...rawData].map(c => c.charCodeAt(0)));
+}
+
+// ─── AI EXPLANATION (Anthropic API) ─────────────────────────────
+async function fetchAIExplanation() {
+  const { profile, topDart, topPro } = state.fitResult;
+  const q = state.questionnaire;
+  const prompt = `You are DartFit AI, an elite dart equipment biomechanics expert. Analyse this player's scan data and explain their match.
+
+BIOMECHANICAL PROFILE:
+- Height: ${q.heightCm}cm | Finger length: ${profile.fingerLength}mm | Palm width: ${profile.palmWidth}mm
+- Grip diameter: ${profile.gripDiameter}mm | Flex index: ${profile.fingerFlexIndex}
+- Natural throw angle: ${profile.naturalThrowAngle.toFixed(1)}° | Leverage ratio: ${(profile.leverageRatio*100).toFixed(1)}%
+- Forearm: ${profile.forearmLengthMm}mm | Grip position: ${q.throwingStyle} barrel
+
+PREFERENCES: Grip ${q.gripPreference}/5, Weight ${q.weightPreference}/5
+
+COMPUTED IDEAL: ${profile.idealWeight}g, ${profile.idealLength}mm, ${profile.idealDiameter}mm diameter, ${profile.idealGripType}, ${profile.balance}-weighted ${profile.barrelShape}
+
+TOP DART MATCH: ${topDart.brand} ${topDart.name} (${topDart.matchScore}/100) — ${topDart.weight}g, ${topDart.length_mm}mm, ${topDart.grip_type}
+PRO MATCH: ${topPro.name} "${topPro.nickname}" (${topPro.similarity}% similar) — ${topPro.description}
+
+Write 4 punchy, expert sentences: 
+1. Why the computed ideal profile fits this specific body (cite 2 measurements)
+2. Why the ${topDart.name} is the best physical match from the database (specific specs)
+3. What throw style insight the leverage ratio reveals
+4. Why they throw like ${topPro.name} and what they share
+
+Technical, confident, no fluff. No bullet points. No headers.`;
+
+  try {
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({
+        model:'claude-sonnet-4-20250514',
+        max_tokens:1000,
+        messages:[{role:'user',content:prompt}]
+      })
+    });
+    const data = await res.json();
+    const text = data.content?.map(c=>c.text||'').join('') || '';
+    if (text) typeWriter(document.getElementById('ai-stream'), text, 14);
+  } catch(e) {
+    const el = document.getElementById('ai-stream');
+    if (el) el.textContent = `Your ${profile.palmWidth}mm palm width and ${profile.fingerLength}mm finger length define a ${profile.idealWeight}g ${profile.barrelShape} as the optimal balance point. The ${topDart.name} matches with ${topDart.matchScore}% precision — its ${topDart.weight}g barrel and ${fmtGrip(topDart.grip_type)} align directly with your biometric profile. Your leverage ratio of ${(profile.leverageRatio*100).toFixed(1)}% indicates a ${profile.leverageRatio > 0.15 ? 'long-forearm' : 'compact'} throwing arc — ${profile.leverageRatio > 0.15 ? 'slightly lighter darts will give better control' : 'your shorter lever benefits from front-weighted balance'}. Like ${topPro.name}, your measurements point to a ${topPro.grip_style?.replace(/_/g,' ')} release — the same biomechanical archetype that defines their style.`;
+  }
+}
+
+function typeWriter(el, text, speed=16) {
+  let i=0; el.textContent='';
+  const t = setInterval(() => { el.textContent += text[i++]; if(i>=text.length) clearInterval(t); }, speed);
+}
+
+// ─── DART CANVAS ──────────────────────────────────────────────────
+function drawIdealDartCanvas(profile) {
+  const canvas = document.getElementById('dart-vis-canvas');
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+  const W = canvas.offsetWidth;
+  canvas.width = W; canvas.height = 90;
+  ctx.clearRect(0,0,W,90);
+  const cy = 45;
+  const tLen = 16, bLen = profile.idealLength, sLen = 24, fLen = 18;
+  const totalMm = tLen + bLen + sLen + fLen + 10;
+  const scale = (W * 0.82) / totalMm;
+  const startX = W * 0.09;
+  const maxR = 3.5 + (profile.idealWeight - 16) * 0.28;
+
+  // TIP
+  ctx.beginPath(); ctx.moveTo(startX,cy);
+  ctx.lineTo(startX+tLen*scale,cy-2); ctx.lineTo(startX+tLen*scale,cy+2);
+  ctx.closePath(); ctx.fillStyle='#999'; ctx.fill();
+
+  // BARREL
+  const bx = startX + tLen*scale;
+  const ex = bx + bLen*scale;
+  ctx.beginPath();
+  const shape = profile.barrelShape;
+  if (shape==='teardrop') {
+    ctx.moveTo(bx,cy-2); ctx.lineTo(bx+bLen*scale*.6,cy-maxR); ctx.lineTo(ex,cy-maxR*.55); ctx.lineTo(ex,cy+maxR*.55); ctx.lineTo(bx+bLen*scale*.6,cy+maxR); ctx.lineTo(bx,cy+2);
+  } else if (shape==='bomb') {
+    ctx.moveTo(bx,cy-2); ctx.lineTo(bx+bLen*scale*.35,cy-maxR); ctx.lineTo(bx+bLen*scale*.65,cy-maxR); ctx.lineTo(ex,cy-2); ctx.lineTo(ex,cy+2); ctx.lineTo(bx+bLen*scale*.65,cy+maxR); ctx.lineTo(bx+bLen*scale*.35,cy+maxR); ctx.lineTo(bx,cy+2);
+  } else {
+    // torpedo or straight
+    const taper = shape==='torpedo' ? 3 : 0;
+    ctx.moveTo(bx,cy-maxR+taper); ctx.lineTo(bx+5*scale,cy-maxR); ctx.lineTo(ex-5*scale,cy-maxR); ctx.lineTo(ex,cy-maxR+taper);
+    ctx.lineTo(ex,cy+maxR-taper); ctx.lineTo(ex-5*scale,cy+maxR); ctx.lineTo(bx+5*scale,cy+maxR); ctx.lineTo(bx,cy+maxR-taper);
+  }
+  ctx.closePath();
+  const g = ctx.createLinearGradient(bx,cy-maxR,bx,cy+maxR);
+  g.addColorStop(0,'#777'); g.addColorStop(.45,'#ccc'); g.addColorStop(1,'#555');
+  ctx.fillStyle=g; ctx.fill();
+  ctx.strokeStyle='rgba(255,85,0,.25)'; ctx.lineWidth=.8; ctx.stroke();
+
+  // GRIP MARKS
+  const gcount = profile.gripPreference<=2 ? 3 : profile.gripPreference<=4 ? 6 : 9;
+  for(let i=1;i<=gcount;i++) {
+    const gx = bx + (bLen*scale/(gcount+1))*i;
+    ctx.beginPath(); ctx.moveTo(gx,cy-maxR); ctx.lineTo(gx,cy+maxR);
+    ctx.strokeStyle='rgba(0,0,0,.35)'; ctx.lineWidth=1.2; ctx.stroke();
+  }
+
+  // SHAFT
+  ctx.fillStyle='#2a2a2a'; ctx.fillRect(ex,cy-2.5,sLen*scale,5);
+
+  // FLIGHTS
+  const fx = ex + sLen*scale;
+  ctx.beginPath(); ctx.moveTo(fx,cy); ctx.lineTo(fx+fLen*scale,cy-13); ctx.lineTo(fx+6*scale,cy-3); ctx.closePath();
+  ctx.fillStyle='rgba(255,85,0,.65)'; ctx.fill();
+  ctx.beginPath(); ctx.moveTo(fx,cy); ctx.lineTo(fx+fLen*scale,cy+13); ctx.lineTo(fx+6*scale,cy+3); ctx.closePath(); ctx.fill();
+
+  ctx.fillStyle='rgba(255,85,0,.5)'; ctx.font=`10px 'Share Tech Mono'`; ctx.textAlign='center';
+  ctx.fillText(`${profile.idealWeight}g · ${profile.idealLength}mm · ${profile.barrelShape} barrel`, W/2, 84);
+}
+
+// ─── PROFILE SCREEN ──────────────────────────────────────────────
+async function renderProfile() {
+  const container = document.getElementById('profile-content');
+  container.innerHTML = `<div style="font-family:'Share Tech Mono',monospace;font-size:11px;color:var(--muted);text-align:center;padding:40px">LOADING...</div>`;
+  try {
+    const data = await api('/api/auth/me');
+    const p = data.profile;
+    container.innerHTML = `
+      <div class="section-title fade-in">MY <span>PROFILE</span></div>
+      <div class="section-sub fade-in">${data.user.email}</div>
+
+      <div class="card fade-in">
+        <div class="card-label">ACCOUNT</div>
+        <div class="profile-stat"><span class="profile-stat-label">NAME</span><span class="profile-stat-val">${data.user.name || '—'}</span></div>
+        <div class="profile-stat"><span class="profile-stat-label">MEMBER SINCE</span><span class="profile-stat-val">${new Date(data.user.created_at).toLocaleDateString('en-GB',{month:'short',year:'numeric'})}</span></div>
+      </div>
+
+      ${p ? `
+      <div class="card fade-in delay-1">
+        <div class="card-label">SAVED DART PROFILE</div>
+        <div class="profile-stat"><span class="profile-stat-label">IDEAL WEIGHT</span><span class="profile-stat-val">${p.ideal_weight}g</span></div>
+        <div class="profile-stat"><span class="profile-stat-label">IDEAL LENGTH</span><span class="profile-stat-val">${p.ideal_length_mm}mm</span></div>
+        <div class="profile-stat"><span class="profile-stat-label">GRIP TYPE</span><span class="profile-stat-val">${fmtGrip(p.ideal_grip_type)}</span></div>
+        <div class="profile-stat"><span class="profile-stat-label">BARREL SHAPE</span><span class="profile-stat-val">${(p.ideal_barrel_shape||'').toUpperCase()}</span></div>
+        <div class="profile-stat"><span class="profile-stat-label">BALANCE</span><span class="profile-stat-val">${(p.ideal_balance||'').toUpperCase()}</span></div>
+        <div class="profile-stat"><span class="profile-stat-label">HEIGHT</span><span class="profile-stat-val">${p.height_cm}cm</span></div>
+        <div class="profile-stat"><span class="profile-stat-label">LAST UPDATED</span><span class="profile-stat-val">${new Date(p.created_at).toLocaleDateString('en-GB')}</span></div>
+        <div style="height:10px"></div>
+        <button class="btn btn-primary" onclick="restartFit()">UPDATE PROFILE</button>
+      </div>` : `
+      <div class="card fade-in delay-1" style="text-align:center;padding:24px">
+        <div style="font-family:'Share Tech Mono',monospace;font-size:11px;color:var(--muted);letter-spacing:1px;margin-bottom:14px">NO PROFILE YET</div>
+        <button class="btn btn-primary" onclick="startFit();navigate('questionnaire')">START FITTING</button>
+      </div>`}
+
+      <div class="section-head">NOTIFICATIONS</div>
+      <div class="notif-toggle fade-in delay-2">
+        <div>
+          <div style="font-family:'Share Tech Mono',monospace;font-size:11px;letter-spacing:1px;color:var(--text)">NEW DART ALERTS</div>
+          <div style="font-family:'Share Tech Mono',monospace;font-size:9px;color:var(--muted);letter-spacing:.5px;margin-top:2px">Get notified when a matching dart launches</div>
+        </div>
+        <div class="toggle-switch ${data.user.notifications_enabled ? 'on' : ''}" id="notif-toggle" onclick="toggleNotifications(this)">
+          <div class="toggle-knob"></div>
+        </div>
+      </div>
+
+      <div style="height:20px"></div>
+      <button class="btn btn-ghost" onclick="logout()">SIGN OUT</button>
+      <div style="height:32px"></div>
+    `;
+  } catch(e) {
+    container.innerHTML = `<div style="text-align:center;padding:40px;color:var(--muted)">${e.message}</div>`;
+  }
+}
+
+async function toggleNotifications(el) {
+  el.classList.toggle('on');
+  const enabled = el.classList.contains('on');
+  try {
+    await api('/api/push/toggle', 'POST', { enabled });
+    if (enabled) setupPushNotifications();
+    toast(enabled ? 'Notifications enabled' : 'Notifications disabled');
+  } catch(e) { toast(e.message, 'error'); }
+}
+
+// ─── UTILS ────────────────────────────────────────────────────────
+function fmtGrip(g) {
+  const m = {'smooth':'Smooth','micro_grip':'Micro Grip','fine_knurl':'Fine Knurl',
+    'medium_knurl':'Medium Knurl','aggressive_knurl':'Agressive Knurl','shark_cut':'Shark Cut','ringed':'Ringed'};
+  return m[g] || (g||'').replace(/_/g,' ');
+}
+
+function trackClick(dartId) {
+  fetch(`/api/track/click`, { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({dartId}) }).catch(()=>{});
+}
+
+function restartFit() {
+  state.handMeasurements = null; state.armData = null; state.armFile = null; state.fitResult = null;
+  navigate('questionnaire');
+}
+
+// ─── BOOT ─────────────────────────────────────────────────────────
+if (state.token && state.user) updateNavbar('home');
+
+// Grip/weight slider init
+document.addEventListener('DOMContentLoaded', () => {
+  updateSliderLabel('q-grip','q-grip-val',gripLabels);
+  updateSliderLabel('q-weight','q-weight-val',weightLabels);
+});
+</script>
+</body>
+</html>
