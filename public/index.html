@@ -812,7 +812,7 @@ async function submitToAPI(measurements) {
     }, 600);
   } catch(e) {
     toast('Calculation error — retrying...', 'error');
-    setTimeout(submitToAPI, 2000);
+    setTimeout(() => submitToAPI(measurements), 2000);
   }
 }
 
@@ -1048,50 +1048,26 @@ function urlBase64ToUint8Array(base64String) {
   return new Uint8Array([...rawData].map(c => c.charCodeAt(0)));
 }
 
-// ─── AI EXPLANATION (Anthropic API) ─────────────────────────────
+// ─── AI EXPLANATION (server-side proxy or local fallback) ────────
 async function fetchAIExplanation() {
   const { profile, topDart, topPro } = state.fitResult;
   const q = state.questionnaire;
-  const prompt = `You are DartFit AI, an elite dart equipment biomechanics expert. Analyse this player's scan data and explain their match.
 
-BIOMECHANICAL PROFILE:
-- Height: ${q.heightCm}cm | Finger length: ${profile.fingerLength}mm | Palm width: ${profile.palmWidth}mm
-- Grip diameter: ${profile.gripDiameter}mm | Flex index: ${profile.fingerFlexIndex}
-- Natural throw angle: ${profile.naturalThrowAngle.toFixed(1)}° | Leverage ratio: ${(profile.leverageRatio*100).toFixed(1)}%
-- Forearm: ${profile.forearmLengthMm}mm | Grip position: ${q.throwingStyle} barrel
-
-PREFERENCES: Grip ${q.gripPreference}/5, Weight ${q.weightPreference}/5
-
-COMPUTED IDEAL: ${profile.idealWeight}g, ${profile.idealLength}mm, ${profile.idealDiameter}mm diameter, ${profile.idealGripType}, ${profile.balance}-weighted ${profile.barrelShape}
-
-TOP DART MATCH: ${topDart.brand} ${topDart.name} (${topDart.matchScore}/100) — ${topDart.weight}g, ${topDart.length_mm}mm, ${topDart.grip_type}
-PRO MATCH: ${topPro.name} "${topPro.nickname}" (${topPro.similarity}% similar) — ${topPro.description}
-
-Write 4 punchy, expert sentences: 
-1. Why the computed ideal profile fits this specific body (cite 2 measurements)
-2. Why the ${topDart.name} is the best physical match from the database (specific specs)
-3. What throw style insight the leverage ratio reveals
-4. Why they throw like ${topPro.name} and what they share
-
-Technical, confident, no fluff. No bullet points. No headers.`;
-
+  // Try server-side AI endpoint first, fall back to local generation
   try {
-    const res = await fetch('https://api.anthropic.com/v1/messages', {
-      method:'POST',
-      headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({
-        model:'claude-sonnet-4-20250514',
-        max_tokens:1000,
-        messages:[{role:'user',content:prompt}]
-      })
+    const res = await api('/api/fit/explain', 'POST', {
+      profile, topDart: { brand: topDart.brand, name: topDart.name, matchScore: topDart.matchScore, weight: topDart.weight, length_mm: topDart.length_mm, grip_type: topDart.grip_type },
+      topPro: { name: topPro.name, nickname: topPro.nickname, similarity: topPro.similarity, grip_style: topPro.grip_style },
+      questionnaire: q,
     });
-    const data = await res.json();
-    const text = data.content?.map(c=>c.text||'').join('') || '';
-    if (text) typeWriter(document.getElementById('ai-stream'), text, 14);
-  } catch(e) {
-    const el = document.getElementById('ai-stream');
-    if (el) el.textContent = `Your ${profile.palmWidth}mm palm width and ${profile.fingerLength}mm finger length define a ${profile.idealWeight}g ${profile.barrelShape} as the optimal balance point. The ${topDart.name} matches with ${topDart.matchScore}% precision — its ${topDart.weight}g barrel and ${fmtGrip(topDart.grip_type)} align directly with your biometric profile. Your leverage ratio of ${(profile.leverageRatio*100).toFixed(1)}% indicates a ${profile.leverageRatio > 0.15 ? 'long-forearm' : 'compact'} throwing arc — ${profile.leverageRatio > 0.15 ? 'slightly lighter darts will give better control' : 'your shorter lever benefits from front-weighted balance'}. Like ${topPro.name}, your measurements point to a ${topPro.grip_style?.replace(/_/g,' ')} release — the same biomechanical archetype that defines their style.`;
-  }
+    if (res.text) { typeWriter(document.getElementById('ai-stream'), res.text, 14); return; }
+  } catch(e) { /* fall through to local */ }
+
+  // Local biomechanics-aware explanation
+  const leverageDesc = profile.leverageRatio > 0.15 ? 'long-forearm' : 'compact';
+  const leverageTip = profile.leverageRatio > 0.15 ? 'slightly lighter darts will give better control' : 'your shorter lever benefits from front-weighted balance';
+  const text = `Your ${profile.palmWidth}mm palm width and ${profile.fingerLength}mm finger length define a ${profile.idealWeight}g ${profile.barrelShape} as the optimal balance point. The ${topDart.name} matches with ${topDart.matchScore}% precision — its ${topDart.weight}g barrel and ${fmtGrip(topDart.grip_type)} align directly with your biometric profile. Your leverage ratio of ${(profile.leverageRatio*100).toFixed(1)}% indicates a ${leverageDesc} throwing arc — ${leverageTip}. Like ${topPro.name}, your measurements point to a ${topPro.grip_style?.replace(/_/g,' ')} release — the same biomechanical archetype that defines their style.`;
+  typeWriter(document.getElementById('ai-stream'), text, 14);
 }
 
 function typeWriter(el, text, speed=16) {
@@ -1229,7 +1205,7 @@ async function toggleNotifications(el) {
 // ─── UTILS ────────────────────────────────────────────────────────
 function fmtGrip(g) {
   const m = {'smooth':'Smooth','micro_grip':'Micro Grip','fine_knurl':'Fine Knurl',
-    'medium_knurl':'Medium Knurl','aggressive_knurl':'Agressive Knurl','shark_cut':'Shark Cut','ringed':'Ringed'};
+    'medium_knurl':'Medium Knurl','aggressive_knurl':'Aggressive Knurl','shark_cut':'Shark Cut','ringed':'Ringed'};
   return m[g] || (g||'').replace(/_/g,' ');
 }
 
