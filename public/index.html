@@ -3,22 +3,22 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<meta name="theme-color" content="#0a0a0a">
+<meta name="theme-color" content="#f8f7f4">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<title>DARTFIT — Precision Dart Matching</title>
+<title>DartFit — Find Your Perfect Dart</title>
 <link rel="manifest" href="/manifest.json">
-<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Share+Tech+Mono&family=Barlow:ital,wght@0,300;0,400;0,600;0,700;1,300&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@700;800&family=Inter:wght@400;500;600;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
 <style>
 :root{
-  --bg:#080808;--surface:#111;--surface2:#181818;--border:#1e1e1e;
-  --orange:#ff5500;--orange-dim:rgba(255,85,0,.12);--orange-glow:rgba(255,85,0,.35);
-  --green:#00e87a;--blue:#00aaff;--text:#e8e8e8;--muted:#555;--muted2:#777;
+  --bg:#f8f7f4;--surface:#ffffff;--surface2:#f2f0ec;--border:#e5e1d8;
+  --shadow:0 1px 3px rgba(0,0,0,0.05),0 4px 16px rgba(0,0,0,0.06);
+  --shadow-lg:0 4px 6px rgba(0,0,0,0.04),0 12px 40px rgba(0,0,0,0.10);
+  --orange:#e8570e;--orange-dim:rgba(232,87,14,.10);--orange-glow:rgba(232,87,14,.25);
+  --orange-grad:linear-gradient(135deg,#e8570e 0%,#f5850a 100%);
+  --green:#16a34a;--blue:#2563eb;--text:#1c1917;--muted:#78716c;--muted2:#a8a29e;
 }
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);font-family:'Barlow',sans-serif}
-body::before{content:'';position:fixed;inset:0;
-  background-image:linear-gradient(rgba(255,85,0,.018) 1px,transparent 1px),linear-gradient(90deg,rgba(255,85,0,.018) 1px,transparent 1px);
-  background-size:28px 28px;pointer-events:none;z-index:0}
+html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;-webkit-font-smoothing:antialiased}
 
 /* ─── APP SHELL ─── */
 #app{position:fixed;inset:0;display:flex;flex-direction:column;z-index:1}
@@ -29,221 +29,270 @@ body::before{content:'';position:fixed;inset:0;
 .screen.active{opacity:1;pointer-events:all}
 
 /* ─── NAV BAR ─── */
-#navbar{position:fixed;top:0;left:0;right:0;height:52px;
-  background:rgba(8,8,8,.96);border-bottom:1px solid var(--border);
-  display:flex;align-items:center;justify-content:space-between;padding:0 16px;
-  z-index:100;backdrop-filter:blur(12px)}
-.nav-logo{font-family:'Bebas Neue',cursive;font-size:24px;letter-spacing:4px;cursor:pointer}
+#navbar{position:fixed;top:0;left:0;right:0;height:60px;
+  background:rgba(255,255,255,.97);border-bottom:1px solid var(--border);
+  display:flex;align-items:center;justify-content:space-between;padding:0 24px;
+  z-index:100;backdrop-filter:blur(12px);box-shadow:0 1px 0 var(--border)}
+.nav-logo{font-family:'Outfit',sans-serif;font-weight:800;font-size:22px;letter-spacing:-0.5px;cursor:pointer;color:var(--text)}
 .nav-logo span{color:var(--orange)}
 .nav-actions{display:flex;gap:8px;align-items:center}
-.nav-btn{background:none;border:1px solid var(--border);color:var(--muted2);
-  font-family:'Share Tech Mono',monospace;font-size:11px;letter-spacing:1.5px;
-  padding:6px 12px;cursor:pointer;transition:all .2s}
-.nav-btn:hover,.nav-btn.active{border-color:var(--orange);color:var(--orange)}
-.nav-avatar{width:32px;height:32px;border-radius:50%;background:var(--orange);
-  display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;
-  color:#fff;cursor:pointer;font-family:'Bebas Neue',cursive;letter-spacing:1px}
+.nav-btn{background:none;border:1.5px solid var(--border);color:var(--muted);
+  font-family:'Inter',sans-serif;font-size:13px;font-weight:500;
+  padding:7px 16px;cursor:pointer;border-radius:8px;transition:all .15s}
+.nav-btn:hover,.nav-btn.active{border-color:var(--orange);color:var(--orange);background:var(--orange-dim)}
+.nav-avatar{width:36px;height:36px;border-radius:50%;background:var(--orange-grad);
+  display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;
+  color:#fff;cursor:pointer;font-family:'Outfit',sans-serif}
 
 /* ─── TOAST ─── */
 #toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(80px);
-  background:var(--surface);border:1px solid var(--border);
-  font-family:'Share Tech Mono',monospace;font-size:12px;letter-spacing:1px;
-  padding:10px 20px;z-index:999;transition:transform .3s ease;white-space:nowrap}
+  background:var(--text);color:#fff;
+  font-family:'Inter',sans-serif;font-size:13px;font-weight:500;
+  padding:12px 24px;z-index:999;border-radius:100px;
+  transition:transform .3s ease;white-space:nowrap;box-shadow:var(--shadow-lg)}
 #toast.show{transform:translateX(-50%) translateY(0)}
-#toast.success{border-color:var(--green);color:var(--green)}
-#toast.error{border-color:#ff4444;color:#ff4444}
+#toast.success{background:var(--green)}
+#toast.error{background:#dc2626}
 
 /* ─── COMMON ─── */
-.page-wrap{width:100%;max-width:480px;margin:0 auto;padding:68px 20px 40px}
-.section-title{font-family:'Bebas Neue',cursive;font-size:32px;letter-spacing:4px;line-height:1;margin-bottom:4px}
+.page-wrap{width:100%;max-width:540px;margin:0 auto;padding:76px 20px 40px}
+@media(min-width:768px){.page-wrap{max-width:720px;padding:84px 32px 60px}}
+@media(min-width:1100px){.page-wrap{max-width:960px}}
+.section-title{font-family:'Outfit',sans-serif;font-weight:800;font-size:28px;letter-spacing:-0.5px;line-height:1.1;margin-bottom:4px;color:var(--text)}
 .section-title span{color:var(--orange)}
-.section-sub{font-family:'Share Tech Mono',monospace;font-size:10px;letter-spacing:2px;color:var(--muted);margin-bottom:24px}
-.card{background:var(--surface);border:1px solid var(--border);padding:16px;margin-bottom:12px;position:relative}
-.card-label{font-family:'Share Tech Mono',monospace;font-size:9px;letter-spacing:3px;color:var(--orange);margin-bottom:10px;text-transform:uppercase}
-.btn{display:block;width:100%;border:none;cursor:pointer;font-family:'Bebas Neue',cursive;
-  font-size:20px;letter-spacing:3px;padding:14px;text-align:center;transition:all .15s}
-.btn-primary{background:var(--orange);color:#fff;clip-path:polygon(7px 0,100% 0,calc(100% - 7px) 100%,0 100%)}
-.btn-primary:active{background:#cc4400;transform:scale(.98)}
-.btn-ghost{background:transparent;border:1px solid var(--border);color:var(--muted);font-size:14px;letter-spacing:2px}
-.btn-ghost:active{border-color:var(--orange);color:var(--orange)}
-.btn-green{background:var(--green);color:#000}
-.input-group{margin-bottom:14px}
-.input-label{font-family:'Share Tech Mono',monospace;font-size:10px;letter-spacing:2px;color:var(--muted);margin-bottom:6px;display:block}
-.input{width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);
-  font-family:'Share Tech Mono',monospace;font-size:14px;padding:10px 12px;outline:none;transition:border-color .2s}
-.input:focus{border-color:var(--orange)}
-.input::placeholder{color:var(--muted)}
+.section-sub{font-family:'Inter',sans-serif;font-size:13px;color:var(--muted);margin-bottom:24px}
+.card{background:var(--surface);border-radius:16px;padding:20px;margin-bottom:14px;box-shadow:var(--shadow);border:1px solid var(--border)}
+.card-label{font-family:'Inter',sans-serif;font-size:11px;font-weight:600;letter-spacing:1px;color:var(--orange);margin-bottom:12px;text-transform:uppercase}
+.btn{display:block;width:100%;border:none;cursor:pointer;font-family:'Outfit',sans-serif;
+  font-weight:700;font-size:17px;letter-spacing:0.3px;padding:15px;text-align:center;border-radius:12px;transition:all .15s}
+.btn-primary{background:var(--orange-grad);color:#fff;box-shadow:0 4px 20px rgba(232,87,14,.3)}
+.btn-primary:hover{transform:translateY(-1px);box-shadow:0 6px 28px rgba(232,87,14,.4)}
+.btn-primary:active{transform:scale(.98)}
+.btn-ghost{background:transparent;border:1.5px solid var(--border);color:var(--muted);font-size:15px}
+.btn-ghost:hover{border-color:var(--orange);color:var(--orange)}
+.btn-green{background:linear-gradient(135deg,#16a34a,#22c55e);color:#fff;box-shadow:0 4px 20px rgba(22,163,74,.25)}
+.input-group{margin-bottom:16px}
+.input-label{font-family:'Inter',sans-serif;font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:0.3px;color:var(--muted);margin-bottom:8px;display:block}
+.input{width:100%;background:var(--bg);border:1.5px solid var(--border);color:var(--text);
+  font-family:'Inter',sans-serif;font-size:15px;padding:12px 14px;outline:none;border-radius:10px;transition:border-color .2s}
+.input:focus{border-color:var(--orange);background:var(--surface)}
+.input::placeholder{color:var(--muted2)}
 .divider{height:1px;background:var(--border);margin:16px 0}
 
 /* ─── PROGRESS STEPS ─── */
-.progress-bar{display:flex;align-items:center;gap:0;margin-bottom:24px}
-.prog-step{flex:1;height:3px;background:var(--border);transition:background .3s}
+.progress-bar{display:flex;align-items:center;gap:6px;margin-bottom:24px}
+.prog-step{flex:1;height:4px;background:var(--border);transition:background .3s;border-radius:2px}
 .prog-step.done{background:var(--orange)}
-.prog-step.active{background:linear-gradient(to right,var(--orange),rgba(255,85,0,.3))}
-.prog-labels{display:flex;justify-content:space-between;margin-top:5px;
-  font-family:'Share Tech Mono',monospace;font-size:9px;letter-spacing:1px;color:var(--muted)}
+.prog-step.active{background:linear-gradient(to right,var(--orange),var(--orange-dim))}
+.prog-labels{display:flex;justify-content:space-between;margin-top:6px;
+  font-family:'Inter',sans-serif;font-size:11px;color:var(--muted2);font-weight:500}
 
 /* ─── RANGE SLIDER ─── */
 .slider-wrap{margin-bottom:16px}
-.slider-labels{display:flex;justify-content:space-between;margin-bottom:4px;
-  font-size:10px;color:var(--muted);font-family:'Share Tech Mono',monospace;letter-spacing:1px}
-input[type=range]{width:100%;-webkit-appearance:none;height:4px;
-  background:var(--border);outline:none;border-radius:2px}
-input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:18px;height:18px;
-  border-radius:50%;background:var(--orange);cursor:pointer;
-  box-shadow:0 0 8px rgba(255,85,0,.5)}
-.slider-val{text-align:center;font-family:'Bebas Neue',cursive;font-size:28px;
-  color:var(--orange);letter-spacing:2px;margin-top:6px}
+.slider-labels{display:flex;justify-content:space-between;margin-bottom:6px;
+  font-size:12px;color:var(--muted);font-family:'Inter',sans-serif;font-weight:500}
+input[type=range]{width:100%;-webkit-appearance:none;height:6px;
+  background:var(--border);outline:none;border-radius:3px}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:22px;height:22px;
+  border-radius:50%;background:var(--orange);cursor:pointer;border:3px solid #fff;
+  box-shadow:0 2px 8px rgba(232,87,14,.35)}
+.slider-val{text-align:center;font-family:'Outfit',sans-serif;font-size:22px;font-weight:700;
+  color:var(--orange);margin-top:8px}
 
 /* ─── SELECT OPTIONS ─── */
 .option-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:16px}
-.option-btn{background:var(--bg);border:1px solid var(--border);color:var(--muted2);
-  padding:10px 8px;font-family:'Share Tech Mono',monospace;font-size:11px;letter-spacing:1px;
-  cursor:pointer;text-align:center;transition:all .2s}
-.option-btn.active{border-color:var(--orange);color:var(--orange);background:var(--orange-dim)}
+@media(min-width:768px){.option-grid{grid-template-columns:repeat(4,1fr)}}
+.option-btn{background:var(--bg);border:1.5px solid var(--border);color:var(--muted);
+  padding:12px 8px;font-family:'Inter',sans-serif;font-size:13px;font-weight:500;
+  cursor:pointer;text-align:center;transition:all .15s;border-radius:10px}
+.option-btn.active{border-color:var(--orange);color:var(--orange);background:var(--orange-dim);font-weight:600}
 
 /* ─── SCAN CANVAS ─── */
 #scan-video-wrap{position:relative;width:100%;flex:1;overflow:hidden;background:#000}
 #scan-video{width:100%;height:100%;object-fit:cover}
 #scan-canvas-overlay{position:absolute;inset:0;pointer-events:none}
 .scan-reticle{position:absolute;top:50%;left:50%;transform:translate(-50%,-55%);
-  width:200px;height:250px;border:1.5px solid rgba(255,85,0,.4)}
-.scan-corner{position:absolute;width:18px;height:18px}
-.scan-corner.tl{top:-2px;left:-2px;border-top:2.5px solid var(--orange);border-left:2.5px solid var(--orange)}
-.scan-corner.tr{top:-2px;right:-2px;border-top:2.5px solid var(--orange);border-right:2.5px solid var(--orange)}
-.scan-corner.bl{bottom:-2px;left:-2px;border-bottom:2.5px solid var(--orange);border-left:2.5px solid var(--orange)}
-.scan-corner.br{bottom:-2px;right:-2px;border-bottom:2.5px solid var(--orange);border-right:2.5px solid var(--orange)}
+  width:200px;height:250px;border:1.5px solid rgba(232,87,14,.4);border-radius:8px}
+.scan-corner{position:absolute;width:20px;height:20px}
+.scan-corner.tl{top:-2px;left:-2px;border-top:3px solid var(--orange);border-left:3px solid var(--orange);border-radius:4px 0 0 0}
+.scan-corner.tr{top:-2px;right:-2px;border-top:3px solid var(--orange);border-right:3px solid var(--orange);border-radius:0 4px 0 0}
+.scan-corner.bl{bottom:-2px;left:-2px;border-bottom:3px solid var(--orange);border-left:3px solid var(--orange);border-radius:0 0 0 4px}
+.scan-corner.br{bottom:-2px;right:-2px;border-bottom:3px solid var(--orange);border-right:3px solid var(--orange);border-radius:0 0 4px 0}
 .scan-beam{position:absolute;left:0;right:0;height:2px;
   background:linear-gradient(to right,transparent,var(--orange),transparent);
-  animation:beam 2.5s ease-in-out infinite;
-  box-shadow:0 0 8px var(--orange)}
+  animation:beam 2.5s ease-in-out infinite;box-shadow:0 0 8px var(--orange)}
 @keyframes beam{0%{top:0;opacity:1}100%{top:100%;opacity:.4}}
 .scan-footer{position:absolute;bottom:0;left:0;right:0;padding:20px;
   background:linear-gradient(transparent,rgba(0,0,0,.9));display:flex;flex-direction:column;align-items:center;gap:12px}
-.btn-capture{width:64px;height:64px;border-radius:50%;background:var(--orange);
-  border:3px solid rgba(255,255,255,.2);cursor:pointer;animation:pulse 2s infinite;
-  display:flex;align-items:center;justify-content:center}
-@keyframes pulse{0%{box-shadow:0 0 0 0 rgba(255,85,0,.6)}70%{box-shadow:0 0 0 14px rgba(255,85,0,0)}100%{box-shadow:0 0 0 0 rgba(255,85,0,0)}}
-.scan-status-text{font-family:'Share Tech Mono',monospace;font-size:11px;letter-spacing:2px;color:var(--muted2);text-align:center}
+.btn-capture{width:70px;height:70px;border-radius:50%;background:var(--orange-grad);
+  border:4px solid rgba(255,255,255,.25);cursor:pointer;animation:pulse 2s infinite;
+  display:flex;align-items:center;justify-content:center;box-shadow:0 4px 20px rgba(232,87,14,.5)}
+@keyframes pulse{0%{box-shadow:0 0 0 0 rgba(232,87,14,.6),0 4px 20px rgba(232,87,14,.4)}70%{box-shadow:0 0 0 14px rgba(232,87,14,0),0 4px 20px rgba(232,87,14,.4)}100%{box-shadow:0 0 0 0 rgba(232,87,14,0),0 4px 20px rgba(232,87,14,.4)}}
+.scan-status-text{font-family:'Inter',sans-serif;font-size:13px;font-weight:500;color:#ddd;text-align:center}
 
 /* ─── ANALYSIS ─── */
-#hand-canvas{display:block;margin:0 auto}
-.meas-row{display:flex;align-items:center;gap:10px;margin-bottom:8px;
-  font-family:'Share Tech Mono',monospace;font-size:11px}
-.meas-label{color:var(--muted);width:110px;flex-shrink:0;letter-spacing:.5px}
-.meas-bar-bg{flex:1;height:2px;background:var(--border);border-radius:1px;overflow:hidden}
-.meas-bar{height:100%;background:var(--orange);width:0;transition:width 1.1s cubic-bezier(.4,0,.2,1)}
-.meas-val{color:var(--orange);width:52px;text-align:right;font-size:10px;opacity:0;transition:opacity .4s}
-.analyze-status{font-family:'Share Tech Mono',monospace;font-size:11px;letter-spacing:2px;
+#hand-canvas{display:block;margin:0 auto;border-radius:14px;background:#1a1a1a;box-shadow:0 4px 24px rgba(0,0,0,.15)}
+.meas-row{display:flex;align-items:center;gap:10px;margin-bottom:10px;font-family:'Inter',sans-serif;font-size:12px}
+.meas-label{color:var(--muted);width:110px;flex-shrink:0;font-weight:500}
+.meas-bar-bg{flex:1;height:4px;background:var(--border);border-radius:2px;overflow:hidden}
+.meas-bar{height:100%;background:var(--orange-grad);width:0;border-radius:2px;transition:width 1.1s cubic-bezier(.4,0,.2,1)}
+.meas-val{color:var(--orange);width:52px;text-align:right;font-size:11px;opacity:0;transition:opacity .4s;font-weight:600}
+.analyze-status{font-family:'Inter',sans-serif;font-size:13px;font-weight:600;
   color:var(--green);animation:blink 1s infinite;text-align:center}
-@keyframes blink{0%,100%{opacity:1}50%{opacity:.3}}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.4}}
 
 /* ─── ARM UPLOAD ─── */
-.arm-upload-zone{border:1.5px dashed var(--border);padding:32px;text-align:center;cursor:pointer;
-  transition:border-color .2s;margin-bottom:16px;position:relative}
+.arm-upload-zone{border:2px dashed var(--border);padding:32px;text-align:center;cursor:pointer;
+  transition:all .2s;margin-bottom:16px;position:relative;border-radius:12px}
 .arm-upload-zone:active,.arm-upload-zone.dragover{border-color:var(--orange);background:var(--orange-dim)}
 .arm-upload-zone input{position:absolute;inset:0;opacity:0;cursor:pointer}
-.arm-preview{width:100%;height:180px;object-fit:cover;display:none;margin-bottom:8px;border:1px solid var(--border)}
+.arm-preview{width:100%;height:200px;object-fit:cover;display:none;margin-bottom:8px;border-radius:10px}
 .arm-preview.visible{display:block}
 
 /* ─── RESULTS ─── */
-.result-score-circle{width:56px;height:56px;border:2px solid var(--orange);border-radius:50%;
+.result-score-circle{width:60px;height:60px;border:2.5px solid var(--orange);border-radius:50%;
   display:flex;flex-direction:column;align-items:center;justify-content:center;flex-shrink:0}
-.score-num{font-family:'Bebas Neue',cursive;font-size:24px;line-height:1;color:var(--orange)}
-.score-sub{font-size:8px;letter-spacing:1px;color:var(--muted);font-family:'Share Tech Mono',monospace}
-.spec-chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
-.chip{background:var(--bg);border:1px solid var(--border);padding:4px 10px;
-  font-family:'Share Tech Mono',monospace;font-size:10px;color:var(--muted2);letter-spacing:1px}
-.chip b{color:var(--text)}
-.pro-row{display:flex;align-items:center;gap:14px}
-.pro-emoji{font-size:36px;line-height:1}
+.score-num{font-family:'Outfit',sans-serif;font-weight:800;font-size:22px;line-height:1;color:var(--orange)}
+.score-sub{font-size:8px;letter-spacing:.5px;color:var(--muted);font-family:'Inter',sans-serif}
+.spec-chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:12px}
+.chip{background:var(--surface2);border:1px solid var(--border);padding:5px 12px;
+  font-family:'Inter',sans-serif;font-size:12px;color:var(--muted);border-radius:100px}
+.chip b{color:var(--text);font-weight:600}
+.pro-row{display:flex;align-items:center;gap:16px}
+.pro-emoji{font-size:40px;line-height:1}
 .dart-visual-canvas{width:100%;height:90px;display:block}
-.ai-stream{font-size:13px;line-height:1.75;color:#aaa;font-weight:300;min-height:60px}
+.ai-stream{font-size:14px;line-height:1.8;color:var(--muted);font-weight:400;min-height:60px}
 .alt-dart-row{display:flex;justify-content:space-between;align-items:center;
-  border:1px solid var(--border);padding:12px;margin-bottom:7px}
-.alt-dart-name{font-family:'Bebas Neue',cursive;font-size:18px;letter-spacing:1px}
-.alt-dart-sub{font-family:'Share Tech Mono',monospace;font-size:10px;color:var(--muted);letter-spacing:.5px}
-.shop-btn{display:block;background:var(--orange);color:#fff;font-family:'Bebas Neue',cursive;
-  font-size:18px;letter-spacing:2px;text-align:center;padding:13px;text-decoration:none;
-  clip-path:polygon(6px 0,100% 0,calc(100% - 6px) 100%,0 100%);margin-top:14px}
-.aff-note{font-family:'Share Tech Mono',monospace;font-size:9px;color:var(--muted);text-align:center;margin-top:6px;letter-spacing:1px}
+  background:var(--surface);border:1px solid var(--border);padding:14px 16px;
+  margin-bottom:8px;border-radius:12px}
+.alt-dart-name{font-family:'Outfit',sans-serif;font-size:17px;font-weight:700;letter-spacing:-0.3px}
+.alt-dart-sub{font-family:'Inter',sans-serif;font-size:12px;color:var(--muted);margin-top:2px}
+.shop-btn{display:block;background:var(--orange-grad);color:#fff;font-family:'Outfit',sans-serif;
+  font-weight:700;font-size:16px;text-align:center;padding:14px;text-decoration:none;
+  border-radius:12px;margin-top:14px;box-shadow:0 4px 16px rgba(232,87,14,.3)}
+.shop-btn:hover{transform:translateY(-1px)}
+.aff-note{font-family:'Inter',sans-serif;font-size:11px;color:var(--muted2);text-align:center;margin-top:6px}
 .ideal-spec-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-top:12px}
-.ideal-spec{background:var(--bg);border:1px solid var(--border);padding:8px 10px;text-align:center}
-.ideal-spec-val{font-family:'Bebas Neue',cursive;font-size:22px;line-height:1;color:var(--text)}
-.ideal-spec-val span{font-size:12px;color:var(--muted)}
-.ideal-spec-label{font-family:'Share Tech Mono',monospace;font-size:9px;color:var(--muted);letter-spacing:1px;margin-top:2px}
-.section-head{font-family:'Bebas Neue',cursive;font-size:14px;letter-spacing:3px;color:var(--muted);
-  margin:16px 0 8px;padding-bottom:6px;border-bottom:1px solid var(--border)}
+.ideal-spec{background:var(--surface2);border:1px solid var(--border);padding:10px;text-align:center;border-radius:10px}
+.ideal-spec-val{font-family:'Outfit',sans-serif;font-weight:800;font-size:20px;line-height:1;color:var(--text)}
+.ideal-spec-val span{font-size:12px;color:var(--muted);font-weight:400}
+.ideal-spec-label{font-family:'Inter',sans-serif;font-size:10px;color:var(--muted);margin-top:3px;font-weight:500;text-transform:uppercase;letter-spacing:0.5px}
+.section-head{font-family:'Inter',sans-serif;font-size:12px;font-weight:700;letter-spacing:1.5px;
+  color:var(--muted);margin:20px 0 10px;padding-bottom:8px;border-bottom:1px solid var(--border);text-transform:uppercase}
 
 /* ─── PROFILE PAGE ─── */
 .profile-stat{display:flex;justify-content:space-between;align-items:center;
-  padding:10px 0;border-bottom:1px solid var(--border)}
+  padding:12px 0;border-bottom:1px solid var(--border)}
 .profile-stat:last-child{border-bottom:none}
-.profile-stat-label{font-family:'Share Tech Mono',monospace;font-size:10px;letter-spacing:1px;color:var(--muted)}
-.profile-stat-val{font-family:'Bebas Neue',cursive;font-size:18px;letter-spacing:1px;color:var(--text)}
+.profile-stat-label{font-family:'Inter',sans-serif;font-size:12px;font-weight:500;text-transform:uppercase;letter-spacing:0.5px;color:var(--muted)}
+.profile-stat-val{font-family:'Outfit',sans-serif;font-weight:700;font-size:17px;color:var(--text)}
 .notif-toggle{display:flex;justify-content:space-between;align-items:center;
-  background:var(--surface);border:1px solid var(--border);padding:14px 16px}
-.toggle-switch{width:44px;height:24px;background:var(--border);border-radius:12px;
+  background:var(--surface);border:1px solid var(--border);padding:16px;border-radius:12px}
+.toggle-switch{width:48px;height:26px;background:var(--border);border-radius:13px;
   position:relative;cursor:pointer;transition:background .3s}
 .toggle-switch.on{background:var(--orange)}
-.toggle-knob{position:absolute;top:3px;left:3px;width:18px;height:18px;
-  background:#fff;border-radius:50%;transition:left .3s}
-.toggle-switch.on .toggle-knob{left:23px}
+.toggle-knob{position:absolute;top:3px;left:3px;width:20px;height:20px;
+  background:#fff;border-radius:50%;transition:left .3s;box-shadow:0 1px 4px rgba(0,0,0,.2)}
+.toggle-switch.on .toggle-knob{left:25px}
 
 /* ─── SCORE RING (SVG animated) ─── */
 .score-ring-wrap{position:relative;flex-shrink:0}
 .score-ring-wrap .ring-inner{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;pointer-events:none}
-.ring-val{font-family:'Bebas Neue',cursive;font-size:22px;line-height:1;color:var(--orange)}
-.ring-lbl{font-size:7px;letter-spacing:1.5px;color:var(--muted);font-family:'Share Tech Mono',monospace}
+.ring-val{font-family:'Outfit',sans-serif;font-weight:800;font-size:20px;line-height:1;color:var(--orange)}
+.ring-lbl{font-size:7px;letter-spacing:1px;color:var(--muted);font-family:'Inter',sans-serif;font-weight:600}
 
 /* ─── ALGORITHM BREAKDOWN ─── */
-.breakdown-section{margin-top:14px;padding-top:12px;border-top:1px solid var(--border)}
-.breakdown-title{font-family:'Share Tech Mono',monospace;font-size:9px;letter-spacing:2.5px;color:var(--muted);margin-bottom:10px}
-.breakdown-row{display:flex;align-items:center;gap:7px;margin-bottom:5px}
-.bk-lbl{font-family:'Share Tech Mono',monospace;font-size:9px;color:var(--muted);width:66px;flex-shrink:0;letter-spacing:.3px}
-.bk-wt{font-family:'Share Tech Mono',monospace;font-size:8px;color:#333;width:22px;text-align:right;flex-shrink:0}
-.bk-track{flex:1;height:5px;background:rgba(255,255,255,.06);border-radius:3px;overflow:hidden}
+.breakdown-section{margin-top:16px;padding-top:14px;border-top:1px solid var(--border)}
+.breakdown-title{font-family:'Inter',sans-serif;font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--muted);margin-bottom:12px}
+.breakdown-row{display:flex;align-items:center;gap:8px;margin-bottom:6px}
+.bk-lbl{font-family:'Inter',sans-serif;font-size:11px;color:var(--muted);width:68px;flex-shrink:0;font-weight:500}
+.bk-wt{font-family:'Inter',sans-serif;font-size:10px;color:var(--muted2);width:24px;text-align:right;flex-shrink:0}
+.bk-track{flex:1;height:6px;background:var(--surface2);border-radius:3px;overflow:hidden}
 .bk-fill{height:100%;width:0;border-radius:3px;transition:width .9s cubic-bezier(.4,0,.2,1)}
-.bk-fill.hi{background:linear-gradient(90deg,#00c853,#00e87a)}
-.bk-fill.mid{background:linear-gradient(90deg,#ff8f00,#ffc400)}
-.bk-fill.lo{background:linear-gradient(90deg,#b71c1c,#ef5350)}
-.bk-score{font-family:'Bebas Neue',cursive;font-size:13px;color:var(--muted2);width:22px;text-align:right;flex-shrink:0}
-.breakdown-total-row{display:flex;align-items:center;gap:7px;margin-top:8px;padding-top:8px;border-top:1px solid var(--border)}
-.bk-total-lbl{font-family:'Share Tech Mono',monospace;font-size:9px;letter-spacing:1px;color:var(--muted);width:88px;flex-shrink:0}
-.bk-total-track{flex:1;height:7px;background:rgba(255,255,255,.06);border-radius:3px;overflow:hidden}
-.bk-total-fill{height:100%;width:0;border-radius:3px;background:linear-gradient(90deg,var(--orange),#ff8c00);transition:width 1.1s cubic-bezier(.4,0,.2,1);transition-delay:.5s}
-.bk-total-score{font-family:'Bebas Neue',cursive;font-size:18px;color:var(--orange);width:28px;text-align:right;flex-shrink:0}
+.bk-fill.hi{background:linear-gradient(90deg,#16a34a,#22c55e)}
+.bk-fill.mid{background:linear-gradient(90deg,#d97706,#fbbf24)}
+.bk-fill.lo{background:linear-gradient(90deg,#dc2626,#f87171)}
+.bk-score{font-family:'Outfit',sans-serif;font-size:14px;font-weight:700;color:var(--muted2);width:24px;text-align:right;flex-shrink:0}
+.breakdown-total-row{display:flex;align-items:center;gap:8px;margin-top:10px;padding-top:10px;border-top:1px solid var(--border)}
+.bk-total-lbl{font-family:'Inter',sans-serif;font-size:11px;font-weight:600;color:var(--muted);width:92px;flex-shrink:0}
+.bk-total-track{flex:1;height:8px;background:var(--surface2);border-radius:4px;overflow:hidden}
+.bk-total-fill{height:100%;width:0;border-radius:4px;background:var(--orange-grad);transition:width 1.1s cubic-bezier(.4,0,.2,1);transition-delay:.5s}
+.bk-total-score{font-family:'Outfit',sans-serif;font-size:20px;font-weight:800;color:var(--orange);width:30px;text-align:right;flex-shrink:0}
 
 /* ─── DART CANVAS ENHANCED ─── */
-.dart-vis-wrap{position:relative;width:100%;height:160px;margin-bottom:4px}
+.dart-vis-wrap{position:relative;width:100%;height:160px;margin-bottom:4px;background:#1c1c1c;border-radius:10px;overflow:hidden}
 .dart-vis-canvas-lg{position:absolute;inset:0;width:100%;height:100%}
 
 /* ─── THROW ARC ─── */
-.throw-arc-block{background:var(--bg);border:1px solid var(--border);padding:10px 12px;margin-top:10px}
-.throw-arc-ttl{font-family:'Share Tech Mono',monospace;font-size:9px;letter-spacing:2px;color:var(--muted);margin-bottom:6px}
+.throw-arc-block{background:#1c1c1c;border:1px solid #2e2e2e;padding:12px;margin-top:12px;border-radius:10px}
+.throw-arc-ttl{font-family:'Inter',sans-serif;font-size:11px;font-weight:600;color:#888;margin-bottom:6px}
 .throw-arc-canvas{width:100%;height:80px;display:block}
 
 /* ─── SPEC COMPARE ─── */
-.spec-compare{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin:10px 0 6px}
-.spc-item{background:var(--bg);border:1px solid var(--border);padding:7px 6px;text-align:center}
-.spc-ideal{font-family:'Share Tech Mono',monospace;font-size:7px;color:var(--muted);letter-spacing:.5px;margin-bottom:1px}
-.spc-val{font-family:'Bebas Neue',cursive;font-size:17px;line-height:1;color:var(--text)}
-.spc-delta{font-family:'Share Tech Mono',monospace;font-size:8px;margin-top:2px}
-.spc-delta.ok{color:var(--green)}.spc-delta.near{color:#ffc400}.spc-delta.off{color:#ef5350}
+.spec-compare{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:12px 0 8px}
+.spc-item{background:var(--surface2);border:1px solid var(--border);padding:8px;text-align:center;border-radius:8px}
+.spc-ideal{font-family:'Inter',sans-serif;font-size:10px;color:var(--muted2);margin-bottom:2px;font-weight:500}
+.spc-val{font-family:'Outfit',sans-serif;font-weight:800;font-size:18px;line-height:1;color:var(--text)}
+.spc-delta{font-family:'Inter',sans-serif;font-size:10px;margin-top:2px;font-weight:600}
+.spc-delta.ok{color:var(--green)}.spc-delta.near{color:#d97706}.spc-delta.off{color:#dc2626}
 
 /* ─── CATALOG MATCH STRIP ─── */
-.catalog-strip{margin:12px 0 4px}
-.catalog-strip-ttl{font-family:'Share Tech Mono',monospace;font-size:9px;letter-spacing:1.5px;color:var(--muted);margin-bottom:6px}
-.catalog-strip-track{position:relative;height:6px;background:rgba(255,255,255,.06);border-radius:3px;overflow:visible}
+.catalog-strip{margin:14px 0 4px}
+.catalog-strip-ttl{font-family:'Inter',sans-serif;font-size:10px;font-weight:600;color:var(--muted2);margin-bottom:6px;text-transform:uppercase;letter-spacing:.5px}
+.catalog-strip-track{position:relative;height:6px;background:var(--surface2);border-radius:3px;overflow:visible}
 .catalog-strip-fill{position:absolute;left:0;top:0;height:100%;border-radius:3px;
-  background:linear-gradient(90deg,rgba(255,85,0,.3),rgba(255,85,0,.8));transition:width 1.2s cubic-bezier(.4,0,.2,1)}
-.catalog-strip-mark{position:absolute;top:-3px;width:2px;height:12px;background:var(--orange);border-radius:1px;transition:left 1.2s cubic-bezier(.4,0,.2,1)}
-.catalog-strip-labels{display:flex;justify-content:space-between;margin-top:4px;
-  font-family:'Share Tech Mono',monospace;font-size:8px;color:var(--muted)}
+  background:var(--orange-grad);transition:width 1.2s cubic-bezier(.4,0,.2,1)}
+.catalog-strip-mark{position:absolute;top:-4px;width:3px;height:14px;background:var(--orange);border-radius:2px;transition:left 1.2s cubic-bezier(.4,0,.2,1)}
+.catalog-strip-labels{display:flex;justify-content:space-between;margin-top:5px;
+  font-family:'Inter',sans-serif;font-size:10px;color:var(--muted2);font-weight:500}
 
 /* ─── TIER CARD MINI DART ─── */
-.tier-dart-canvas{width:100%;height:50px;display:block;margin-bottom:6px;opacity:.8}
+.tier-dart-canvas{width:100%;height:50px;display:block;margin-bottom:8px}
 
+/* ─── HOME SCREEN ─── */
+.home-hero{width:100%;min-height:100vh;display:flex;flex-direction:column;align-items:center;
+  justify-content:center;padding:40px 24px;gap:40px}
+@media(min-width:900px){.home-hero{flex-direction:row;gap:72px;max-width:1200px;margin:0 auto;padding:0 64px;min-height:100vh}}
+.hero-content{flex:1;max-width:540px;text-align:center}
+@media(min-width:900px){.hero-content{text-align:left}}
+.hero-badge{display:inline-flex;align-items:center;gap:8px;background:var(--orange-dim);
+  border:1px solid rgba(232,87,14,.2);border-radius:100px;padding:7px 18px;
+  font-family:'Inter',sans-serif;font-size:13px;font-weight:600;color:var(--orange);margin-bottom:20px}
+.hero-headline{font-family:'Outfit',sans-serif;font-weight:800;
+  font-size:clamp(34px,5vw,52px);letter-spacing:-1.5px;line-height:1.06;
+  color:var(--text);margin-bottom:18px}
+.hero-headline span{color:var(--orange)}
+.hero-sub{font-family:'Inter',sans-serif;font-size:16px;line-height:1.75;color:var(--muted);
+  max-width:460px;margin:0 auto 28px;font-weight:400}
+@media(min-width:900px){.hero-sub{margin-left:0}}
+.hero-stats{display:flex;justify-content:center;margin-bottom:28px;
+  background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:16px 0;box-shadow:var(--shadow)}
+@media(min-width:900px){.hero-stats{max-width:380px;justify-content:flex-start}}
+.hero-stat{flex:1;text-align:center;padding:0 16px}
+.stat-num{font-family:'Outfit',sans-serif;font-weight:800;font-size:26px;color:var(--text);line-height:1}
+.stat-lbl{font-family:'Inter',sans-serif;font-size:12px;color:var(--muted);margin-top:4px;font-weight:500}
+.hero-stat-div{width:1px;background:var(--border);margin:4px 0;align-self:stretch}
+.hero-cta{max-width:320px;margin:0 auto 12px;font-size:17px}
+@media(min-width:900px){.hero-cta{margin-left:0}}
+.hero-cta-sec{max-width:320px;margin:0 auto 16px}
+@media(min-width:900px){.hero-cta-sec{margin-left:0}}
+.hero-note{font-family:'Inter',sans-serif;font-size:12px;color:var(--muted2);text-align:center}
+@media(min-width:900px){.hero-note{text-align:left}}
+.hero-visual{flex:0 0 360px;display:flex;flex-direction:column;gap:14px}
+@media(max-width:899px){.hero-visual{width:100%;max-width:400px}}
+.steps-card{background:var(--surface);border:1px solid var(--border);border-radius:20px;padding:24px;box-shadow:var(--shadow-lg)}
+.step-item{display:flex;align-items:flex-start;gap:16px}
+.step-icon{width:48px;height:48px;background:var(--orange-dim);border-radius:12px;
+  display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0}
+.step-num{font-family:'Inter',sans-serif;font-size:11px;font-weight:600;color:var(--orange);text-transform:uppercase;letter-spacing:.5px;margin-bottom:2px}
+.step-name{font-family:'Outfit',sans-serif;font-size:17px;font-weight:700;color:var(--text);margin-bottom:2px}
+.step-desc{font-family:'Inter',sans-serif;font-size:13px;color:var(--muted)}
+.step-connector{width:2px;height:22px;background:var(--border);margin:8px 0 8px 23px;border-radius:1px}
+.trust-row{display:flex;gap:8px;flex-wrap:wrap;justify-content:center}
+@media(min-width:900px){.trust-row{justify-content:flex-start}}
+.trust-badge{background:var(--surface);border:1px solid var(--border);border-radius:8px;
+  padding:8px 14px;font-family:'Inter',sans-serif;font-size:13px;font-weight:600;
+  color:var(--muted);box-shadow:var(--shadow)}
 
 @keyframes fadeUp{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
 .delay-1{animation-delay:.08s}.delay-2{animation-delay:.16s}.delay-3{animation-delay:.24s}
@@ -267,46 +316,75 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:18px;heigh
   SCREEN: WELCOME
 ══════════════════════════════════════════════════ -->
 <div class="screen active" id="screen-home">
-  <div style="width:100%;max-width:480px;padding:0 20px;display:flex;flex-direction:column;
-              align-items:center;justify-content:center;min-height:100vh;gap:20px;text-align:center">
-    <div>
-      <div style="font-family:'Bebas Neue',cursive;font-size:64px;letter-spacing:6px;line-height:.9">
-        DART<span style="color:var(--orange)">FIT</span>
+  <div class="home-hero">
+
+    <!-- LEFT: Marketing copy -->
+    <div class="hero-content">
+      <div class="hero-badge">🎯 Science-Backed Dart Fitting</div>
+      <h1 class="hero-headline">Find Your Perfect<br>Dart in <span>3 Minutes</span></h1>
+      <p class="hero-sub">
+        Scan your throwing hand, answer a few quick questions, and get matched to the ideal barrel from our database of 22 pro-grade darts — using real biomechanics used by world champions.
+      </p>
+      <div class="hero-stats">
+        <div class="hero-stat">
+          <div class="stat-num">22</div>
+          <div class="stat-lbl">Pro Darts</div>
+        </div>
+        <div class="hero-stat-div"></div>
+        <div class="hero-stat">
+          <div class="stat-num">8</div>
+          <div class="stat-lbl">Pro Profiles</div>
+        </div>
+        <div class="hero-stat-div"></div>
+        <div class="hero-stat">
+          <div class="stat-num">Free</div>
+          <div class="stat-lbl">Always</div>
+        </div>
       </div>
-      <div style="font-family:'Share Tech Mono',monospace;font-size:11px;letter-spacing:3px;color:var(--muted);margin-top:6px">
-        PRECISION BIOMECHANICAL DART MATCHING
+      <button class="btn btn-primary hero-cta" onclick="startFit()">Get My Dart Match →</button>
+      <button class="btn btn-ghost hero-cta-sec" onclick="navigate('auth')">Sign In / Create Account</button>
+      <p class="hero-note">No signup required · Takes 3 minutes</p>
+    </div>
+
+    <!-- RIGHT: Steps + brands -->
+    <div class="hero-visual">
+      <div class="steps-card">
+        <div class="step-item">
+          <div class="step-icon">🖐</div>
+          <div class="step-text">
+            <div class="step-num">Step 1</div>
+            <div class="step-name">Hand Scan</div>
+            <div class="step-desc">Camera maps your grip dimensions</div>
+          </div>
+        </div>
+        <div class="step-connector"></div>
+        <div class="step-item">
+          <div class="step-icon">📋</div>
+          <div class="step-text">
+            <div class="step-num">Step 2</div>
+            <div class="step-name">Quick Profile</div>
+            <div class="step-desc">Level, grip style, weight preference</div>
+          </div>
+        </div>
+        <div class="step-connector"></div>
+        <div class="step-item">
+          <div class="step-icon">🎯</div>
+          <div class="step-text">
+            <div class="step-num">Step 3</div>
+            <div class="step-name">Your Match</div>
+            <div class="step-desc">Ranked darts scored to your biometrics</div>
+          </div>
+        </div>
+      </div>
+      <div class="trust-row">
+        <div class="trust-badge">Target</div>
+        <div class="trust-badge">Winmau</div>
+        <div class="trust-badge">Harrows</div>
+        <div class="trust-badge">Red Dragon</div>
+        <div class="trust-badge">Unicorn</div>
       </div>
     </div>
 
-    <div style="display:flex;gap:16px;justify-content:center;margin:4px 0">
-      <div style="text-align:center">
-        <div style="font-family:'Bebas Neue',cursive;font-size:11px;letter-spacing:2px;color:var(--muted);margin-bottom:8px">01</div>
-        <div style="width:44px;height:44px;border:1px solid var(--orange);display:flex;align-items:center;justify-content:center;font-size:20px">🖐</div>
-        <div style="font-family:'Share Tech Mono',monospace;font-size:9px;color:var(--muted);margin-top:6px;letter-spacing:1px">SCAN</div>
-      </div>
-      <div style="width:30px;height:44px;display:flex;align-items:center;justify-content:center;
-                  color:var(--border);font-size:20px;margin-top:19px">—</div>
-      <div style="text-align:center">
-        <div style="font-family:'Bebas Neue',cursive;font-size:11px;letter-spacing:2px;color:var(--muted);margin-bottom:8px">02</div>
-        <div style="width:44px;height:44px;border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:20px">📋</div>
-        <div style="font-family:'Share Tech Mono',monospace;font-size:9px;color:var(--muted);margin-top:6px;letter-spacing:1px">PROFILE</div>
-      </div>
-      <div style="width:30px;height:44px;display:flex;align-items:center;justify-content:center;
-                  color:var(--border);font-size:20px;margin-top:19px">—</div>
-      <div style="text-align:center">
-        <div style="font-family:'Bebas Neue',cursive;font-size:11px;letter-spacing:2px;color:var(--muted);margin-bottom:8px">03</div>
-        <div style="width:44px;height:44px;border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:20px">🎯</div>
-        <div style="font-family:'Share Tech Mono',monospace;font-size:9px;color:var(--muted);margin-top:6px;letter-spacing:1px">MATCH</div>
-      </div>
-    </div>
-
-    <button class="btn btn-primary" style="max-width:280px" onclick="startFit()">BEGIN FITTING</button>
-    <button class="btn btn-ghost" style="max-width:280px" onclick="navigate('auth')">SIGN IN / REGISTER</button>
-
-    <p style="font-size:11px;color:var(--muted);font-family:'Share Tech Mono',monospace;
-              letter-spacing:.5px;line-height:1.7;max-width:260px">
-      22 pro-grade darts in database.<br>8 pro player profiles. Real algorithm.
-    </p>
   </div>
 </div>
 
@@ -315,8 +393,8 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:18px;heigh
 ══════════════════════════════════════════════════ -->
 <div class="screen" id="screen-auth">
   <div class="page-wrap">
-    <div class="section-title fade-in">MY <span>ACCOUNT</span></div>
-    <div class="section-sub fade-in">SIGN IN OR CREATE A FREE ACCOUNT TO SAVE YOUR PROFILE</div>
+    <div class="section-title fade-in">My <span>Account</span></div>
+    <div class="section-sub fade-in">Sign in or create a free account to save your profile</div>
 
     <div id="auth-tabs" style="display:flex;gap:0;margin-bottom:20px">
       <button onclick="switchAuthTab('login')" id="tab-login" class="nav-btn active" style="flex:1;padding:10px">LOGIN</button>
@@ -361,8 +439,8 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:18px;heigh
 ══════════════════════════════════════════════════ -->
 <div class="screen" id="screen-questionnaire">
   <div class="page-wrap">
-    <div class="section-title fade-in">YOUR <span>PREFERENCES</span></div>
-    <div class="section-sub fade-in">THIS DIRECTLY INFLUENCES THE ALGORITHM</div>
+    <div class="section-title fade-in">Your <span>Preferences</span></div>
+    <div class="section-sub fade-in">These answers directly influence the biomechanical algorithm</div>
 
     <!-- Progress -->
     <div class="progress-bar"><div class="prog-step done"></div><div class="prog-step active"></div><div class="prog-step"></div><div class="prog-step"></div></div>
@@ -476,8 +554,8 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:18px;heigh
 ══════════════════════════════════════════════════ -->
 <div class="screen" id="screen-arm">
   <div class="page-wrap">
-    <div class="section-title fade-in">ARM <span>SCAN</span></div>
-    <div class="section-sub fade-in">OPTIONAL — IMPROVES LEVERAGE CALCULATION</div>
+    <div class="section-title fade-in">Arm <span>Scan</span></div>
+    <div class="section-sub fade-in">Optional — improves your leverage calculation</div>
 
     <div class="progress-bar"><div class="prog-step done"></div><div class="prog-step done"></div><div class="prog-step active"></div><div class="prog-step"></div></div>
 
@@ -501,7 +579,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:18px;heigh
            letter-spacing:1px;color:var(--muted);text-align:center;margin-top:8px"></div>
     </div>
 
-    <div class="card fade-in delay-1" style="background:rgba(255,85,0,.04);border-color:rgba(255,85,0,.2)">
+    <div class="card fade-in delay-1" style="background:rgba(232,87,14,.04);border-color:rgba(232,87,14,.2)">
       <div style="font-family:'Share Tech Mono',monospace;font-size:9px;letter-spacing:2px;color:var(--orange);margin-bottom:6px">HOW IT WORKS</div>
       <p style="font-size:11px;color:var(--muted);line-height:1.6;font-weight:300">
         Forearm length relative to height changes the <em style="color:var(--muted2)">leverage arc</em>. 
@@ -519,15 +597,16 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:18px;heigh
 <!-- ══════════════════════════════════════════════════
   SCREEN: ANALYZING
 ══════════════════════════════════════════════════ -->
-<div class="screen" id="screen-analyze" style="justify-content:center;align-items:center;gap:20px">
-  <div style="text-align:center">
-    <div style="font-family:'Bebas Neue',cursive;font-size:38px;letter-spacing:4px;line-height:1">
-      ANALYZING<br><span style="color:var(--orange)">YOUR DATA</span>
+<div class="screen" id="screen-analyze" style="justify-content:center;align-items:center;gap:20px;padding:20px 0">
+  <div style="text-align:center;padding-top:16px">
+    <div style="font-family:'Outfit',sans-serif;font-weight:800;font-size:32px;letter-spacing:-1px;line-height:1;color:var(--text)">
+      Analyzing<br><span style="color:var(--orange)">Your Data</span>
     </div>
+    <div style="font-family:'Inter',sans-serif;font-size:13px;color:var(--muted);margin-top:6px">Hand vectors mapped to biomechanical model</div>
   </div>
-  <canvas id="hand-canvas" width="200" height="240"></canvas>
-  <div id="meas-list" style="width:100%;max-width:340px;padding:0 20px"></div>
-  <div class="analyze-status" id="analyze-status">INITIALIZING...</div>
+  <canvas id="hand-canvas" width="280" height="340"></canvas>
+  <div id="meas-list" style="width:100%;max-width:360px;padding:0 20px"></div>
+  <div class="analyze-status" id="analyze-status">Initializing...</div>
 </div>
 
 <!-- ══════════════════════════════════════════════════
@@ -736,6 +815,8 @@ function captureHand() {
   tempCanvas.height = video.videoHeight || 480;
   const ctx = tempCanvas.getContext('2d');
   ctx.drawImage(video, 0, 0);
+  // Save photo for overlay on analysis screen
+  state.handImageData = tempCanvas.toDataURL('image/jpeg', 0.85);
 
   // Simulate realistic biometric extraction
   // (In production, send frame to MediaPipe or TF.js hand landmark model)
@@ -873,15 +954,17 @@ async function submitToAPI(measurements) {
 function drawHandSkeleton() {
   const canvas = document.getElementById('hand-canvas');
   const ctx = canvas.getContext('2d');
-  const W = 200, H = 240;
-  let frame = 0;
+  const W = 280, H = 340;
+  canvas.width = W; canvas.height = H;
+  const sx = W/200, sy = H/240;
+
   const joints = {
-    wrist:[100,220],
-    pL:[62,178],pR:[138,178],
-    f1b:[58,148],f2b:[82,132],f3b:[104,126],f4b:[128,132],f5b:[148,144],
-    f1m:[46,112],f2m:[74,92], f3m:[102,84], f4m:[128,90], f5m:[149,112],
-    f1t:[38,80], f2t:[70,57], f3t:[100,48], f4t:[126,54], f5t:[149,82],
-    th1:[40,168],th2:[22,144],th3:[16,120],
+    wrist:[100*sx,220*sy],
+    pL:[62*sx,178*sy],pR:[138*sx,178*sy],
+    f1b:[58*sx,148*sy],f2b:[82*sx,132*sy],f3b:[104*sx,126*sy],f4b:[128*sx,132*sy],f5b:[148*sx,144*sy],
+    f1m:[46*sx,112*sy],f2m:[74*sx,92*sy], f3m:[102*sx,84*sy], f4m:[128*sx,90*sy], f5m:[149*sx,112*sy],
+    f1t:[38*sx,80*sy], f2t:[70*sx,57*sy], f3t:[100*sx,48*sy], f4t:[126*sx,54*sy], f5t:[149*sx,82*sy],
+    th1:[40*sx,168*sy],th2:[22*sx,144*sy],th3:[16*sx,120*sy],
   };
   const conns=[
     ['wrist','pL'],['wrist','pR'],['pL','pR'],
@@ -890,29 +973,78 @@ function drawHandSkeleton() {
     ['f3b','f3m'],['f3m','f3t'],['f4b','f4m'],['f4m','f4t'],['f5b','f5m'],['f5m','f5t'],
     ['pL','th1'],['th1','th2'],['th2','th3'],
   ];
-  function draw() {
-    ctx.clearRect(0,0,W,H);
-    const progress = Math.min(frame/70,1);
-    conns.forEach((conn,ci) => {
-      const delay = ci/conns.length;
-      const lp = Math.max(0,Math.min(1,(progress-delay*.5)*2));
-      if(!lp) return;
-      const a=joints[conn[0]],b=joints[conn[1]];
-      ctx.beginPath(); ctx.moveTo(a[0],a[1]);
-      ctx.lineTo(a[0]+(b[0]-a[0])*lp, a[1]+(b[1]-a[1])*lp);
-      ctx.strokeStyle=`rgba(255,85,0,${.35+lp*.5})`; ctx.lineWidth=1.5; ctx.stroke();
-    });
-    Object.values(joints).forEach((j,ji) => {
-      const jp = Math.max(0,Math.min(1,(progress-ji/Object.keys(joints).length*.3)*3));
-      if(!jp) return;
-      ctx.beginPath(); ctx.arc(j[0],j[1],2.5*jp,0,Math.PI*2);
-      ctx.fillStyle=`rgba(255,85,0,${.5+jp*.5})`; ctx.fill();
-    });
-    if(progress<1) { ctx.fillStyle='rgba(255,85,0,.15)'; ctx.fillRect(0,progress*H-8,W,16); }
-    frame++;
-    if(frame<150) requestAnimationFrame(draw);
+
+  let frame = 0, handImg = null;
+
+  const startAnim = () => {
+    function draw() {
+      ctx.clearRect(0,0,W,H);
+      const hasPhoto = !!handImg;
+      if (hasPhoto) {
+        ctx.drawImage(handImg, 0, 0, W, H);
+        ctx.fillStyle = 'rgba(0,0,0,0.40)';
+        ctx.fillRect(0,0,W,H);
+      }
+      const progress = Math.min(frame/70,1);
+      conns.forEach((conn,ci) => {
+        const delay = ci/conns.length;
+        const lp = Math.max(0,Math.min(1,(progress-delay*.5)*2));
+        if(!lp) return;
+        const a=joints[conn[0]],b=joints[conn[1]];
+        ctx.beginPath(); ctx.moveTo(a[0],a[1]);
+        ctx.lineTo(a[0]+(b[0]-a[0])*lp, a[1]+(b[1]-a[1])*lp);
+        ctx.strokeStyle = hasPhoto ? `rgba(255,255,255,${.45+lp*.4})` : `rgba(232,87,14,${.4+lp*.5})`;
+        ctx.lineWidth = 1.8; ctx.stroke();
+      });
+      Object.values(joints).forEach((j,ji) => {
+        const jp = Math.max(0,Math.min(1,(progress-ji/Object.keys(joints).length*.3)*3));
+        if(!jp) return;
+        ctx.beginPath(); ctx.arc(j[0],j[1],3*jp,0,Math.PI*2);
+        ctx.fillStyle=`rgba(232,87,14,${.7+jp*.3})`; ctx.fill();
+      });
+      if(progress<1 && !hasPhoto) {
+        ctx.fillStyle='rgba(232,87,14,.10)'; ctx.fillRect(0,progress*H-8,W,16);
+      }
+      // Draw measurement vector annotations after animation completes
+      if (progress >= 1) {
+        const measurements = state.handMeasurements;
+        if (measurements) {
+          ctx.font = 'bold 9px Inter, sans-serif';
+          ctx.textAlign = 'left';
+          // Finger length vector (f3b → f3t)
+          const f3b = joints.f3b, f3t = joints.f3t;
+          ctx.beginPath(); ctx.moveTo(f3t[0]-18,f3t[1]); ctx.lineTo(f3b[0]-18,f3b[1]);
+          ctx.strokeStyle='rgba(255,220,50,.75)'; ctx.lineWidth=1.5;
+          ctx.setLineDash([3,2]); ctx.stroke(); ctx.setLineDash([]);
+          ctx.fillStyle='rgba(255,220,50,.9)';
+          ctx.fillText(`${measurements.fingerLength}mm`, f3t[0]-17, (f3t[1]+f3b[1])/2+3);
+          // Palm width vector (pL → pR)
+          const pL = joints.pL, pR = joints.pR;
+          ctx.beginPath(); ctx.moveTo(pL[0],pL[1]+18); ctx.lineTo(pR[0],pR[1]+18);
+          ctx.strokeStyle='rgba(100,200,255,.75)'; ctx.lineWidth=1.5;
+          ctx.setLineDash([3,2]); ctx.stroke(); ctx.setLineDash([]);
+          ctx.fillStyle='rgba(100,200,255,.9)';
+          ctx.textAlign='center';
+          ctx.fillText(`${measurements.palmWidth}mm`, (pL[0]+pR[0])/2, pL[1]+30);
+          // Throw angle label
+          ctx.fillStyle='rgba(232,87,14,.9)';
+          ctx.textAlign='right';
+          ctx.fillText(`${measurements.throwAngleDeg}° arc`, W-8, H-10);
+        }
+      }
+      frame++;
+      if(frame<220) requestAnimationFrame(draw);
+    }
+    draw();
+  };
+
+  if (state.handImageData) {
+    const img = new Image();
+    img.onload = () => { handImg = img; startAnim(); };
+    img.src = state.handImageData;
+  } else {
+    startAnim();
   }
-  draw();
 }
 
 // ─── RENDER RESULTS ──────────────────────────────────────────────
@@ -1105,7 +1237,7 @@ function renderResults() {
           <div style="flex:1;min-width:0">
             <div class="alt-dart-name">${d.name}</div>
             <div class="alt-dart-sub">${d.brand} · ${d.weight}g · ${fmtGrip(d.grip_type)} · £${d.price_gbp?.toFixed(2)}</div>
-            <div style="height:3px;background:rgba(255,255,255,.06);border-radius:2px;margin-top:5px;overflow:hidden">
+            <div style="height:3px;background:var(--surface2);border-radius:2px;margin-top:5px;overflow:hidden">
               <div style="height:100%;width:${barW}%;background:rgba(255,85,0,${0.3 + score/250});border-radius:2px;transition:width 1s .4s"></div>
             </div>
           </div>
@@ -1404,6 +1536,9 @@ function renderDartCanvas(canvasId, opts, showGhostIdeal, idealOpts) {
   const ctx = canvas.getContext('2d');
   ctx.scale(dpr, dpr);
   ctx.clearRect(0, 0, W, H);
+  // Dark canvas background so dart metallic renders correctly
+  ctx.fillStyle = '#1c1c1c';
+  ctx.fillRect(0, 0, W, H);
 
   if (showGhostIdeal && idealOpts) {
     // Draw ideal as ghost first (behind)
@@ -1429,7 +1564,7 @@ function scoreRingSVG(score, size, color) {
   const circ = +(2 * Math.PI * r).toFixed(2);
   const id = 'ring_' + Math.random().toString(36).slice(2,8);
   return `<svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}" style="transform:rotate(-90deg);display:block">
-    <circle cx="${size/2}" cy="${size/2}" r="${r}" fill="none" stroke="rgba(255,255,255,.07)" stroke-width="3.5"/>
+    <circle cx="${size/2}" cy="${size/2}" r="${r}" fill="none" stroke="rgba(0,0,0,.08)" stroke-width="3.5"/>
     <circle id="${id}" cx="${size/2}" cy="${size/2}" r="${r}" fill="none" stroke="${color}"
       stroke-width="3.5" stroke-linecap="round"
       stroke-dasharray="${circ}" stroke-dashoffset="${circ}"
@@ -1530,6 +1665,8 @@ function renderThrowArc(canvasId, profile) {
   const ctx = canvas.getContext('2d');
   ctx.scale(dpr, dpr);
   ctx.clearRect(0, 0, W, H);
+  ctx.fillStyle = '#1c1c1c';
+  ctx.fillRect(0, 0, W, H);
 
   // Physical constants (mm → pixels mapped to canvas)
   const oche = 2370; const boardH = 1730; const eyeHmm = profile.heightCm * 8.5;
