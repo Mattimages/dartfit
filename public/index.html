@@ -863,8 +863,37 @@ function drawHandSkeleton() {
 }
 
 // ─── RENDER RESULTS ──────────────────────────────────────────────
+function dartTierCard(dart, tierLabel, tierColor, accentBorder, delay) {
+  if (!dart) return '';
+  return `
+    <div class="card fade-in ${delay}" style="border-color:${accentBorder};margin-bottom:12px">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px">
+        <div>
+          <div style="font-family:'Share Tech Mono',monospace;font-size:9px;letter-spacing:2px;color:${tierColor};margin-bottom:2px">${tierLabel}</div>
+          <div style="font-family:'Share Tech Mono',monospace;font-size:9px;letter-spacing:2px;color:var(--muted)">${dart.brand.toUpperCase()}</div>
+          <div style="font-family:'Bebas Neue',cursive;font-size:22px;letter-spacing:2px;line-height:1.1">${dart.name}</div>
+          ${dart.pro_player ? `<div style="font-size:10px;color:var(--muted)">Used by ${dart.pro_player}</div>` : ''}
+        </div>
+        <div class="result-score-circle" style="width:52px;height:52px;min-width:52px">
+          <div class="score-num" style="font-size:20px">${dart.matchScore}</div>
+          <div class="score-sub">MATCH</div>
+        </div>
+      </div>
+      <div class="spec-chips" style="margin-bottom:10px">
+        <div class="chip"><b>${dart.weight}g</b></div>
+        <div class="chip"><b>${dart.length_mm}mm</b></div>
+        <div class="chip"><b>${dart.tungsten_pct}%</b> W</div>
+        <div class="chip"><b>${fmtGrip(dart.grip_type)}</b></div>
+        <div class="chip"><b>${dart.barrel_shape}</b></div>
+      </div>
+      <a href="${dart.buy_url}" target="_blank" class="shop-btn" style="background:${tierColor}20;border-color:${tierColor}60;color:${tierColor}" onclick="trackClick(${dart.id})">
+        → BUY NOW · £${dart.price_gbp?.toFixed(2)}
+      </a>
+    </div>`;
+}
+
 function renderResults() {
-  const { profile, topDart, alternateDarts, topPro, alternatePros } = state.fitResult;
+  const { profile, topDart, budgetDart, valueDart, premiumDart, alternateDarts, topPro, alternatePros } = state.fitResult;
   const container = document.getElementById('results-content');
 
   container.innerHTML = `
@@ -957,6 +986,15 @@ function renderResults() {
       </div>
     </div>
 
+    <!-- TIERED PICKS -->
+    <div class="section-head">PICKS BY BUDGET</div>
+    <div style="font-family:'Share Tech Mono',monospace;font-size:10px;color:var(--muted);letter-spacing:1px;margin-bottom:12px">
+      YOUR BIOMECHANICAL PROFILE, MATCHED ACROSS ALL PRICE TIERS
+    </div>
+    ${dartTierCard(budgetDart,  '◎ BUDGET PICK · UNDER £25',  '#4caf50', 'rgba(76,175,80,.35)',  'delay-2')}
+    ${dartTierCard(valueDart,   '◈ VALUE PICK · £25–£40',     '#2196f3', 'rgba(33,150,243,.35)', 'delay-3')}
+    ${dartTierCard(premiumDart, '◆ PREMIUM PICK · £40+',      '#ff9800', 'rgba(255,152,0,.35)',  'delay-4')}
+
     <!-- AI EXPLANATION -->
     <div class="section-head">⬡ AI ANALYSIS</div>
     <div class="card fade-in delay-3">
@@ -966,13 +1004,13 @@ function renderResults() {
     </div>
 
     <!-- ALTERNATIVE DARTS -->
-    <div class="section-head">ALTERNATIVE MATCHES</div>
-    <div class="fade-in delay-4">
+    <div class="section-head">MORE MATCHES</div>
+    <div class="fade-in delay-5">
       ${alternateDarts.map(d => `
         <div class="alt-dart-row">
           <div>
             <div class="alt-dart-name">${d.name}</div>
-            <div class="alt-dart-sub">${d.brand} · ${d.weight}g · ${fmtGrip(d.grip_type)} · ${d.barrel_shape}</div>
+            <div class="alt-dart-sub">${d.brand} · ${d.weight}g · ${fmtGrip(d.grip_type)} · ${d.barrel_shape} · £${d.price_gbp?.toFixed(2)}</div>
           </div>
           <div style="text-align:right">
             <div style="font-family:'Bebas Neue',cursive;font-size:24px;color:var(--muted)">${d.matchScore}</div>
