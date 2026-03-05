@@ -218,6 +218,34 @@ app.get('/api/admin/users', requireAdmin, (req, res) => {
   res.json(db.prepare('SELECT id,email,name,created_at,last_login,notifications_enabled FROM users').all());
 });
 
+// ════════════════════════════════════════════════════════════════
+// AI EXPLANATION (server-side — generates locally, no external API needed)
+// ════════════════════════════════════════════════════════════════
+app.post('/api/fit/explain', (req, res) => {
+  const { profile, topDart, topPro, questionnaire } = req.body;
+  if (!profile || !topDart || !topPro) return res.status(400).json({ error: 'Missing data' });
+
+  const leverageDesc = profile.leverageRatio > 0.15 ? 'long-forearm' : 'compact';
+  const leverageTip = profile.leverageRatio > 0.15
+    ? 'slightly lighter darts will give better control'
+    : 'your shorter lever benefits from front-weighted balance';
+  const gripStyle = (topPro.grip_style || '').replace(/_/g, ' ');
+
+  const text = `Your ${profile.palmWidth}mm palm width and ${profile.fingerLength}mm finger length define a ${profile.idealWeight}g ${profile.barrelShape} as the optimal balance point. The ${topDart.name} matches with ${topDart.matchScore}% precision — its ${topDart.weight}g barrel and ${(topDart.grip_type || '').replace(/_/g, ' ')} align directly with your biometric profile. Your leverage ratio of ${(profile.leverageRatio * 100).toFixed(1)}% indicates a ${leverageDesc} throwing arc — ${leverageTip}. Like ${topPro.name}, your measurements point to a ${gripStyle} release — the same biomechanical archetype that defines their style.`;
+
+  res.json({ text });
+});
+
+// ════════════════════════════════════════════════════════════════
+// AFFILIATE CLICK TRACKING
+// ════════════════════════════════════════════════════════════════
+app.post('/api/track/click', (req, res) => {
+  // Fire-and-forget click tracking — log to console for now
+  const { dartId } = req.body;
+  if (dartId) console.log(`[Track] Affiliate click: dart_id=${dartId}`);
+  res.json({ success: true });
+});
+
 // ─── BOOT ──────────────────────────────────────────────────────
 initWebPush();
 app.get('*', (req, res) => res.sendFile(path.join(__dirname, 'public', 'index.html')));
