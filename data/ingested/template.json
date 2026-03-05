@@ -1,0 +1,23 @@
+[
+  {
+    "_comment": "Hand-crafted template — copy this block per dart, delete _comment fields before importing",
+    "_source": "manual",
+    "_confidence": "high",
+    "brand": "Target",
+    "name": "Example Dart 22g",
+    "weight": 22,
+    "length_mm": 50,
+    "diameter_mm": 6.5,
+    "grip_type": "medium_knurl",
+    "barrel_shape": "straight",
+    "balance_point": "middle",
+    "tungsten_pct": 90,
+    "surface": "natural",
+    "price_gbp": 29.99,
+    "buy_url": "https://www.target-darts.co.uk/example-dart",
+    "pro_player": null,
+    "tags": "22g,straight,medium",
+    "description": "A 22g straight barrel from Target with consistent medium knurl.",
+    "released": "2024-01-01"
+  }
+]

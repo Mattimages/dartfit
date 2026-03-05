@@ -6,7 +6,17 @@
   "scripts": {
     "start": "node server.js",
     "dev": "nodemon server.js",
-    "generate-vapid": "node -e \"const wp=require('web-push');const k=wp.generateVAPIDKeys();console.log('VAPID_PUBLIC_KEY='+k.publicKey+'\\nVAPID_PRIVATE_KEY='+k.privateKey);\""
+    "generate-vapid": "node -e \"const wp=require('web-push');const k=wp.generateVAPIDKeys();console.log('VAPID_PUBLIC_KEY='+k.publicKey+'\\nVAPID_PRIVATE_KEY='+k.privateKey);\"",
+    "coverage": "node scripts/coverage-analysis.js",
+    "scrape": "node scripts/ingest/scraper.js",
+    "scrape:target": "node scripts/ingest/scraper.js --source target",
+    "scrape:winmau": "node scripts/ingest/scraper.js --source winmau",
+    "scrape:reddragon": "node scripts/ingest/scraper.js --source reddragon",
+    "scrape:harrows": "node scripts/ingest/scraper.js --source harrows",
+    "import": "node scripts/ingest/import.js --file",
+    "import:dry": "node scripts/ingest/import.js --file",
+    "price-check": "node scripts/ingest/price-check.js",
+    "price-check:apply": "node scripts/ingest/price-check.js --apply"
   },
   "dependencies": {
     "bcryptjs": "^2.4.3",
