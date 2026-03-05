@@ -190,8 +190,61 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:18px;heigh
   background:#fff;border-radius:50%;transition:left .3s}
 .toggle-switch.on .toggle-knob{left:23px}
 
-/* ─── FADE IN ─── */
-.fade-in{animation:fadeUp .45s ease forwards}
+/* ─── SCORE RING (SVG animated) ─── */
+.score-ring-wrap{position:relative;flex-shrink:0}
+.score-ring-wrap .ring-inner{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;pointer-events:none}
+.ring-val{font-family:'Bebas Neue',cursive;font-size:22px;line-height:1;color:var(--orange)}
+.ring-lbl{font-size:7px;letter-spacing:1.5px;color:var(--muted);font-family:'Share Tech Mono',monospace}
+
+/* ─── ALGORITHM BREAKDOWN ─── */
+.breakdown-section{margin-top:14px;padding-top:12px;border-top:1px solid var(--border)}
+.breakdown-title{font-family:'Share Tech Mono',monospace;font-size:9px;letter-spacing:2.5px;color:var(--muted);margin-bottom:10px}
+.breakdown-row{display:flex;align-items:center;gap:7px;margin-bottom:5px}
+.bk-lbl{font-family:'Share Tech Mono',monospace;font-size:9px;color:var(--muted);width:66px;flex-shrink:0;letter-spacing:.3px}
+.bk-wt{font-family:'Share Tech Mono',monospace;font-size:8px;color:#333;width:22px;text-align:right;flex-shrink:0}
+.bk-track{flex:1;height:5px;background:rgba(255,255,255,.06);border-radius:3px;overflow:hidden}
+.bk-fill{height:100%;width:0;border-radius:3px;transition:width .9s cubic-bezier(.4,0,.2,1)}
+.bk-fill.hi{background:linear-gradient(90deg,#00c853,#00e87a)}
+.bk-fill.mid{background:linear-gradient(90deg,#ff8f00,#ffc400)}
+.bk-fill.lo{background:linear-gradient(90deg,#b71c1c,#ef5350)}
+.bk-score{font-family:'Bebas Neue',cursive;font-size:13px;color:var(--muted2);width:22px;text-align:right;flex-shrink:0}
+.breakdown-total-row{display:flex;align-items:center;gap:7px;margin-top:8px;padding-top:8px;border-top:1px solid var(--border)}
+.bk-total-lbl{font-family:'Share Tech Mono',monospace;font-size:9px;letter-spacing:1px;color:var(--muted);width:88px;flex-shrink:0}
+.bk-total-track{flex:1;height:7px;background:rgba(255,255,255,.06);border-radius:3px;overflow:hidden}
+.bk-total-fill{height:100%;width:0;border-radius:3px;background:linear-gradient(90deg,var(--orange),#ff8c00);transition:width 1.1s cubic-bezier(.4,0,.2,1);transition-delay:.5s}
+.bk-total-score{font-family:'Bebas Neue',cursive;font-size:18px;color:var(--orange);width:28px;text-align:right;flex-shrink:0}
+
+/* ─── DART CANVAS ENHANCED ─── */
+.dart-vis-wrap{position:relative;width:100%;height:160px;margin-bottom:4px}
+.dart-vis-canvas-lg{position:absolute;inset:0;width:100%;height:100%}
+
+/* ─── THROW ARC ─── */
+.throw-arc-block{background:var(--bg);border:1px solid var(--border);padding:10px 12px;margin-top:10px}
+.throw-arc-ttl{font-family:'Share Tech Mono',monospace;font-size:9px;letter-spacing:2px;color:var(--muted);margin-bottom:6px}
+.throw-arc-canvas{width:100%;height:80px;display:block}
+
+/* ─── SPEC COMPARE ─── */
+.spec-compare{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin:10px 0 6px}
+.spc-item{background:var(--bg);border:1px solid var(--border);padding:7px 6px;text-align:center}
+.spc-ideal{font-family:'Share Tech Mono',monospace;font-size:7px;color:var(--muted);letter-spacing:.5px;margin-bottom:1px}
+.spc-val{font-family:'Bebas Neue',cursive;font-size:17px;line-height:1;color:var(--text)}
+.spc-delta{font-family:'Share Tech Mono',monospace;font-size:8px;margin-top:2px}
+.spc-delta.ok{color:var(--green)}.spc-delta.near{color:#ffc400}.spc-delta.off{color:#ef5350}
+
+/* ─── CATALOG MATCH STRIP ─── */
+.catalog-strip{margin:12px 0 4px}
+.catalog-strip-ttl{font-family:'Share Tech Mono',monospace;font-size:9px;letter-spacing:1.5px;color:var(--muted);margin-bottom:6px}
+.catalog-strip-track{position:relative;height:6px;background:rgba(255,255,255,.06);border-radius:3px;overflow:visible}
+.catalog-strip-fill{position:absolute;left:0;top:0;height:100%;border-radius:3px;
+  background:linear-gradient(90deg,rgba(255,85,0,.3),rgba(255,85,0,.8));transition:width 1.2s cubic-bezier(.4,0,.2,1)}
+.catalog-strip-mark{position:absolute;top:-3px;width:2px;height:12px;background:var(--orange);border-radius:1px;transition:left 1.2s cubic-bezier(.4,0,.2,1)}
+.catalog-strip-labels{display:flex;justify-content:space-between;margin-top:4px;
+  font-family:'Share Tech Mono',monospace;font-size:8px;color:var(--muted)}
+
+/* ─── TIER CARD MINI DART ─── */
+.tier-dart-canvas{width:100%;height:50px;display:block;margin-bottom:6px;opacity:.8}
+
+
 @keyframes fadeUp{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
 .delay-1{animation-delay:.08s}.delay-2{animation-delay:.16s}.delay-3{animation-delay:.24s}
 .delay-4{animation-delay:.32s}.delay-5{animation-delay:.40s}
@@ -863,139 +916,178 @@ function drawHandSkeleton() {
 }
 
 // ─── RENDER RESULTS ──────────────────────────────────────────────
-function dartTierCard(dart, tierLabel, tierColor, accentBorder, delay) {
+function dartTierCard(dart, tierLabel, tierColor, accentBorder, delay, profile) {
   if (!dart) return '';
+  const uid = 'tc_' + dart.id + '_' + Math.random().toString(36).slice(2,6);
+  const b = computeBreakdown(dart, profile || {});
+  const dims = [
+    { l:'WT', s: Math.round(b.wt) },
+    { l:'LEN', s: Math.round(b.ln) },
+    { l:'DIA', s: Math.round(b.dm) },
+    { l:'GRIP', s: Math.round(b.gp) },
+    { l:'BAL', s: Math.round(b.bl) },
+  ];
   return `
-    <div class="card fade-in ${delay}" style="border-color:${accentBorder};margin-bottom:12px">
-      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px">
-        <div>
-          <div style="font-family:'Share Tech Mono',monospace;font-size:9px;letter-spacing:2px;color:${tierColor};margin-bottom:2px">${tierLabel}</div>
-          <div style="font-family:'Share Tech Mono',monospace;font-size:9px;letter-spacing:2px;color:var(--muted)">${dart.brand.toUpperCase()}</div>
-          <div style="font-family:'Bebas Neue',cursive;font-size:22px;letter-spacing:2px;line-height:1.1">${dart.name}</div>
-          ${dart.pro_player ? `<div style="font-size:10px;color:var(--muted)">Used by ${dart.pro_player}</div>` : ''}
+    <div class="card fade-in ${delay}" style="border-color:${accentBorder};margin-bottom:12px" id="card_${uid}">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px">
+        <div style="flex:1;min-width:0">
+          <div style="font-family:'Share Tech Mono',monospace;font-size:8px;letter-spacing:2px;color:${tierColor};margin-bottom:2px">${tierLabel}</div>
+          <div style="font-family:'Share Tech Mono',monospace;font-size:9px;letter-spacing:1.5px;color:var(--muted)">${dart.brand.toUpperCase()}</div>
+          <div style="font-family:'Bebas Neue',cursive;font-size:20px;letter-spacing:1.5px;line-height:1.1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${dart.name}</div>
+          ${dart.pro_player ? `<div style="font-size:9px;color:var(--muted)">Used by ${dart.pro_player}</div>` : ''}
         </div>
-        <div class="result-score-circle" style="width:52px;height:52px;min-width:52px">
-          <div class="score-num" style="font-size:20px">${dart.matchScore}</div>
-          <div class="score-sub">MATCH</div>
+        <div class="score-ring-wrap" style="width:52px;height:52px;margin-left:10px">
+          ${scoreRingSVG(dart.matchScore, 52, tierColor)}
+          <div class="ring-inner">
+            <div class="ring-val" style="color:${tierColor};font-size:19px" id="rv_${uid}">0</div>
+            <div class="ring-lbl">MATCH</div>
+          </div>
         </div>
       </div>
-      <div class="spec-chips" style="margin-bottom:10px">
-        <div class="chip"><b>${dart.weight}g</b></div>
-        <div class="chip"><b>${dart.length_mm}mm</b></div>
-        <div class="chip"><b>${dart.tungsten_pct}%</b> W</div>
-        <div class="chip"><b>${fmtGrip(dart.grip_type)}</b></div>
-        <div class="chip"><b>${dart.barrel_shape}</b></div>
+      <canvas class="tier-dart-canvas" id="tdc_${uid}"></canvas>
+      <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:4px;margin-bottom:8px">
+        ${dims.map(d => {
+          const cls = d.s >= 80 ? 'var(--green)' : d.s >= 55 ? '#ffc400' : '#ef5350';
+          return `<div style="text-align:center;background:var(--bg);border:1px solid var(--border);padding:4px 2px">
+            <div style="font-family:'Share Tech Mono',monospace;font-size:7px;color:var(--muted)">${d.l}</div>
+            <div style="font-family:'Bebas Neue',cursive;font-size:14px;color:${cls}">${d.s}</div>
+          </div>`;
+        }).join('')}
       </div>
-      <a href="${dart.buy_url}" target="_blank" class="shop-btn" style="background:${tierColor}20;border-color:${tierColor}60;color:${tierColor}" onclick="trackClick(${dart.id})">
-        → BUY NOW · £${dart.price_gbp?.toFixed(2)}
+      <a href="${dart.buy_url}" target="_blank" class="shop-btn" style="background:${tierColor}18;border:1px solid ${tierColor}55;color:${tierColor};clip-path:none;font-size:15px;padding:10px" onclick="trackClick(${dart.id})">
+        BUY NOW · £${dart.price_gbp?.toFixed(2)}
       </a>
     </div>`;
 }
 
 function renderResults() {
-  const { profile, topDart, budgetDart, valueDart, premiumDart, alternateDarts, topPro, alternatePros } = state.fitResult;
+  const { profile, topDart, budgetDart, valueDart, premiumDart,
+          alternateDarts, topPro, allScoredDarts } = state.fitResult;
   const container = document.getElementById('results-content');
+
+  const wDelta = (topDart.weight - profile.idealWeight);
+  const lDelta = (topDart.length_mm - profile.idealLength);
+  const dDelta = (topDart.diameter_mm - profile.idealDiameter);
+  const fmtDelta = (d, unit) => {
+    if (Math.abs(d) < 0.15) return `<span class="spc-delta ok">✓ EXACT</span>`;
+    const s = (d > 0 ? '+' : '') + d.toFixed(1) + unit;
+    return `<span class="spc-delta ${Math.abs(d) <= 1 ? 'near' : 'off'}">${s}</span>`;
+  };
 
   container.innerHTML = `
     <div class="section-title fade-in">YOUR <span>FIT</span></div>
-    <div class="section-sub fade-in">BIOMECHANICAL DART PROFILE · ${new Date().toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'}).toUpperCase()}</div>
+    <div class="section-sub fade-in">BIOMECHANICAL PROFILE · ${new Date().toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'}).toUpperCase()}</div>
 
-    <!-- IDEAL SPECS -->
+    <!-- ① IDEAL DART PROFILE + THROW ARC -->
     <div class="card fade-in">
       <div class="card-label">YOUR IDEAL DART PROFILE</div>
-      <canvas class="dart-visual-canvas" id="dart-vis-canvas"></canvas>
-      <div class="ideal-spec-grid">
-        <div class="ideal-spec">
-          <div class="ideal-spec-val">${profile.idealWeight}<span>g</span></div>
-          <div class="ideal-spec-label">WEIGHT</div>
-        </div>
-        <div class="ideal-spec">
-          <div class="ideal-spec-val">${profile.idealLength}<span>mm</span></div>
-          <div class="ideal-spec-label">LENGTH</div>
-        </div>
-        <div class="ideal-spec">
-          <div class="ideal-spec-val">${profile.idealDiameter}<span>mm</span></div>
-          <div class="ideal-spec-label">DIAMETER</div>
-        </div>
-        <div class="ideal-spec">
-          <div class="ideal-spec-val" style="font-size:13px">${fmtGrip(profile.idealGripType)}</div>
-          <div class="ideal-spec-label">GRIP</div>
-        </div>
-        <div class="ideal-spec">
-          <div class="ideal-spec-val" style="font-size:14px">${profile.balance.toUpperCase()}</div>
-          <div class="ideal-spec-label">BALANCE</div>
-        </div>
-        <div class="ideal-spec">
-          <div class="ideal-spec-val" style="font-size:13px">${profile.barrelShape.replace('_',' ').toUpperCase()}</div>
-          <div class="ideal-spec-label">BARREL</div>
-        </div>
+      <div class="dart-vis-wrap"><canvas class="dart-vis-canvas-lg" id="dart-ideal-canvas"></canvas></div>
+      <div class="ideal-spec-grid" style="margin-top:8px">
+        <div class="ideal-spec"><div class="ideal-spec-val">${profile.idealWeight}<span>g</span></div><div class="ideal-spec-label">WEIGHT</div></div>
+        <div class="ideal-spec"><div class="ideal-spec-val">${profile.idealLength}<span>mm</span></div><div class="ideal-spec-label">LENGTH</div></div>
+        <div class="ideal-spec"><div class="ideal-spec-val">${profile.idealDiameter}<span>mm</span></div><div class="ideal-spec-label">DIAM</div></div>
+        <div class="ideal-spec"><div class="ideal-spec-val" style="font-size:12px">${fmtGrip(profile.idealGripType)}</div><div class="ideal-spec-label">GRIP</div></div>
+        <div class="ideal-spec"><div class="ideal-spec-val" style="font-size:13px">${profile.balance.toUpperCase()}</div><div class="ideal-spec-label">BALANCE</div></div>
+        <div class="ideal-spec"><div class="ideal-spec-val" style="font-size:12px">${profile.barrelShape.replace('_',' ').toUpperCase()}</div><div class="ideal-spec-label">BARREL</div></div>
       </div>
-      <div style="margin-top:10px;font-family:'Share Tech Mono',monospace;font-size:10px;color:var(--muted);line-height:1.6">
-        NATURAL THROW ANGLE <span style="color:var(--orange)">${profile.naturalThrowAngle.toFixed(1)}°</span> ·
-        LEVERAGE RATIO <span style="color:var(--orange)">${(profile.leverageRatio*100).toFixed(1)}%</span> ·
-        HEIGHT ${state.questionnaire.heightCm}cm
+      <div class="throw-arc-block">
+        <div class="throw-arc-ttl">NATURAL THROW ARC — ${profile.naturalThrowAngle.toFixed(1)}° · LEVERAGE ${(profile.leverageRatio*100).toFixed(1)}%</div>
+        <canvas class="throw-arc-canvas" id="throw-arc-canvas"></canvas>
       </div>
     </div>
 
-    <!-- TOP MATCH -->
-    <div class="section-head">★ TOP MATCH — ${topDart.matchScore}/100</div>
-    <div class="card fade-in delay-1" style="border-color:rgba(255,85,0,.3)">
-      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:12px">
-        <div>
+    <!-- ② TOP MATCH -->
+    <div class="section-head">★ BEST MATCH</div>
+    <div class="card fade-in delay-1" style="border-color:rgba(255,85,0,.4)">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px">
+        <div style="flex:1;min-width:0">
           <div style="font-family:'Share Tech Mono',monospace;font-size:10px;letter-spacing:2px;color:var(--orange)">${topDart.brand.toUpperCase()}</div>
-          <div style="font-family:'Bebas Neue',cursive;font-size:28px;letter-spacing:2px;line-height:1.1">${topDart.name}</div>
-          ${topDart.pro_player ? `<div style="font-size:11px;color:var(--muted)">Used by ${topDart.pro_player}</div>` : ''}
+          <div style="font-family:'Bebas Neue',cursive;font-size:26px;letter-spacing:2px;line-height:1.1">${topDart.name}</div>
+          ${topDart.pro_player ? `<div style="font-size:10px;color:var(--muted)">Used by ${topDart.pro_player}</div>` : ''}
         </div>
-        <div class="result-score-circle">
-          <div class="score-num">${topDart.matchScore}</div>
-          <div class="score-sub">MATCH</div>
+        <div class="score-ring-wrap" style="width:64px;height:64px;margin-left:12px;flex-shrink:0">
+          ${scoreRingSVG(topDart.matchScore, 64, 'rgba(255,85,0,.9)')}
+          <div class="ring-inner">
+            <div class="ring-val" id="top-ring-val">0</div>
+            <div class="ring-lbl">MATCH</div>
+          </div>
         </div>
       </div>
-      <p style="font-size:12px;color:var(--muted);line-height:1.6;margin-bottom:12px;font-weight:300">${topDart.description}</p>
+
+      <!-- Ideal vs Dart overlay canvas -->
+      <div style="font-family:'Share Tech Mono',monospace;font-size:8px;letter-spacing:2px;color:var(--muted);margin-bottom:4px">
+        <span style="color:rgba(255,85,0,.6)">— — —</span> IDEAL &nbsp;|&nbsp; <span style="color:#ccc">━━━</span> THIS DART
+      </div>
+      <div class="dart-vis-wrap"><canvas class="dart-vis-canvas-lg" id="dart-match-canvas"></canvas></div>
+
+      <!-- Spec comparison: ideal vs this dart -->
+      <div class="spec-compare">
+        <div class="spc-item">
+          <div class="spc-ideal">IDEAL ${profile.idealWeight}g</div>
+          <div class="spc-val">${topDart.weight}<span style="font-size:11px;color:var(--muted)">g</span></div>
+          ${fmtDelta(wDelta, 'g')}
+        </div>
+        <div class="spc-item">
+          <div class="spc-ideal">IDEAL ${profile.idealLength}mm</div>
+          <div class="spc-val">${topDart.length_mm}<span style="font-size:11px;color:var(--muted)">mm</span></div>
+          ${fmtDelta(lDelta, 'mm')}
+        </div>
+        <div class="spc-item">
+          <div class="spc-ideal">IDEAL ${profile.idealDiameter}mm</div>
+          <div class="spc-val">${topDart.diameter_mm}<span style="font-size:11px;color:var(--muted)">mm</span></div>
+          ${fmtDelta(dDelta, 'mm')}
+        </div>
+      </div>
+
+      <!-- Algorithm breakdown -->
+      <div id="top-breakdown"></div>
+
+      <!-- Weight position in catalog -->
+      <div id="top-catalog-strip"></div>
+
+      <p style="font-size:12px;color:var(--muted);line-height:1.65;margin:12px 0;font-weight:300">${topDart.description}</p>
       <div class="spec-chips">
-        <div class="chip"><b>${topDart.weight}g</b> weight</div>
-        <div class="chip"><b>${topDart.length_mm}mm</b> barrel</div>
         <div class="chip"><b>${topDart.tungsten_pct}%</b> tungsten</div>
         <div class="chip"><b>${fmtGrip(topDart.grip_type)}</b></div>
         <div class="chip"><b>${topDart.barrel_shape}</b></div>
-        <div class="chip"><b>${topDart.balance_point}</b> weighted</div>
+        <div class="chip"><b>${topDart.balance_point}</b> balanced</div>
       </div>
-      <a href="${topDart.buy_url}" target="_blank" class="shop-btn" onclick="trackClick(${topDart.id})">
+      <a href="${topDart.buy_url}" target="_blank" class="shop-btn" onclick="trackClick(${topDart.id})" style="margin-top:14px">
         → BUY NOW · £${topDart.price_gbp?.toFixed(2)}
       </a>
       <div class="aff-note">* Affiliate link — helps keep DartFit free</div>
     </div>
 
-    <!-- PRO PLAYER MATCH -->
+    <!-- ③ PRO PLAYER MATCH -->
     <div class="section-head">YOUR PRO PLAYER MATCH</div>
     <div class="card fade-in delay-2">
       <div class="pro-row">
         <div class="pro-emoji">${topPro.emoji}</div>
         <div style="flex:1">
           <div style="font-family:'Bebas Neue',cursive;font-size:24px;letter-spacing:2px;line-height:1">${topPro.name}</div>
-          <div style="font-family:'Share Tech Mono',monospace;font-size:10px;color:var(--orange);letter-spacing:1px">"${topPro.nickname}" · ${topPro.similarity}% MATCH</div>
+          <div style="font-family:'Share Tech Mono',monospace;font-size:10px;color:var(--orange);letter-spacing:1px">"${topPro.nickname}" · ${topPro.similarity}% BIOMECHANICAL MATCH</div>
           <div style="font-size:11px;color:var(--muted);margin-top:4px;font-style:italic">${topPro.description}</div>
         </div>
       </div>
       <div class="divider"></div>
       <div style="font-family:'Share Tech Mono',monospace;font-size:10px;color:var(--muted);line-height:1.7">
-        HEIGHT <span style="color:var(--text)">${topPro.height_cm}cm</span> · 
-        PREFERS <span style="color:var(--text)">${topPro.preferred_weight}g</span> · 
+        HEIGHT <span style="color:var(--text)">${topPro.height_cm}cm</span> ·
+        PREFERS <span style="color:var(--text)">${topPro.preferred_weight}g</span> ·
         GRIP <span style="color:var(--text)">${fmtGrip(topPro.preferred_grip)}</span><br>
         <span style="color:var(--text)">${topPro.achievements}</span>
       </div>
     </div>
 
-    <!-- TIERED PICKS -->
+    <!-- ④ TIERED PICKS -->
     <div class="section-head">PICKS BY BUDGET</div>
-    <div style="font-family:'Share Tech Mono',monospace;font-size:10px;color:var(--muted);letter-spacing:1px;margin-bottom:12px">
-      YOUR BIOMECHANICAL PROFILE, MATCHED ACROSS ALL PRICE TIERS
+    <div style="font-family:'Share Tech Mono',monospace;font-size:9px;color:var(--muted);letter-spacing:1px;margin-bottom:10px">
+      YOUR BIOMECHANICAL PROFILE MATCHED ACROSS ALL PRICE TIERS
     </div>
-    ${dartTierCard(budgetDart,  '◎ BUDGET PICK · UNDER £25',  '#4caf50', 'rgba(76,175,80,.35)',  'delay-2')}
-    ${dartTierCard(valueDart,   '◈ VALUE PICK · £25–£40',     '#2196f3', 'rgba(33,150,243,.35)', 'delay-3')}
-    ${dartTierCard(premiumDart, '◆ PREMIUM PICK · £40+',      '#ff9800', 'rgba(255,152,0,.35)',  'delay-4')}
+    ${dartTierCard(budgetDart,  '◎ BUDGET PICK · UNDER £25',  '#4caf50', 'rgba(76,175,80,.3)',  'delay-2', profile)}
+    ${dartTierCard(valueDart,   '◈ VALUE PICK · £25–£40',     '#2196f3', 'rgba(33,150,243,.3)', 'delay-3', profile)}
+    ${dartTierCard(premiumDart, '◆ PREMIUM PICK · £40+',      '#ff9800', 'rgba(255,152,0,.3)',  'delay-4', profile)}
 
-    <!-- AI EXPLANATION -->
+    <!-- ⑤ AI EXPLANATION -->
     <div class="section-head">⬡ AI ANALYSIS</div>
     <div class="card fade-in delay-3">
       <div class="ai-stream" id="ai-stream">
@@ -1003,40 +1095,82 @@ function renderResults() {
       </div>
     </div>
 
-    <!-- ALTERNATIVE DARTS -->
+    <!-- ⑥ MORE MATCHES -->
     <div class="section-head">MORE MATCHES</div>
     <div class="fade-in delay-5">
-      ${alternateDarts.map(d => `
-        <div class="alt-dart-row">
-          <div>
+      ${alternateDarts.map(d => {
+        const score = d.matchScore;
+        const barW = score;
+        return `<div class="alt-dart-row">
+          <div style="flex:1;min-width:0">
             <div class="alt-dart-name">${d.name}</div>
-            <div class="alt-dart-sub">${d.brand} · ${d.weight}g · ${fmtGrip(d.grip_type)} · ${d.barrel_shape} · £${d.price_gbp?.toFixed(2)}</div>
+            <div class="alt-dart-sub">${d.brand} · ${d.weight}g · ${fmtGrip(d.grip_type)} · £${d.price_gbp?.toFixed(2)}</div>
+            <div style="height:3px;background:rgba(255,255,255,.06);border-radius:2px;margin-top:5px;overflow:hidden">
+              <div style="height:100%;width:${barW}%;background:rgba(255,85,0,${0.3 + score/250});border-radius:2px;transition:width 1s .4s"></div>
+            </div>
           </div>
-          <div style="text-align:right">
-            <div style="font-family:'Bebas Neue',cursive;font-size:24px;color:var(--muted)">${d.matchScore}</div>
+          <div style="text-align:right;margin-left:12px;flex-shrink:0">
+            <div style="font-family:'Bebas Neue',cursive;font-size:26px;line-height:1;color:${score>=80?'var(--orange)':score>=65?'#ffc400':'var(--muted)'}">${score}</div>
             <a href="${d.buy_url}" target="_blank" style="font-family:'Share Tech Mono',monospace;font-size:10px;color:var(--orange);text-decoration:none">SHOP →</a>
           </div>
-        </div>
-      `).join('')}
+        </div>`;
+      }).join('')}
     </div>
 
-    <!-- SAVE -->
+    <!-- ⑦ SAVE -->
     <div class="section-head" style="margin-top:20px">SAVE YOUR PROFILE</div>
     ${state.user
       ? `<button class="btn btn-green fade-in delay-5" onclick="saveProfile()">✓ SAVE TO MY PROFILE</button>`
       : `<div class="card fade-in delay-5" style="text-align:center">
            <div style="font-family:'Share Tech Mono',monospace;font-size:11px;color:var(--muted);margin-bottom:12px;letter-spacing:1px">
-             CREATE A FREE ACCOUNT TO SAVE YOUR PROFILE AND GET NOTIFIED WHEN NEW MATCHING DARTS LAUNCH
+             CREATE A FREE ACCOUNT · GET NOTIFIED WHEN BETTER DARTS LAUNCH
            </div>
            <button class="btn btn-primary" onclick="navigate('auth')" style="margin-bottom:8px">CREATE ACCOUNT</button>
-         </div>`
-    }
+         </div>`}
     <div style="height:8px"></div>
     <button class="btn btn-ghost" onclick="restartFit()">↺ NEW SCAN</button>
-    <div style="height:32px"></div>
+    <div style="height:40px"></div>
   `;
 
-  setTimeout(() => drawIdealDartCanvas(profile), 200);
+  // ── POST-RENDER VISUALIZATIONS ───────────────────────────────
+  const idealOpts = {
+    weight: profile.idealWeight, length_mm: profile.idealLength,
+    diameter_mm: profile.idealDiameter, barrel_shape: profile.barrelShape,
+    grip_type: profile.idealGripType, balance_point: profile.balance, tungsten_pct: 90
+  };
+  const topOpts = {
+    weight: topDart.weight, length_mm: topDart.length_mm,
+    diameter_mm: topDart.diameter_mm, barrel_shape: topDart.barrel_shape,
+    grip_type: topDart.grip_type, balance_point: topDart.balance_point,
+    tungsten_pct: topDart.tungsten_pct
+  };
+  const tierDarts = [budgetDart, valueDart, premiumDart].filter(Boolean);
+
+  setTimeout(() => {
+    // Main visualizations
+    renderDartCanvas('dart-ideal-canvas', idealOpts);
+    renderDartCanvas('dart-match-canvas', topOpts, true, idealOpts);
+    renderThrowArc('throw-arc-canvas', profile);
+    renderBreakdown(topDart, profile, 'top-breakdown');
+    renderCatalogStrip('top-catalog-strip', topDart.weight, allScoredDarts);
+    animateCount(document.getElementById('top-ring-val'), topDart.matchScore, 1000);
+    initScoreRings();
+
+    // Tier card canvases + score counters (IDs encoded as tdc_/rv_ + uid prefix on id)
+    document.querySelectorAll('canvas.tier-dart-canvas').forEach((c, i) => {
+      const d = tierDarts[i];
+      if (!d) return;
+      renderDartCanvas(c.id, {
+        weight:d.weight, length_mm:d.length_mm, diameter_mm:d.diameter_mm,
+        barrel_shape:d.barrel_shape, grip_type:d.grip_type,
+        balance_point:d.balance_point, tungsten_pct:d.tungsten_pct
+      });
+    });
+    document.querySelectorAll('[id^="rv_"]').forEach((el, i) => {
+      if (tierDarts[i]) animateCount(el, tierDarts[i].matchScore, 900);
+    });
+  }, 200);
+
   fetchAIExplanation();
 }
 
@@ -1114,65 +1248,370 @@ function typeWriter(el, text, speed=16) {
 }
 
 // ─── DART CANVAS ──────────────────────────────────────────────────
-function drawIdealDartCanvas(profile) {
-  const canvas = document.getElementById('dart-vis-canvas');
-  if (!canvas) return;
-  const ctx = canvas.getContext('2d');
-  const W = canvas.offsetWidth;
-  canvas.width = W; canvas.height = 90;
-  ctx.clearRect(0,0,W,90);
-  const cy = 45;
-  const tLen = 16, bLen = profile.idealLength, sLen = 24, fLen = 18;
-  const totalMm = tLen + bLen + sLen + fLen + 10;
-  const scale = (W * 0.82) / totalMm;
-  const startX = W * 0.09;
-  const maxR = 3.5 + (profile.idealWeight - 16) * 0.28;
+// ─── DART SILHOUETTE ENGINE ──────────────────────────────────────
+// Draws a dart silhouette. opts: { weight, length_mm, diameter_mm,
+// barrel_shape, grip_type, balance_point, tungsten_pct, matchScore,
+// ghost: bool (draw as dashed orange outline instead of solid) }
+function drawDartSilhouette(ctx, W, H, opts, offsetY) {
+  const { weight=22, length_mm=50, diameter_mm=6.5, barrel_shape='straight',
+          grip_type='medium_knurl', balance_point='middle',
+          tungsten_pct=90, ghost=false } = opts;
+  const cy = (offsetY || 0) + H / 2;
+  const dpr = window.devicePixelRatio || 1;
 
-  // TIP
-  ctx.beginPath(); ctx.moveTo(startX,cy);
-  ctx.lineTo(startX+tLen*scale,cy-2); ctx.lineTo(startX+tLen*scale,cy+2);
-  ctx.closePath(); ctx.fillStyle='#999'; ctx.fill();
+  const tipMm=15, shaftMm=26, flightMm=20;
+  const totalMm = tipMm + length_mm + shaftMm + flightMm + 8;
+  const scale = (W * 0.84) / totalMm;
+  const startX = W * 0.08;
+  const maxR = Math.max(2.5, (diameter_mm / 2) * scale * 1.4);
 
-  // BARREL
-  const bx = startX + tLen*scale;
-  const ex = bx + bLen*scale;
+  // ── TIP ──
+  if (!ghost) {
+    ctx.beginPath();
+    ctx.moveTo(startX, cy);
+    ctx.lineTo(startX + tipMm * scale, cy - 2);
+    ctx.lineTo(startX + tipMm * scale, cy + 2);
+    ctx.closePath();
+    ctx.fillStyle = '#aaa';
+    ctx.fill();
+  }
+
+  // ── BARREL ──
+  const bx = startX + tipMm * scale;
+  const ex = bx + length_mm * scale;
   ctx.beginPath();
-  const shape = profile.barrelShape;
-  if (shape==='teardrop') {
-    ctx.moveTo(bx,cy-2); ctx.lineTo(bx+bLen*scale*.6,cy-maxR); ctx.lineTo(ex,cy-maxR*.55); ctx.lineTo(ex,cy+maxR*.55); ctx.lineTo(bx+bLen*scale*.6,cy+maxR); ctx.lineTo(bx,cy+2);
-  } else if (shape==='bomb') {
-    ctx.moveTo(bx,cy-2); ctx.lineTo(bx+bLen*scale*.35,cy-maxR); ctx.lineTo(bx+bLen*scale*.65,cy-maxR); ctx.lineTo(ex,cy-2); ctx.lineTo(ex,cy+2); ctx.lineTo(bx+bLen*scale*.65,cy+maxR); ctx.lineTo(bx+bLen*scale*.35,cy+maxR); ctx.lineTo(bx,cy+2);
+  const sh = barrel_shape;
+  if (sh === 'teardrop') {
+    ctx.moveTo(bx, cy - 2);
+    ctx.bezierCurveTo(bx + length_mm*scale*.3, cy - maxR, bx + length_mm*scale*.55, cy - maxR, ex, cy - maxR*.45);
+    ctx.lineTo(ex, cy + maxR*.45);
+    ctx.bezierCurveTo(bx + length_mm*scale*.55, cy + maxR, bx + length_mm*scale*.3, cy + maxR, bx, cy + 2);
+  } else if (sh === 'torpedo') {
+    const t = maxR * 0.45;
+    ctx.moveTo(bx, cy - t);
+    ctx.bezierCurveTo(bx + length_mm*scale*.2, cy - maxR, ex - length_mm*scale*.2, cy - maxR, ex, cy - t);
+    ctx.lineTo(ex, cy + t);
+    ctx.bezierCurveTo(ex - length_mm*scale*.2, cy + maxR, bx + length_mm*scale*.2, cy + maxR, bx, cy + t);
+  } else if (sh === 'bomb') {
+    ctx.moveTo(bx, cy - maxR*.4);
+    ctx.bezierCurveTo(bx + length_mm*scale*.25, cy - maxR, bx + length_mm*scale*.6, cy - maxR, ex, cy - maxR*.35);
+    ctx.lineTo(ex, cy + maxR*.35);
+    ctx.bezierCurveTo(bx + length_mm*scale*.6, cy + maxR, bx + length_mm*scale*.25, cy + maxR, bx, cy + maxR*.4);
   } else {
-    // torpedo or straight
-    const taper = shape==='torpedo' ? 3 : 0;
-    ctx.moveTo(bx,cy-maxR+taper); ctx.lineTo(bx+5*scale,cy-maxR); ctx.lineTo(ex-5*scale,cy-maxR); ctx.lineTo(ex,cy-maxR+taper);
-    ctx.lineTo(ex,cy+maxR-taper); ctx.lineTo(ex-5*scale,cy+maxR); ctx.lineTo(bx+5*scale,cy+maxR); ctx.lineTo(bx,cy+maxR-taper);
+    // straight / shark / bullet
+    const taper = (sh === 'bullet' || sh === 'shark') ? maxR * 0.25 : 0;
+    ctx.moveTo(bx, cy - maxR + taper);
+    ctx.lineTo(bx + 4 * scale, cy - maxR);
+    ctx.lineTo(ex - 4 * scale, cy - maxR);
+    ctx.lineTo(ex, cy - maxR + taper);
+    ctx.lineTo(ex, cy + maxR - taper);
+    ctx.lineTo(ex - 4 * scale, cy + maxR);
+    ctx.lineTo(bx + 4 * scale, cy + maxR);
+    ctx.lineTo(bx, cy + maxR - taper);
   }
   ctx.closePath();
-  const g = ctx.createLinearGradient(bx,cy-maxR,bx,cy+maxR);
-  g.addColorStop(0,'#777'); g.addColorStop(.45,'#ccc'); g.addColorStop(1,'#555');
-  ctx.fillStyle=g; ctx.fill();
-  ctx.strokeStyle='rgba(255,85,0,.25)'; ctx.lineWidth=.8; ctx.stroke();
 
-  // GRIP MARKS
-  const gcount = profile.gripPreference<=2 ? 3 : profile.gripPreference<=4 ? 6 : 9;
-  for(let i=1;i<=gcount;i++) {
-    const gx = bx + (bLen*scale/(gcount+1))*i;
-    ctx.beginPath(); ctx.moveTo(gx,cy-maxR); ctx.lineTo(gx,cy+maxR);
-    ctx.strokeStyle='rgba(0,0,0,.35)'; ctx.lineWidth=1.2; ctx.stroke();
+  if (ghost) {
+    ctx.strokeStyle = 'rgba(255,85,0,.55)';
+    ctx.lineWidth = 1.2;
+    ctx.setLineDash([4, 3]);
+    ctx.stroke();
+    ctx.setLineDash([]);
+    return; // ghost only needs outline
   }
 
-  // SHAFT
-  ctx.fillStyle='#2a2a2a'; ctx.fillRect(ex,cy-2.5,sLen*scale,5);
+  // Metallic fill — brighter for higher tungsten %
+  const brightness = 0.6 + (tungsten_pct - 70) / 120;
+  const lo = Math.round(brightness * 80), hi = Math.round(brightness * 210);
+  const g = ctx.createLinearGradient(bx, cy - maxR, bx, cy + maxR);
+  g.addColorStop(0, `rgb(${lo},${lo},${lo})`);
+  g.addColorStop(0.35, `rgb(${hi},${hi},${hi})`);
+  g.addColorStop(0.65, `rgb(${hi},${hi},${hi})`);
+  g.addColorStop(1, `rgb(${lo},${lo},${lo})`);
+  ctx.fillStyle = g;
+  ctx.fill();
+  ctx.strokeStyle = 'rgba(255,255,255,.12)'; ctx.lineWidth = .6; ctx.stroke();
 
-  // FLIGHTS
-  const fx = ex + sLen*scale;
-  ctx.beginPath(); ctx.moveTo(fx,cy); ctx.lineTo(fx+fLen*scale,cy-13); ctx.lineTo(fx+6*scale,cy-3); ctx.closePath();
-  ctx.fillStyle='rgba(255,85,0,.65)'; ctx.fill();
-  ctx.beginPath(); ctx.moveTo(fx,cy); ctx.lineTo(fx+fLen*scale,cy+13); ctx.lineTo(fx+6*scale,cy+3); ctx.closePath(); ctx.fill();
+  // ── GRIP TEXTURE ──
+  const gripDensity = { smooth:0, micro_grip:3, fine_knurl:5, medium_knurl:8, aggressive_knurl:11, shark_cut:10, ringed:5 };
+  const gcount = gripDensity[grip_type] || 6;
+  const gripStart = balance_point === 'front'  ? bx + length_mm*scale*.05 :
+                    balance_point === 'rear'   ? bx + length_mm*scale*.45 : bx + length_mm*scale*.2;
+  const gripEnd   = balance_point === 'front'  ? bx + length_mm*scale*.55 :
+                    balance_point === 'rear'   ? bx + length_mm*scale*.95 : bx + length_mm*scale*.8;
+  const gripW = gripEnd - gripStart;
 
-  ctx.fillStyle='rgba(255,85,0,.5)'; ctx.font=`10px 'Share Tech Mono'`; ctx.textAlign='center';
-  ctx.fillText(`${profile.idealWeight}g · ${profile.idealLength}mm · ${profile.barrelShape} barrel`, W/2, 84);
+  if (grip_type === 'ringed' || grip_type === 'shark_cut') {
+    for (let i = 0; i <= gcount; i++) {
+      const gx = gripStart + (gripW / gcount) * i;
+      ctx.beginPath(); ctx.moveTo(gx, cy - maxR * .95); ctx.lineTo(gx, cy + maxR * .95);
+      ctx.strokeStyle = 'rgba(0,0,0,.45)'; ctx.lineWidth = grip_type === 'ringed' ? 2 : 1.5; ctx.stroke();
+      if (grip_type === 'shark_cut' && i < gcount) {
+        ctx.beginPath(); ctx.moveTo(gx + 2, cy - maxR * .6); ctx.lineTo(gx + gripW/gcount - 1, cy - maxR * .95);
+        ctx.strokeStyle = 'rgba(0,0,0,.3)'; ctx.lineWidth = .8; ctx.stroke();
+      }
+    }
+  } else if (gcount > 0) {
+    for (let i = 1; i < gcount; i++) {
+      const gx = gripStart + (gripW / gcount) * i;
+      ctx.beginPath(); ctx.moveTo(gx, cy - maxR * .9); ctx.lineTo(gx, cy + maxR * .9);
+      ctx.strokeStyle = 'rgba(0,0,0,.3)'; ctx.lineWidth = 1; ctx.stroke();
+    }
+  }
+
+  // ── ORANGE GLOW on edges ──
+  const glow = ctx.createLinearGradient(bx, cy - maxR - 2, bx, cy + maxR + 2);
+  glow.addColorStop(0, 'rgba(255,85,0,.18)');
+  glow.addColorStop(.15, 'rgba(255,85,0,0)');
+  glow.addColorStop(.85, 'rgba(255,85,0,0)');
+  glow.addColorStop(1, 'rgba(255,85,0,.18)');
+  ctx.fillStyle = glow; ctx.fill();
+
+  // ── BALANCE / CoG MARKER ──
+  const cogX = balance_point === 'front' ? bx + length_mm*scale*.3 :
+               balance_point === 'rear'  ? bx + length_mm*scale*.7 : bx + length_mm*scale*.5;
+  ctx.beginPath();
+  ctx.moveTo(cogX - 4, cy - maxR - 6);
+  ctx.lineTo(cogX + 4, cy - maxR - 6);
+  ctx.lineTo(cogX, cy - maxR - 1);
+  ctx.closePath();
+  ctx.fillStyle = 'rgba(255,85,0,.8)'; ctx.fill();
+
+  // ── SHAFT ──
+  ctx.fillStyle = '#1e1e1e';
+  ctx.fillRect(ex, cy - 2.2, shaftMm * scale, 4.4);
+  ctx.strokeStyle = '#333'; ctx.lineWidth = .5; ctx.strokeRect(ex, cy - 2.2, shaftMm * scale, 4.4);
+
+  // ── FLIGHTS ──
+  const fx = ex + shaftMm * scale;
+  [[cy - 14, cy - 3], [cy + 14, cy + 3]].forEach(([tip, root]) => {
+    ctx.beginPath(); ctx.moveTo(fx, cy); ctx.lineTo(fx + flightMm * scale, tip);
+    ctx.lineTo(fx + 5 * scale, root); ctx.closePath();
+    ctx.fillStyle = 'rgba(255,85,0,.7)'; ctx.fill();
+    ctx.strokeStyle = 'rgba(255,85,0,.3)'; ctx.lineWidth = .5; ctx.stroke();
+  });
+}
+
+// ─── DRAW DART ON NAMED CANVAS ───────────────────────────────────
+function renderDartCanvas(canvasId, opts, showGhostIdeal, idealOpts) {
+  const canvas = document.getElementById(canvasId);
+  if (!canvas) return;
+  const dpr = window.devicePixelRatio || 1;
+  const W = canvas.offsetWidth;
+  const H = canvas.offsetHeight;
+  canvas.width  = W * dpr;
+  canvas.height = H * dpr;
+  const ctx = canvas.getContext('2d');
+  ctx.scale(dpr, dpr);
+  ctx.clearRect(0, 0, W, H);
+
+  if (showGhostIdeal && idealOpts) {
+    // Draw ideal as ghost first (behind)
+    drawDartSilhouette(ctx, W, H, { ...idealOpts, ghost: true });
+  }
+  drawDartSilhouette(ctx, W, H, opts);
+
+  // Label
+  ctx.fillStyle = 'rgba(255,85,0,.4)';
+  ctx.font = `${9 * dpr / dpr}px 'Share Tech Mono'`;
+  ctx.textAlign = 'center';
+  const label = opts.ghost ? '' :
+    `${opts.weight}g · ${opts.length_mm}mm · ∅${opts.diameter_mm}mm · ${opts.barrel_shape}`;
+  if (label) ctx.fillText(label, W / 2, H - 6);
+}
+
+// ─── SCORE RING SVG ──────────────────────────────────────────────
+// Returns SVG markup; call initScoreRings() after DOM insertion to animate.
+function scoreRingSVG(score, size, color) {
+  size = size || 64;
+  color = color || 'var(--orange)';
+  const r = (size - 8) / 2;
+  const circ = +(2 * Math.PI * r).toFixed(2);
+  const id = 'ring_' + Math.random().toString(36).slice(2,8);
+  return `<svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}" style="transform:rotate(-90deg);display:block">
+    <circle cx="${size/2}" cy="${size/2}" r="${r}" fill="none" stroke="rgba(255,255,255,.07)" stroke-width="3.5"/>
+    <circle id="${id}" cx="${size/2}" cy="${size/2}" r="${r}" fill="none" stroke="${color}"
+      stroke-width="3.5" stroke-linecap="round"
+      stroke-dasharray="${circ}" stroke-dashoffset="${circ}"
+      data-target="${+(circ - circ*score/100).toFixed(2)}"
+      style="transition:stroke-dashoffset 1.1s cubic-bezier(.4,0,.2,1)"/>
+  </svg>`;
+}
+function initScoreRings() {
+  document.querySelectorAll('circle[data-target]').forEach(el => {
+    requestAnimationFrame(() => setTimeout(() => {
+      el.style.strokeDashoffset = el.dataset.target;
+    }, 140));
+  });
+}
+
+// ─── ANIMATED SCORE COUNTER ──────────────────────────────────────
+function animateCount(el, target, duration) {
+  if (!el) return;
+  const start = performance.now();
+  const step = (now) => {
+    const t = Math.min((now - start) / duration, 1);
+    const ease = 1 - Math.pow(1 - t, 3);
+    el.textContent = Math.round(ease * target);
+    if (t < 1) requestAnimationFrame(step);
+  };
+  requestAnimationFrame(step);
+}
+
+// ─── SCORE BREAKDOWN BARS ────────────────────────────────────────
+const GRIP_ORDER_JS = ['smooth','micro_grip','fine_knurl','medium_knurl','aggressive_knurl','shark_cut','ringed'];
+function shapeFamily_js(s) {
+  return ['teardrop','torpedo'].includes(s) ? 'A' : ['bomb','shark','bullet'].includes(s) ? 'B' : 'C';
+}
+function computeBreakdown(dart, profile) {
+  const wt  = Math.max(0, 100 - Math.abs(dart.weight - profile.idealWeight) * 14);
+  const ln  = Math.max(0, 100 - Math.abs(dart.length_mm - profile.idealLength) * 4.5);
+  const dm  = Math.max(0, 100 - Math.abs(dart.diameter_mm - profile.idealDiameter) * 22);
+  const gd  = Math.abs(GRIP_ORDER_JS.indexOf(dart.grip_type) - GRIP_ORDER_JS.indexOf(profile.idealGripType));
+  const gp  = gd === 0 ? 100 : gd === 1 ? 70 : Math.max(0, 100 - gd * 30);
+  const bl  = dart.balance_point === profile.balance ? 100 :
+              (dart.balance_point === 'middle' || profile.balance === 'middle') ? 62 : 30;
+  const sh  = dart.barrel_shape === profile.barrelShape ? 100 :
+              shapeFamily_js(dart.barrel_shape) === shapeFamily_js(profile.barrelShape) ? 65 : 40;
+  return { wt, ln, dm, gp, bl, sh };
+}
+
+function renderBreakdown(dart, profile, containerId) {
+  const el = document.getElementById(containerId);
+  if (!el) return;
+  const b = computeBreakdown(dart, profile);
+  const rows = [
+    { label:'WEIGHT',   wt:'35%', score: Math.round(b.wt), contrib: b.wt * .35 },
+    { label:'LENGTH',   wt:'20%', score: Math.round(b.ln), contrib: b.ln * .20 },
+    { label:'DIAMETER', wt:'15%', score: Math.round(b.dm), contrib: b.dm * .15 },
+    { label:'GRIP',     wt:'15%', score: Math.round(b.gp), contrib: b.gp * .15 },
+    { label:'BALANCE',  wt:'10%', score: Math.round(b.bl), contrib: b.bl * .10 },
+    { label:'SHAPE',    wt:'5%',  score: Math.round(b.sh), contrib: b.sh * .05 },
+  ];
+  const total = Math.round(rows.reduce((a, r) => a + r.contrib, 0));
+  el.innerHTML = `
+    <div class="breakdown-section">
+      <div class="breakdown-title">ALGORITHM BREAKDOWN</div>
+      ${rows.map((r, i) => {
+        const cls = r.score >= 80 ? 'hi' : r.score >= 55 ? 'mid' : 'lo';
+        return `<div class="breakdown-row">
+          <span class="bk-lbl">${r.label}</span>
+          <span class="bk-wt">${r.wt}</span>
+          <div class="bk-track"><div class="bk-fill ${cls}" id="bkf_${containerId}_${i}" style="transition-delay:${0.1 + i*0.08}s"></div></div>
+          <span class="bk-score">${r.score}</span>
+        </div>`;
+      }).join('')}
+      <div class="breakdown-total-row">
+        <span class="bk-total-lbl">TOTAL MATCH</span>
+        <div class="bk-total-track"><div class="bk-total-fill" id="bkf_${containerId}_total"></div></div>
+        <span class="bk-total-score" id="bkn_${containerId}_total">0</span>
+      </div>
+    </div>`;
+  // Animate bars after render
+  requestAnimationFrame(() => setTimeout(() => {
+    rows.forEach((r, i) => {
+      const f = document.getElementById(`bkf_${containerId}_${i}`);
+      if (f) f.style.width = r.score + '%';
+    });
+    const tf = document.getElementById(`bkf_${containerId}_total`);
+    if (tf) tf.style.width = total + '%';
+    const tn = document.getElementById(`bkn_${containerId}_total`);
+    animateCount(tn, total, 900);
+  }, 150));
+}
+
+// ─── THROW ARC VISUALISATION ─────────────────────────────────────
+function renderThrowArc(canvasId, profile) {
+  const canvas = document.getElementById(canvasId);
+  if (!canvas) return;
+  const dpr = window.devicePixelRatio || 1;
+  const W = canvas.offsetWidth; const H = canvas.offsetHeight;
+  canvas.width = W * dpr; canvas.height = H * dpr;
+  const ctx = canvas.getContext('2d');
+  ctx.scale(dpr, dpr);
+  ctx.clearRect(0, 0, W, H);
+
+  // Physical constants (mm → pixels mapped to canvas)
+  const oche = 2370; const boardH = 1730; const eyeHmm = profile.heightCm * 8.5;
+  const totalDist = oche + 200;
+  const sx = W * 0.06; const ex = W * 0.92;
+  const canvasFloorY = H - 10;
+  const mmToY = (mm) => canvasFloorY - (mm / (eyeHmm * 1.15)) * (H - 14);
+  const mmToX = (mm) => sx + (mm / totalDist) * (ex - sx);
+
+  // Floor
+  ctx.strokeStyle = '#222'; ctx.lineWidth = 1;
+  ctx.beginPath(); ctx.moveTo(sx - 4, canvasFloorY); ctx.lineTo(ex + 4, canvasFloorY); ctx.stroke();
+
+  // Oche marker
+  const ocheX = mmToX(0);
+  ctx.strokeStyle = 'rgba(255,85,0,.4)'; ctx.lineWidth = 1.5; ctx.setLineDash([2, 3]);
+  ctx.beginPath(); ctx.moveTo(ocheX, canvasFloorY); ctx.lineTo(ocheX, mmToY(eyeHmm * 1.1)); ctx.stroke();
+  ctx.setLineDash([]);
+
+  // Board face
+  const boardX = mmToX(oche);
+  ctx.strokeStyle = '#333'; ctx.lineWidth = 2;
+  ctx.beginPath(); ctx.moveTo(boardX, canvasFloorY); ctx.lineTo(boardX, mmToY(boardH * 1.18)); ctx.stroke();
+  // Bullseye dot
+  ctx.beginPath(); ctx.arc(boardX, mmToY(boardH), 3, 0, Math.PI*2);
+  ctx.fillStyle = 'rgba(255,85,0,.7)'; ctx.fill();
+
+  // Player silhouette (simple stick figure suggestion)
+  const playerY = mmToY(eyeHmm);
+  ctx.beginPath(); ctx.arc(ocheX - 6, playerY, 4, 0, Math.PI*2);
+  ctx.strokeStyle = '#444'; ctx.lineWidth = 1; ctx.stroke();
+
+  // Throw arc — parabolic from release to bullseye
+  const releaseX = ocheX + 10; const releaseY = playerY;
+  const landX = boardX; const landY = mmToY(boardH);
+  const arcPeakX = (releaseX + landX) / 2;
+  const arcPeakY = Math.min(releaseY, landY) - (H * 0.28);
+
+  ctx.beginPath();
+  ctx.moveTo(releaseX, releaseY);
+  ctx.quadraticCurveTo(arcPeakX, arcPeakY, landX, landY);
+  const grad = ctx.createLinearGradient(releaseX, 0, landX, 0);
+  grad.addColorStop(0, 'rgba(255,85,0,.8)');
+  grad.addColorStop(1, 'rgba(255,85,0,.25)');
+  ctx.strokeStyle = grad; ctx.lineWidth = 1.5; ctx.setLineDash([4, 3]); ctx.stroke();
+  ctx.setLineDash([]);
+
+  // Angle annotation
+  const angle = profile.naturalThrowAngle;
+  ctx.fillStyle = 'rgba(255,85,0,.55)';
+  ctx.font = `9px 'Share Tech Mono'`;
+  ctx.textAlign = 'left';
+  ctx.fillText(`${angle.toFixed(1)}°`, releaseX + 14, releaseY - 6);
+
+  // Labels
+  ctx.fillStyle = '#333'; ctx.font = `7px 'Share Tech Mono'`; ctx.textAlign = 'center';
+  ctx.fillText('OCHE', ocheX, canvasFloorY + 9);
+  ctx.fillText('BOARD', boardX, canvasFloorY + 9);
+}
+
+// ─── WEIGHT CATALOG STRIP ────────────────────────────────────────
+function renderCatalogStrip(containerId, dartWeight, allDarts) {
+  const el = document.getElementById(containerId);
+  if (!el || !allDarts) return;
+  const weights = allDarts.map(d => d.weight).filter(Boolean);
+  const minW = Math.min(...weights); const maxW = Math.max(...weights);
+  const pct = ((dartWeight - minW) / (maxW - minW) * 100).toFixed(1);
+  el.innerHTML = `
+    <div class="catalog-strip">
+      <div class="catalog-strip-ttl">WEIGHT POSITION IN CATALOG (${minW}g – ${maxW}g)</div>
+      <div class="catalog-strip-track">
+        <div class="catalog-strip-fill" id="csf_${containerId}" style="width:0%"></div>
+        <div class="catalog-strip-mark" id="csm_${containerId}" style="left:0%"></div>
+      </div>
+      <div class="catalog-strip-labels"><span>${minW}g light</span><span>${dartWeight}g</span><span>${maxW}g heavy</span></div>
+    </div>`;
+  requestAnimationFrame(() => setTimeout(() => {
+    const f = document.getElementById(`csf_${containerId}`);
+    const m = document.getElementById(`csm_${containerId}`);
+    if (f) f.style.width = pct + '%';
+    if (m) m.style.left = `calc(${pct}% - 1px)`;
+  }, 200));
 }
 
 // ─── PROFILE SCREEN ──────────────────────────────────────────────
