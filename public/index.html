@@ -531,7 +531,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:22px;heigh
       <div class="scan-beam"></div>
     </div>
     <div style="position:absolute;top:16px;left:16px;right:16px;display:flex;justify-content:space-between;align-items:center">
-      <div style="font-family:'Bebas Neue',cursive;font-size:20px;letter-spacing:3px;color:var(--orange)">HAND SCAN</div>
+      <div style="font-family:'Outfit',sans-serif;font-weight:800;font-size:20px;letter-spacing:2px;color:var(--orange)">HAND SCAN</div>
       <div style="font-family:'Share Tech Mono',monospace;font-size:10px;color:var(--green);animation:blink 1s infinite">● LIVE</div>
     </div>
     <div class="scan-footer">
@@ -569,14 +569,23 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:22px;heigh
         relative to the board height.
       </p>
       <img id="arm-preview" class="arm-preview" alt="Arm preview">
-      <div class="arm-upload-zone" id="arm-upload-zone">
-        <input type="file" accept="image/*" capture="environment" id="arm-file-input" onchange="handleArmImage(this)">
-        <div style="font-size:32px;margin-bottom:8px">💪</div>
-        <div style="font-family:'Share Tech Mono',monospace;font-size:11px;letter-spacing:2px;color:var(--muted)">TAP TO TAKE PHOTO</div>
-        <div style="font-size:10px;color:var(--muted2);margin-top:4px">or drag & drop</div>
+
+      <!-- Hidden file inputs: one for camera, one for gallery -->
+      <input type="file" accept="image/*" capture="environment" id="arm-camera-input" style="display:none" onchange="handleArmImage(this)">
+      <input type="file" accept="image/*" id="arm-file-input" style="display:none" onchange="handleArmImage(this)">
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px">
+        <button class="btn btn-primary" onclick="document.getElementById('arm-camera-input').click()" style="font-size:15px;padding:14px;display:flex;align-items:center;justify-content:center;gap:8px">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="13" r="4"/><path d="M5 7H4a2 2 0 00-2 2v9a2 2 0 002 2h16a2 2 0 002-2V9a2 2 0 00-2-2h-1l-2-2H9L7 7H5z"/></svg>
+          Camera
+        </button>
+        <button class="btn btn-ghost" onclick="document.getElementById('arm-file-input').click()" style="font-size:15px;padding:14px;display:flex;align-items:center;justify-content:center;gap:8px">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+          Upload
+        </button>
       </div>
-      <div id="arm-status" style="font-family:'Share Tech Mono',monospace;font-size:10px;
-           letter-spacing:1px;color:var(--muted);text-align:center;margin-top:8px"></div>
+      <div id="arm-status" style="font-family:'Inter',sans-serif;font-size:12px;
+           color:var(--muted);text-align:center;margin-top:4px"></div>
     </div>
 
     <div class="card fade-in delay-1" style="background:rgba(232,87,14,.04);border-color:rgba(232,87,14,.2)">
@@ -1065,7 +1074,7 @@ function dartTierCard(dart, tierLabel, tierColor, accentBorder, delay, profile) 
         <div style="flex:1;min-width:0">
           <div style="font-family:'Share Tech Mono',monospace;font-size:8px;letter-spacing:2px;color:${tierColor};margin-bottom:2px">${tierLabel}</div>
           <div style="font-family:'Share Tech Mono',monospace;font-size:9px;letter-spacing:1.5px;color:var(--muted)">${dart.brand.toUpperCase()}</div>
-          <div style="font-family:'Bebas Neue',cursive;font-size:20px;letter-spacing:1.5px;line-height:1.1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${dart.name}</div>
+          <div style="font-family:'Outfit',sans-serif;font-weight:700;font-size:20px;letter-spacing:-0.3px;line-height:1.1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${dart.name}</div>
           ${dart.pro_player ? `<div style="font-size:9px;color:var(--muted)">Used by ${dart.pro_player}</div>` : ''}
         </div>
         <div class="score-ring-wrap" style="width:52px;height:52px;margin-left:10px">
@@ -1082,7 +1091,7 @@ function dartTierCard(dart, tierLabel, tierColor, accentBorder, delay, profile) 
           const cls = d.s >= 80 ? 'var(--green)' : d.s >= 55 ? '#ffc400' : '#ef5350';
           return `<div style="text-align:center;background:var(--bg);border:1px solid var(--border);padding:4px 2px">
             <div style="font-family:'Share Tech Mono',monospace;font-size:7px;color:var(--muted)">${d.l}</div>
-            <div style="font-family:'Bebas Neue',cursive;font-size:14px;color:${cls}">${d.s}</div>
+            <div style="font-family:'Outfit',sans-serif;font-weight:800;font-size:14px;color:${cls}">${d.s}</div>
           </div>`;
         }).join('')}
       </div>
@@ -1134,7 +1143,7 @@ function renderResults() {
       <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px">
         <div style="flex:1;min-width:0">
           <div style="font-family:'Share Tech Mono',monospace;font-size:10px;letter-spacing:2px;color:var(--orange)">${topDart.brand.toUpperCase()}</div>
-          <div style="font-family:'Bebas Neue',cursive;font-size:26px;letter-spacing:2px;line-height:1.1">${topDart.name}</div>
+          <div style="font-family:'Outfit',sans-serif;font-weight:700;font-size:26px;letter-spacing:-0.5px;line-height:1.1">${topDart.name}</div>
           ${topDart.pro_player ? `<div style="font-size:10px;color:var(--muted)">Used by ${topDart.pro_player}</div>` : ''}
         </div>
         <div class="score-ring-wrap" style="width:64px;height:64px;margin-left:12px;flex-shrink:0">
@@ -1196,7 +1205,7 @@ function renderResults() {
       <div class="pro-row">
         <div class="pro-emoji">${topPro.emoji}</div>
         <div style="flex:1">
-          <div style="font-family:'Bebas Neue',cursive;font-size:24px;letter-spacing:2px;line-height:1">${topPro.name}</div>
+          <div style="font-family:'Outfit',sans-serif;font-weight:800;font-size:24px;letter-spacing:-0.5px;line-height:1">${topPro.name}</div>
           <div style="font-family:'Share Tech Mono',monospace;font-size:10px;color:var(--orange);letter-spacing:1px">"${topPro.nickname}" · ${topPro.similarity}% BIOMECHANICAL MATCH</div>
           <div style="font-size:11px;color:var(--muted);margin-top:4px;font-style:italic">${topPro.description}</div>
         </div>
@@ -1242,7 +1251,7 @@ function renderResults() {
             </div>
           </div>
           <div style="text-align:right;margin-left:12px;flex-shrink:0">
-            <div style="font-family:'Bebas Neue',cursive;font-size:26px;line-height:1;color:${score>=80?'var(--orange)':score>=65?'#ffc400':'var(--muted)'}">${score}</div>
+            <div style="font-family:'Outfit',sans-serif;font-weight:800;font-size:26px;line-height:1;color:${score>=80?'var(--orange)':score>=65?'#ffc400':'var(--muted)'}">${score}</div>
             <a href="${d.buy_url}" target="_blank" style="font-family:'Share Tech Mono',monospace;font-size:10px;color:var(--orange);text-decoration:none">SHOP →</a>
           </div>
         </div>`;
