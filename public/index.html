@@ -580,6 +580,8 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:22px;heigh
 
       <!-- Upload from gallery -->
       <input type="file" accept="image/*" id="arm-file-input" style="display:none" onchange="handleArmImage(this)">
+      <!-- Camera capture (opens native camera on mobile, file picker on desktop) -->
+      <input type="file" accept="image/*" capture="environment" id="arm-camera-input" style="display:none" onchange="handleArmImage(this)">
 
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px">
         <button class="btn btn-primary" onclick="openArmCamera()" style="font-size:15px;padding:14px;display:flex;align-items:center;justify-content:center;gap:8px">
@@ -840,6 +842,24 @@ function drawLiveLandmarks(lm) {
   ctx.clearRect(0, 0, W, H);
   if (!lm) return;
 
+  // ── Hand silhouette (fill under the skeleton) ───────────────────
+  ctx.save();
+  ctx.fillStyle   = 'rgba(232,87,14,0.20)';
+  ctx.strokeStyle = 'rgba(232,87,14,0.20)';
+  ctx.lineWidth   = 28; ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+  [[0,1,2,3,4],[5,6,7,8],[9,10,11,12],[13,14,15,16],[17,18,19,20]].forEach(chain => {
+    ctx.beginPath();
+    ctx.moveTo(lm[chain[0]].x*W, lm[chain[0]].y*H);
+    chain.slice(1).forEach(k => ctx.lineTo(lm[k].x*W, lm[k].y*H));
+    ctx.stroke();
+  });
+  ctx.beginPath();
+  [0,1,5,9,13,17].forEach((k, idx) => {
+    if (!idx) ctx.moveTo(lm[k].x*W, lm[k].y*H); else ctx.lineTo(lm[k].x*W, lm[k].y*H);
+  });
+  ctx.closePath(); ctx.fill();
+  ctx.restore();
+
   // Bone segments
   MP_CONNECTIONS.forEach(([i,j]) => {
     const a = lm[i], b = lm[j];
@@ -952,17 +972,20 @@ function captureHand() {
     };
     document.getElementById('scan-status-text').textContent = '✓ Hand landmarks detected — processing...';
   } else {
-    // ── Fallback: questionnaire-seeded estimates ──────────────────
+    // ── Fallback: height-derived estimates + small random variance ──
     state.handLandmarks = null;
-    const seed = Date.now();
-    const rand = (min, max, s) => min + ((seed * s * 1234567 % 1000) / 1000) * (max - min);
+    const h = state.questionnaire.heightCm || 175;
+    // Height-scaled base biometrics (population regressions)
+    const eyeH = h * 0.936 * 10;
+    const taDeg = parseFloat((Math.atan2(1730 - eyeH, 2370) * 180 / Math.PI).toFixed(1));
+    const r = () => (Math.random() - 0.5); // ±0.5 noise
     state.handMeasurements = {
-      fingerLength:    parseFloat((70 + rand(0,25,1)).toFixed(1)),
-      palmWidth:       parseFloat((80 + rand(0,22,2)).toFixed(1)),
-      gripDiameter:    parseFloat((13 + rand(0,8,3)).toFixed(1)),
-      fingerSpan:      parseFloat((180 + rand(0,45,4)).toFixed(0)),
-      fingerFlexIndex: parseFloat((0.60 + rand(0,.38,5)).toFixed(2)),
-      throwAngleDeg:   parseFloat((10 + rand(0,22,6)).toFixed(1)),
+      fingerLength:    parseFloat((h * 0.116 + r()*4).toFixed(1)),      // ~75–95mm
+      palmWidth:       parseFloat((h * 0.110 + r()*5).toFixed(1)),      // ~80–100mm
+      gripDiameter:    parseFloat((h * 0.110 * 0.195 + r()*1.5).toFixed(1)),
+      fingerSpan:      parseFloat((h * 0.230 + r()*10).toFixed(0)),     // ~180–220mm
+      fingerFlexIndex: parseFloat((0.82 + r()*0.06).toFixed(2)),        // ~0.79–0.85
+      throwAngleDeg:   taDeg,
     };
     document.getElementById('scan-status-text').textContent = '✓ Hand captured — processing...';
   }
@@ -986,8 +1009,8 @@ async function openArmCamera() {
     vid.srcObject = _armStream;
     document.getElementById('arm-cam-modal').classList.add('open');
   } catch(e) {
-    // Camera denied / unavailable — fall through to file picker
-    document.getElementById('arm-file-input').click();
+    // Camera denied / unavailable — use capture input (opens camera on mobile, file picker on desktop)
+    document.getElementById('arm-camera-input').click();
   }
 }
 
@@ -1187,6 +1210,25 @@ function drawHandSkeleton() {
         ctx.fillRect(0, 0, W, H);
       }
       const progress = Math.min(frame/70, 1);
+
+      // ── Hand silhouette (drawn once, static under the animated skeleton) ──
+      const silAlpha = hasPhoto ? 0.25 : 0.20;
+      const silColor = hasPhoto ? `rgba(255,255,255,${silAlpha})` : `rgba(232,87,14,${silAlpha})`;
+      ctx.save();
+      ctx.fillStyle = silColor; ctx.strokeStyle = silColor;
+      ctx.lineWidth = 22; ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+      [[0,1,2,3,4],[5,6,7,8],[9,10,11,12],[13,14,15,16],[17,18,19,20]].forEach(chain => {
+        ctx.beginPath();
+        ctx.moveTo(pts[chain[0]][0], pts[chain[0]][1]);
+        chain.slice(1).forEach(k => ctx.lineTo(pts[k][0], pts[k][1]));
+        ctx.stroke();
+      });
+      ctx.beginPath();
+      [0,1,5,9,13,17].forEach((k, idx) => {
+        if (!idx) ctx.moveTo(pts[k][0], pts[k][1]); else ctx.lineTo(pts[k][0], pts[k][1]);
+      });
+      ctx.closePath(); ctx.fill();
+      ctx.restore();
 
       // Bone segments
       MP_CONNECTIONS.forEach(([i,j], ci) => {
