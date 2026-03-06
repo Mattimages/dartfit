@@ -120,25 +120,30 @@ app.post('/api/fit/arm-scan', upload.single('armImage'), async (req, res) => {
 });
 
 app.post('/api/fit/calculate', async (req, res) => {
-  const db = getDb();
-  const p = req.body;
-  const profile = calculateIdealProfile({
-    fingerLength:     parseFloat(p.fingerLength) || 80,
-    palmWidth:        parseFloat(p.palmWidth) || 85,
-    gripDiameter:     parseFloat(p.gripDiameter) || 16,
-    fingerSpan:       parseFloat(p.fingerSpan) || 200,
-    fingerFlexIndex:  parseFloat(p.fingerFlexIndex) || 0.75,
-    throwAngleDeg:    p.throwAngleDeg ? parseFloat(p.throwAngleDeg) : null,
-    heightCm:         parseFloat(p.heightCm) || 175,
-    forearmLengthMm:  p.forearmLengthMm ? parseFloat(p.forearmLengthMm) : null,
-    gripPreference:   parseInt(p.gripPreference) || 3,
-    weightPreference: parseInt(p.weightPreference) || 3,
-    throwingStyle:    p.throwingStyle || 'middle',
-    playingLevel:     p.playingLevel || 'intermediate',
-  });
-  const darts = db.prepare('SELECT * FROM darts WHERE active = 1').all();
-  const pros  = db.prepare('SELECT * FROM pro_players').all();
-  res.json(runMatchPipeline(profile, darts, pros));
+  try {
+    const db = getDb();
+    const p = req.body;
+    const profile = calculateIdealProfile({
+      fingerLength:     parseFloat(p.fingerLength) || 80,
+      palmWidth:        parseFloat(p.palmWidth) || 85,
+      gripDiameter:     parseFloat(p.gripDiameter) || 16,
+      fingerSpan:       parseFloat(p.fingerSpan) || 200,
+      fingerFlexIndex:  parseFloat(p.fingerFlexIndex) || 0.75,
+      throwAngleDeg:    p.throwAngleDeg ? parseFloat(p.throwAngleDeg) : null,
+      heightCm:         parseFloat(p.heightCm) || 175,
+      forearmLengthMm:  p.forearmLengthMm ? parseFloat(p.forearmLengthMm) : null,
+      gripPreference:   parseInt(p.gripPreference) || 3,
+      weightPreference: parseInt(p.weightPreference) || 3,
+      throwingStyle:    p.throwingStyle || 'middle',
+      playingLevel:     p.playingLevel || 'intermediate',
+    });
+    const darts = db.prepare('SELECT * FROM darts WHERE active = 1').all();
+    const pros  = db.prepare('SELECT * FROM pro_players').all();
+    res.json(runMatchPipeline(profile, darts, pros));
+  } catch (err) {
+    console.error('[/api/fit/calculate]', err);
+    res.status(500).json({ error: err.message || 'Calculation failed' });
+  }
 });
 
 app.post('/api/fit/save', requireAuth, (req, res) => {

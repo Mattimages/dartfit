@@ -107,7 +107,13 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:22px;heigh
   cursor:pointer;text-align:center;transition:all .15s;border-radius:10px}
 .option-btn.active{border-color:var(--orange);color:var(--orange);background:var(--orange-dim);font-weight:600}
 
-/* ─── SCAN CANVAS ─── */
+/* ─── ARM CAMERA MODAL ─── */
+#arm-cam-modal{display:none;position:fixed;inset:0;z-index:999;background:#000;flex-direction:column}
+#arm-cam-modal.open{display:flex}
+#arm-cam-video{width:100%;flex:1;object-fit:cover}
+#arm-cam-footer{padding:24px 20px;background:linear-gradient(transparent,rgba(0,0,0,.95));
+  display:flex;flex-direction:column;align-items:center;gap:12px;position:absolute;bottom:0;left:0;right:0}
+
 #scan-video-wrap{position:relative;width:100%;flex:1;overflow:hidden;background:#000}
 #scan-video{width:100%;height:100%;object-fit:cover}
 #scan-canvas-overlay{position:absolute;inset:0;pointer-events:none}
@@ -572,12 +578,11 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:22px;heigh
       </p>
       <img id="arm-preview" class="arm-preview" alt="Arm preview">
 
-      <!-- Hidden file inputs: one for camera, one for gallery -->
-      <input type="file" accept="image/*" capture="environment" id="arm-camera-input" style="display:none" onchange="handleArmImage(this)">
+      <!-- Upload from gallery -->
       <input type="file" accept="image/*" id="arm-file-input" style="display:none" onchange="handleArmImage(this)">
 
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px">
-        <button class="btn btn-primary" onclick="document.getElementById('arm-camera-input').click()" style="font-size:15px;padding:14px;display:flex;align-items:center;justify-content:center;gap:8px">
+        <button class="btn btn-primary" onclick="openArmCamera()" style="font-size:15px;padding:14px;display:flex;align-items:center;justify-content:center;gap:8px">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="13" r="4"/><path d="M5 7H4a2 2 0 00-2 2v9a2 2 0 002 2h16a2 2 0 002-2V9a2 2 0 00-2-2h-1l-2-2H9L7 7H5z"/></svg>
           Camera
         </button>
@@ -972,6 +977,41 @@ function skipScan() {
 }
 
 // ─── ARM IMAGE ───────────────────────────────────────────────────
+let _armStream = null;
+
+async function openArmCamera() {
+  try {
+    _armStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment', width:1280, height:720 } });
+    const vid = document.getElementById('arm-cam-video');
+    vid.srcObject = _armStream;
+    document.getElementById('arm-cam-modal').classList.add('open');
+  } catch(e) {
+    // Camera denied / unavailable — fall through to file picker
+    document.getElementById('arm-file-input').click();
+  }
+}
+
+function closeArmCamera() {
+  if (_armStream) { _armStream.getTracks().forEach(t => t.stop()); _armStream = null; }
+  document.getElementById('arm-cam-modal').classList.remove('open');
+}
+
+function captureArmPhoto() {
+  const vid = document.getElementById('arm-cam-video');
+  const c = document.createElement('canvas');
+  c.width = vid.videoWidth || 640; c.height = vid.videoHeight || 480;
+  c.getContext('2d').drawImage(vid, 0, 0);
+  closeArmCamera();
+  c.toBlob(blob => {
+    const file = new File([blob], 'arm.jpg', { type: 'image/jpeg' });
+    const preview = document.getElementById('arm-preview');
+    preview.src = URL.createObjectURL(blob);
+    preview.classList.add('visible');
+    document.getElementById('arm-status').textContent = '✓ Photo captured — will analyse on submit';
+    state.armFile = file;
+  }, 'image/jpeg', 0.9);
+}
+
 function handleArmImage(input) {
   const file = input.files[0];
   if (!file) return;
@@ -1058,7 +1098,7 @@ function generateDefaultMeasurements() {
   return { fingerLength:80, palmWidth:85, gripDiameter:16, fingerSpan:200, fingerFlexIndex:0.75, throwAngleDeg:15 };
 }
 
-async function submitToAPI(measurements) {
+async function submitToAPI(measurements, _attempt = 0) {
   try {
     const payload = {
       ...measurements,
@@ -1070,13 +1110,16 @@ async function submitToAPI(measurements) {
       playingLevel:    state.questionnaire.playingLevel,
     };
     state.fitResult = await api('/api/fit/calculate', 'POST', payload);
-    setTimeout(() => {
-      renderResults();
-      navigate('results');
-    }, 600);
+    setTimeout(() => { renderResults(); navigate('results'); }, 600);
   } catch(e) {
-    toast('Calculation error — retrying...', 'error');
-    setTimeout(() => submitToAPI(measurements), 2000);
+    console.error('[submitToAPI] attempt', _attempt, e);
+    if (_attempt < 2) {
+      document.getElementById('analyze-status').textContent = `Retrying... (${_attempt + 1}/3)`;
+      setTimeout(() => submitToAPI(measurements, _attempt + 1), 1500);
+    } else {
+      document.getElementById('analyze-status').textContent = '✗ Connection failed';
+      toast(`Could not reach server: ${e.message}`, 'error');
+    }
   }
 }
 
@@ -2029,5 +2072,24 @@ document.addEventListener('DOMContentLoaded', () => {
   updateSliderLabel('q-weight','q-weight-val',weightLabels);
 });
 </script>
+
+<!-- ══ ARM CAMERA MODAL (getUserMedia — no file-picker) ══ -->
+<div id="arm-cam-modal">
+  <video id="arm-cam-video" autoplay playsinline muted></video>
+  <div id="arm-cam-footer">
+    <div style="font-family:'Share Tech Mono',monospace;font-size:11px;letter-spacing:2px;color:var(--orange)">
+      ARM SCAN — point camera at your forearm
+    </div>
+    <button class="btn-capture" onclick="captureArmPhoto()" aria-label="Capture">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2">
+        <circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="3" fill="#fff"/>
+      </svg>
+    </button>
+    <button style="background:none;border:none;color:var(--muted);font-family:'Share Tech Mono',monospace;
+                   font-size:11px;letter-spacing:1px;cursor:pointer;padding:4px" onclick="closeArmCamera()">
+      CANCEL
+    </button>
+  </div>
+</div>
 </body>
 </html>
