@@ -41,6 +41,7 @@ const upload = multer({
 });
 
 // ─── MIDDLEWARE ────────────────────────────────────────────────────
+app.set('trust proxy', 1); // required when behind a reverse proxy (Codespaces, Railway, Render, etc.)
 app.use(helmet({ contentSecurityPolicy: false }));
 app.use(cors());
 app.use(express.json({ limit: '2mb' }));
