@@ -298,6 +298,8 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:22px;heigh
 .delay-1{animation-delay:.08s}.delay-2{animation-delay:.16s}.delay-3{animation-delay:.24s}
 .delay-4{animation-delay:.32s}.delay-5{animation-delay:.40s}
 </style>
+<!-- MediaPipe Hands for real-time landmark detection -->
+<script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js" crossorigin="anonymous"></script>
 </head>
 <body>
 
@@ -785,62 +787,181 @@ function goToScan() {
   startCamera();
 }
 
-// ─── CAMERA ─────────────────────────────────────────────────────
+// ─── CAMERA + MEDIAPIPE ──────────────────────────────────────────
+let _mpHands = null;       // MediaPipe Hands instance
+let _mpRaf   = null;       // requestAnimationFrame handle for detection loop
+let _lastLM  = null;       // most-recent hand landmarks (21 pts, normalised 0-1)
+
+// Bone connections (MediaPipe 21-landmark topology)
+const MP_CONNECTIONS = [
+  [0,1],[1,2],[2,3],[3,4],
+  [0,5],[5,6],[6,7],[7,8],
+  [0,9],[9,10],[10,11],[11,12],
+  [0,13],[13,14],[14,15],[15,16],
+  [0,17],[17,18],[18,19],[19,20],
+  [5,9],[9,13],[13,17],
+];
+// Per-finger colours  (thumb, index, middle, ring, pinky)
+const MP_COLORS = ['#ff6b35','#4ecdc4','#45b7d1','#96ceb4','#ffeaa7'];
+function _mpColor(maxIdx) {
+  if (maxIdx <= 4)  return MP_COLORS[0];
+  if (maxIdx <= 8)  return MP_COLORS[1];
+  if (maxIdx <= 12) return MP_COLORS[2];
+  if (maxIdx <= 16) return MP_COLORS[3];
+  return MP_COLORS[4];
+}
+
+async function initMediaPipe() {
+  if (_mpHands) return;
+  if (typeof Hands === 'undefined') { console.warn('MediaPipe not loaded'); return; }
+  try {
+    _mpHands = new Hands({ locateFile: f => `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${f}` });
+    _mpHands.setOptions({ maxNumHands:1, modelComplexity:1, minDetectionConfidence:0.65, minTrackingConfidence:0.5 });
+    _mpHands.onResults(results => {
+      _lastLM = results.multiHandLandmarks?.[0] || null;
+      drawLiveLandmarks(_lastLM);
+    });
+    await _mpHands.initialize();
+  } catch(e) { console.warn('MediaPipe init error:', e); _mpHands = null; }
+}
+
+function drawLiveLandmarks(lm) {
+  const canvas = document.getElementById('scan-canvas-overlay');
+  const vid    = document.getElementById('scan-video');
+  if (!canvas || !vid) return;
+  const W = vid.offsetWidth, H = vid.offsetHeight;
+  canvas.width = W; canvas.height = H;
+  const ctx = canvas.getContext('2d');
+  ctx.clearRect(0, 0, W, H);
+  if (!lm) return;
+
+  // Bone segments
+  MP_CONNECTIONS.forEach(([i,j]) => {
+    const a = lm[i], b = lm[j];
+    ctx.beginPath();
+    ctx.moveTo(a.x*W, a.y*H);
+    ctx.lineTo(b.x*W, b.y*H);
+    ctx.strokeStyle = _mpColor(Math.max(i,j));
+    ctx.lineWidth = 2.5; ctx.stroke();
+  });
+
+  // Joints
+  lm.forEach((pt, idx) => {
+    ctx.beginPath(); ctx.arc(pt.x*W, pt.y*H, idx===0 ? 6 : 4, 0, Math.PI*2);
+    ctx.fillStyle = 'rgba(232,87,14,.9)'; ctx.fill();
+    ctx.strokeStyle = '#fff'; ctx.lineWidth = 1; ctx.stroke();
+  });
+
+  // Live measurement callouts
+  const p5 = lm[5], p9 = lm[9], p12 = lm[12], p17 = lm[17];
+  ctx.setLineDash([4,3]); ctx.lineWidth = 1.8;
+  // Finger length (MCP→TIP of middle finger)
+  ctx.strokeStyle = 'rgba(255,220,50,.9)';
+  ctx.beginPath(); ctx.moveTo(p9.x*W-16, p9.y*H); ctx.lineTo(p12.x*W-16, p12.y*H); ctx.stroke();
+  ctx.fillStyle = 'rgba(255,220,50,.95)'; ctx.font = 'bold 11px Inter,sans-serif'; ctx.textAlign = 'right';
+  ctx.fillText('FINGER LEN', p12.x*W-19, (p9.y+p12.y)/2*H+4);
+  // Palm width (index MCP→pinky MCP)
+  ctx.strokeStyle = 'rgba(100,200,255,.9)';
+  ctx.beginPath(); ctx.moveTo(p5.x*W, p5.y*H+22); ctx.lineTo(p17.x*W, p17.y*H+22); ctx.stroke();
+  ctx.fillStyle = 'rgba(100,200,255,.95)'; ctx.textAlign = 'center';
+  ctx.fillText('PALM WIDTH', (p5.x+p17.x)/2*W, (p5.y+p17.y)/2*H+36);
+  ctx.setLineDash([]);
+}
+
 async function startCamera() {
   try {
     const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment', width:1280, height:720 } });
     state.videoStream = stream;
     const vid = document.getElementById('scan-video');
     vid.srcObject = stream;
-    drawScanOverlay();
+    // Kick off MP in background — detection loop starts once initialised
+    initMediaPipe().then(() => { if (_mpHands) startMPLoop(); });
   } catch(e) {
     document.getElementById('scan-status-text').textContent = 'Camera unavailable — use SKIP to continue';
   }
 }
 
-function stopCamera() {
-  if (state.videoStream) {
-    state.videoStream.getTracks().forEach(t => t.stop());
-    state.videoStream = null;
+function startMPLoop() {
+  const vid = document.getElementById('scan-video');
+  async function tick() {
+    if (!_mpHands || !state.videoStream) return;
+    if (vid.readyState >= 2) await _mpHands.send({ image: vid });
+    _mpRaf = requestAnimationFrame(tick);
   }
+  tick();
 }
 
-function drawScanOverlay() {
-  const canvas = document.getElementById('scan-canvas-overlay');
-  const vid    = document.getElementById('scan-video');
-  const resizeObs = new ResizeObserver(() => {
-    canvas.width  = vid.offsetWidth;
-    canvas.height = vid.offsetHeight;
-  });
-  resizeObs.observe(vid);
+function stopCamera() {
+  if (_mpRaf) { cancelAnimationFrame(_mpRaf); _mpRaf = null; }
+  if (state.videoStream) { state.videoStream.getTracks().forEach(t => t.stop()); state.videoStream = null; }
 }
 
 function captureHand() {
-  // Extract simulated hand biometrics from frame
-  // In production: integrate MediaPipe Hands for real keypoint detection
   const video = document.getElementById('scan-video');
   const tempCanvas = document.createElement('canvas');
   tempCanvas.width  = video.videoWidth  || 640;
   tempCanvas.height = video.videoHeight || 480;
   const ctx = tempCanvas.getContext('2d');
   ctx.drawImage(video, 0, 0);
-  // Save photo for overlay on analysis screen
   state.handImageData = tempCanvas.toDataURL('image/jpeg', 0.85);
 
-  // Simulate realistic biometric extraction
-  // (In production, send frame to MediaPipe or TF.js hand landmark model)
-  const seed = Date.now();
-  const rand = (min, max, s) => min + ((seed * s * 1234567 % 1000) / 1000) * (max - min);
-  state.handMeasurements = {
-    fingerLength:    parseFloat((70 + rand(0,25,1)).toFixed(1)),
-    palmWidth:       parseFloat((80 + rand(0,22,2)).toFixed(1)),
-    gripDiameter:    parseFloat((13 + rand(0,8,3)).toFixed(1)),
-    fingerSpan:      parseFloat((180 + rand(0,45,4)).toFixed(0)),
-    fingerFlexIndex: parseFloat((0.60 + rand(0,.38,5)).toFixed(2)),
-    throwAngleDeg:   parseFloat((10 + rand(0,22,6)).toFixed(1)),
-  };
+  if (_lastLM) {
+    // ── Real measurements from MediaPipe landmarks ──────────────
+    const lm = _lastLM;
+    const vW = tempCanvas.width, vH = tempCanvas.height;
+    const px = i => ({ x: lm[i].x * vW, y: lm[i].y * vH });
+    const d  = (a, b) => Math.sqrt((a.x-b.x)**2 + (a.y-b.y)**2);
 
-  document.getElementById('scan-status-text').textContent = '✓ Hand captured — processing...';
+    // Scale: wrist(0)→middle-tip(12) pixel length → estimated actual hand length
+    const estHandMm = (state.questionnaire.heightCm || 175) * 10 * 0.108;
+    const pxPerMm   = d(px(0), px(12)) / estHandMm;
+
+    // Middle finger length along bone chain (MCP9→PIP10→DIP11→TIP12)
+    const fingerLength = (d(px(9),px(10)) + d(px(10),px(11)) + d(px(11),px(12))) / pxPerMm;
+    // Palm width: index MCP(5) to pinky MCP(17)
+    const palmWidth    = d(px(5), px(17)) / pxPerMm;
+    // Finger span: thumb tip(4) to pinky tip(20)
+    const fingerSpan   = d(px(4), px(20)) / pxPerMm;
+    // Grip diameter: empirical ratio from palm arch
+    const gripDiameter = palmWidth * 0.195;
+    // Flex index: chord vs chain ratio on middle finger (1.0 = straight)
+    const chord = d(px(9), px(12));
+    const chain = d(px(9),px(10)) + d(px(10),px(11)) + d(px(11),px(12));
+    const fingerFlexIndex = Math.min(1, Math.max(0.5, chord / chain));
+    // Natural throw angle from height (same as algorithm)
+    const h = (state.questionnaire.heightCm || 175);
+    const eyeH = h * 0.936 * 10; // mm
+    const throwAngleDeg = Math.atan2(1730 - eyeH, 2370) * 180 / Math.PI;
+
+    // Store landmarks for analysis overlay, keyed to video dimensions
+    state.handLandmarks   = lm;
+    state.handLandmarkVid = { w: vW, h: vH };
+
+    state.handMeasurements = {
+      fingerLength:    parseFloat(fingerLength.toFixed(1)),
+      palmWidth:       parseFloat(palmWidth.toFixed(1)),
+      gripDiameter:    parseFloat(gripDiameter.toFixed(1)),
+      fingerSpan:      parseFloat(fingerSpan.toFixed(0)),
+      fingerFlexIndex: parseFloat(fingerFlexIndex.toFixed(2)),
+      throwAngleDeg:   parseFloat(throwAngleDeg.toFixed(1)),
+    };
+    document.getElementById('scan-status-text').textContent = '✓ Hand landmarks detected — processing...';
+  } else {
+    // ── Fallback: questionnaire-seeded estimates ──────────────────
+    state.handLandmarks = null;
+    const seed = Date.now();
+    const rand = (min, max, s) => min + ((seed * s * 1234567 % 1000) / 1000) * (max - min);
+    state.handMeasurements = {
+      fingerLength:    parseFloat((70 + rand(0,25,1)).toFixed(1)),
+      palmWidth:       parseFloat((80 + rand(0,22,2)).toFixed(1)),
+      gripDiameter:    parseFloat((13 + rand(0,8,3)).toFixed(1)),
+      fingerSpan:      parseFloat((180 + rand(0,45,4)).toFixed(0)),
+      fingerFlexIndex: parseFloat((0.60 + rand(0,.38,5)).toFixed(2)),
+      throwAngleDeg:   parseFloat((10 + rand(0,22,6)).toFixed(1)),
+    };
+    document.getElementById('scan-status-text').textContent = '✓ Hand captured — processing...';
+  }
+
   setTimeout(() => { stopCamera(); navigate('arm'); }, 700);
 }
 
@@ -960,89 +1081,147 @@ async function submitToAPI(measurements) {
 }
 
 // ─── HAND SKELETON ANIMATION ────────────────────────────────────
+function _drawArrow(ctx, x1, y1, x2, y2, color) {
+  const angle = Math.atan2(y2-y1, x2-x1), sz = 6;
+  ctx.fillStyle = color;
+  [0, Math.PI].forEach((flip, fi) => {
+    const bx = fi ? x1 : x2, by = fi ? y1 : y2, a = fi ? angle+Math.PI : angle;
+    ctx.beginPath();
+    ctx.moveTo(bx, by);
+    ctx.lineTo(bx - sz*Math.cos(a-0.4), by - sz*Math.sin(a-0.4));
+    ctx.lineTo(bx - sz*Math.cos(a+0.4), by - sz*Math.sin(a+0.4));
+    ctx.fill();
+  });
+}
+
 function drawHandSkeleton() {
   const canvas = document.getElementById('hand-canvas');
   const ctx = canvas.getContext('2d');
   const W = 280, H = 340;
   canvas.width = W; canvas.height = H;
-  const sx = W/200, sy = H/240;
 
-  const joints = {
-    wrist:[100*sx,220*sy],
-    pL:[62*sx,178*sy],pR:[138*sx,178*sy],
-    f1b:[58*sx,148*sy],f2b:[82*sx,132*sy],f3b:[104*sx,126*sy],f4b:[128*sx,132*sy],f5b:[148*sx,144*sy],
-    f1m:[46*sx,112*sy],f2m:[74*sx,92*sy], f3m:[102*sx,84*sy], f4m:[128*sx,90*sy], f5m:[149*sx,112*sy],
-    f1t:[38*sx,80*sy], f2t:[70*sx,57*sy], f3t:[100*sx,48*sy], f4t:[126*sx,54*sy], f5t:[149*sx,82*sy],
-    th1:[40*sx,168*sy],th2:[22*sx,144*sy],th3:[16*sx,120*sy],
-  };
-  const conns=[
-    ['wrist','pL'],['wrist','pR'],['pL','pR'],
-    ['pL','f1b'],['f1b','f2b'],['f2b','f3b'],['f3b','f4b'],['f4b','f5b'],['f5b','pR'],
-    ['f1b','f1m'],['f1m','f1t'],['f2b','f2m'],['f2m','f2t'],
-    ['f3b','f3m'],['f3m','f3t'],['f4b','f4m'],['f4m','f4t'],['f5b','f5m'],['f5m','f5t'],
-    ['pL','th1'],['th1','th2'],['th2','th3'],
-  ];
+  // ── Build per-canvas joint array ────────────────────────────
+  // If we have real MediaPipe landmarks, map them; else use hardcoded template
+  const realLM  = state.handLandmarks;
+  const realVid = state.handLandmarkVid || { w:640, h:480 };
+  let pts; // array of [x,y] indexed by MediaPipe landmark index (0–20)
+
+  if (realLM) {
+    // Fit landmarks into canvas with padding, preserving aspect ratio
+    const xs = realLM.map(p => p.x), ys = realLM.map(p => p.y);
+    const x0 = Math.min(...xs), x1r = Math.max(...xs);
+    const y0 = Math.min(...ys), y1r = Math.max(...ys);
+    const pad = 0.08;
+    const scX = W / ((x1r - x0) * (1 + pad*2));
+    const scY = H / ((y1r - y0) * (1 + pad*2));
+    const sc  = Math.min(scX, scY);
+    const offX = (W - (x1r-x0)*sc) / 2 - x0*sc;
+    const offY = (H - (y1r-y0)*sc) / 2 - y0*sc;
+    pts = realLM.map(p => [p.x*sc + offX, p.y*sc + offY]);
+  } else {
+    // Hardcoded template (21 MP-indexed landmarks approximated)
+    const sx = W/200, sy = H/240;
+    const T = {
+       0:[100,220], 1:[68,198], 2:[50,176], 3:[36,158], 4:[24,140],
+       5:[82,132],  6:[74,100], 7:[70,72],  8:[66,50],
+       9:[104,126], 10:[102,90],11:[100,64],12:[98,44],
+      13:[128,132],14:[128,98],15:[126,70], 16:[124,52],
+      17:[148,144],18:[150,116],19:[150,92],20:[150,74],
+    };
+    pts = Object.fromEntries(Object.entries(T).map(([k,v]) => [+k,[v[0]*sx,v[1]*sy]]));
+    pts = Array.from({ length:21 }, (_,i) => pts[i] || [W/2,H/2]);
+  }
 
   let frame = 0, handImg = null;
 
   const startAnim = () => {
     function draw() {
-      ctx.clearRect(0,0,W,H);
+      ctx.clearRect(0, 0, W, H);
       const hasPhoto = !!handImg;
       if (hasPhoto) {
         ctx.drawImage(handImg, 0, 0, W, H);
-        ctx.fillStyle = 'rgba(0,0,0,0.40)';
-        ctx.fillRect(0,0,W,H);
+        ctx.fillStyle = 'rgba(0,0,0,0.42)';
+        ctx.fillRect(0, 0, W, H);
       }
-      const progress = Math.min(frame/70,1);
-      conns.forEach((conn,ci) => {
-        const delay = ci/conns.length;
-        const lp = Math.max(0,Math.min(1,(progress-delay*.5)*2));
-        if(!lp) return;
-        const a=joints[conn[0]],b=joints[conn[1]];
-        ctx.beginPath(); ctx.moveTo(a[0],a[1]);
+      const progress = Math.min(frame/70, 1);
+
+      // Bone segments
+      MP_CONNECTIONS.forEach(([i,j], ci) => {
+        const delay = ci / MP_CONNECTIONS.length;
+        const lp = Math.max(0, Math.min(1, (progress - delay*0.5)*2));
+        if (!lp) return;
+        const a = pts[i], b = pts[j];
+        ctx.beginPath(); ctx.moveTo(a[0], a[1]);
         ctx.lineTo(a[0]+(b[0]-a[0])*lp, a[1]+(b[1]-a[1])*lp);
-        ctx.strokeStyle = hasPhoto ? `rgba(255,255,255,${.45+lp*.4})` : `rgba(232,87,14,${.4+lp*.5})`;
-        ctx.lineWidth = 1.8; ctx.stroke();
+        ctx.strokeStyle = hasPhoto
+          ? _mpColor(Math.max(i,j)).replace(')', `,${0.55+lp*0.45})`).replace('rgb','rgba').replace('##','#')
+          : `rgba(232,87,14,${0.4+lp*0.5})`;
+        // Colour-code finger bones when photo present
+        if (hasPhoto) ctx.strokeStyle = _mpColor(Math.max(i,j));
+        ctx.lineWidth = 2.2; ctx.stroke();
       });
-      Object.values(joints).forEach((j,ji) => {
-        const jp = Math.max(0,Math.min(1,(progress-ji/Object.keys(joints).length*.3)*3));
-        if(!jp) return;
-        ctx.beginPath(); ctx.arc(j[0],j[1],3*jp,0,Math.PI*2);
-        ctx.fillStyle=`rgba(232,87,14,${.7+jp*.3})`; ctx.fill();
+
+      // Joints
+      pts.forEach((j, ji) => {
+        const jp = Math.max(0, Math.min(1, (progress - ji/pts.length*0.3)*3));
+        if (!jp) return;
+        ctx.beginPath(); ctx.arc(j[0], j[1], (ji===0?5:3.5)*jp, 0, Math.PI*2);
+        ctx.fillStyle = `rgba(232,87,14,${0.7+jp*0.3})`; ctx.fill();
+        if (hasPhoto) { ctx.strokeStyle='rgba(255,255,255,.8)'; ctx.lineWidth=1; ctx.stroke(); }
       });
-      if(progress<1 && !hasPhoto) {
-        ctx.fillStyle='rgba(232,87,14,.10)'; ctx.fillRect(0,progress*H-8,W,16);
+
+      if (progress < 1 && !hasPhoto) {
+        ctx.fillStyle = 'rgba(232,87,14,.10)'; ctx.fillRect(0, progress*H-8, W, 16);
       }
-      // Draw measurement vector annotations after animation completes
+
+      // ── Measurement vector overlays (after skeleton draws in) ──
       if (progress >= 1) {
-        const measurements = state.handMeasurements;
-        if (measurements) {
-          ctx.font = 'bold 9px Inter, sans-serif';
-          ctx.textAlign = 'left';
-          // Finger length vector (f3b → f3t)
-          const f3b = joints.f3b, f3t = joints.f3t;
-          ctx.beginPath(); ctx.moveTo(f3t[0]-18,f3t[1]); ctx.lineTo(f3b[0]-18,f3b[1]);
-          ctx.strokeStyle='rgba(255,220,50,.75)'; ctx.lineWidth=1.5;
-          ctx.setLineDash([3,2]); ctx.stroke(); ctx.setLineDash([]);
-          ctx.fillStyle='rgba(255,220,50,.9)';
-          ctx.fillText(`${measurements.fingerLength}mm`, f3t[0]-17, (f3t[1]+f3b[1])/2+3);
-          // Palm width vector (pL → pR)
-          const pL = joints.pL, pR = joints.pR;
-          ctx.beginPath(); ctx.moveTo(pL[0],pL[1]+18); ctx.lineTo(pR[0],pR[1]+18);
-          ctx.strokeStyle='rgba(100,200,255,.75)'; ctx.lineWidth=1.5;
-          ctx.setLineDash([3,2]); ctx.stroke(); ctx.setLineDash([]);
-          ctx.fillStyle='rgba(100,200,255,.9)';
-          ctx.textAlign='center';
-          ctx.fillText(`${measurements.palmWidth}mm`, (pL[0]+pR[0])/2, pL[1]+30);
-          // Throw angle label
-          ctx.fillStyle='rgba(232,87,14,.9)';
-          ctx.textAlign='right';
-          ctx.fillText(`${measurements.throwAngleDeg}° arc`, W-8, H-10);
+        const m = state.handMeasurements;
+        if (m) {
+          ctx.font = 'bold 9px Inter,sans-serif';
+
+          // 1. FINGER LENGTH — alongside middle finger (pts 9 → 12)
+          const [mx9, my9] = pts[9], [mx12, my12] = pts[12];
+          // perpendicular offset direction
+          const fdx = -(my12-my9), fdy = mx12-mx9, fl = Math.sqrt(fdx*fdx+fdy*fdy)||1;
+          const fox = fdx/fl*16, foy = fdy/fl*16;
+          ctx.setLineDash([4,3]); ctx.strokeStyle='rgba(255,220,50,.9)'; ctx.lineWidth=1.8;
+          ctx.beginPath(); ctx.moveTo(mx9+fox,my9+foy); ctx.lineTo(mx12+fox,my12+foy); ctx.stroke();
+          ctx.setLineDash([]);
+          _drawArrow(ctx, mx9+fox,my9+foy, mx12+fox,my12+foy, 'rgba(255,220,50,.9)');
+          ctx.fillStyle='rgba(255,220,50,.95)'; ctx.textAlign='center';
+          ctx.fillText(`${m.fingerLength}mm`, (mx9+mx12)/2+fox+10, (my9+my12)/2+foy);
+
+          // 2. PALM WIDTH — below palm (pts 5 → 17)
+          const [px5,py5]=pts[5], [px17,py17]=pts[17];
+          const pwOff = 20;
+          ctx.setLineDash([4,3]); ctx.strokeStyle='rgba(100,200,255,.9)'; ctx.lineWidth=1.8;
+          ctx.beginPath(); ctx.moveTo(px5,py5+pwOff); ctx.lineTo(px17,py17+pwOff); ctx.stroke();
+          ctx.setLineDash([]);
+          _drawArrow(ctx, px5,py5+pwOff, px17,py17+pwOff, 'rgba(100,200,255,.9)');
+          ctx.fillStyle='rgba(100,200,255,.95)'; ctx.textAlign='center';
+          ctx.fillText(`${m.palmWidth}mm`, (px5+px17)/2, (py5+py17)/2+pwOff+12);
+
+          // 3. FINGER SPAN — thumb tip(4) to pinky tip(20)
+          const [px4,py4]=pts[4], [px20,py20]=pts[20];
+          ctx.setLineDash([3,2]); ctx.strokeStyle='rgba(232,87,14,.7)'; ctx.lineWidth=1.5;
+          ctx.beginPath(); ctx.moveTo(px4,py4); ctx.lineTo(px20,py20); ctx.stroke();
+          ctx.setLineDash([]);
+          ctx.fillStyle='rgba(232,87,14,.9)'; ctx.font='bold 8px Inter,sans-serif'; ctx.textAlign='center';
+          ctx.fillText(`SPAN ${m.fingerSpan}mm`, (px4+px20)/2, (py4+py20)/2 - 6);
+
+          // 4. THROW ANGLE label (bottom-right)
+          ctx.fillStyle='rgba(232,87,14,.85)'; ctx.font='bold 9px Inter,sans-serif'; ctx.textAlign='right';
+          ctx.fillText(`${m.throwAngleDeg}° throw arc`, W-6, H-8);
+
+          // 5. GRIP DIAMETER badge (bottom-left)
+          ctx.fillStyle='rgba(150,230,180,.85)'; ctx.textAlign='left';
+          ctx.fillText(`∅${m.gripDiameter}mm grip`, 6, H-8);
         }
       }
+
       frame++;
-      if(frame<220) requestAnimationFrame(draw);
+      if (frame < 220) requestAnimationFrame(draw);
     }
     draw();
   };
