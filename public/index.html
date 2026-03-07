@@ -851,6 +851,18 @@ function drawLiveLandmarks(lm) {
   ctx.clearRect(0, 0, W, H);
   if (!lm) return;
 
+  // ── Correct for object-fit:cover scaling ───────────────────────
+  // MediaPipe landmarks are normalised to the actual video frame size.
+  // The video element uses object-fit:cover so the frame is scaled and
+  // possibly cropped. We must map landmarks to the visible rendered area.
+  const vidW = vid.videoWidth  || W;
+  const vidH = vid.videoHeight || H;
+  const scale   = Math.max(W / vidW, H / vidH);
+  const offsetX = (W - vidW * scale) / 2;
+  const offsetY = (H - vidH * scale) / 2;
+  const lx = i => lm[i].x * vidW * scale + offsetX;
+  const ly = i => lm[i].y * vidH * scale + offsetY;
+
   // ── Hand silhouette (fill under the skeleton) ───────────────────
   ctx.save();
   ctx.fillStyle   = 'rgba(232,87,14,0.20)';
@@ -858,47 +870,45 @@ function drawLiveLandmarks(lm) {
   ctx.lineWidth   = 28; ctx.lineCap = 'round'; ctx.lineJoin = 'round';
   [[0,1,2,3,4],[5,6,7,8],[9,10,11,12],[13,14,15,16],[17,18,19,20]].forEach(chain => {
     ctx.beginPath();
-    ctx.moveTo(lm[chain[0]].x*W, lm[chain[0]].y*H);
-    chain.slice(1).forEach(k => ctx.lineTo(lm[k].x*W, lm[k].y*H));
+    ctx.moveTo(lx(chain[0]), ly(chain[0]));
+    chain.slice(1).forEach(k => ctx.lineTo(lx(k), ly(k)));
     ctx.stroke();
   });
   ctx.beginPath();
   [0,1,5,9,13,17].forEach((k, idx) => {
-    if (!idx) ctx.moveTo(lm[k].x*W, lm[k].y*H); else ctx.lineTo(lm[k].x*W, lm[k].y*H);
+    if (!idx) ctx.moveTo(lx(k), ly(k)); else ctx.lineTo(lx(k), ly(k));
   });
   ctx.closePath(); ctx.fill();
   ctx.restore();
 
   // Bone segments
   MP_CONNECTIONS.forEach(([i,j]) => {
-    const a = lm[i], b = lm[j];
     ctx.beginPath();
-    ctx.moveTo(a.x*W, a.y*H);
-    ctx.lineTo(b.x*W, b.y*H);
+    ctx.moveTo(lx(i), ly(i));
+    ctx.lineTo(lx(j), ly(j));
     ctx.strokeStyle = _mpColor(Math.max(i,j));
     ctx.lineWidth = 2.5; ctx.stroke();
   });
 
   // Joints
-  lm.forEach((pt, idx) => {
-    ctx.beginPath(); ctx.arc(pt.x*W, pt.y*H, idx===0 ? 6 : 4, 0, Math.PI*2);
+  lm.forEach((_, idx) => {
+    ctx.beginPath(); ctx.arc(lx(idx), ly(idx), idx===0 ? 6 : 4, 0, Math.PI*2);
     ctx.fillStyle = 'rgba(232,87,14,.9)'; ctx.fill();
     ctx.strokeStyle = '#fff'; ctx.lineWidth = 1; ctx.stroke();
   });
 
   // Live measurement callouts
-  const p5 = lm[5], p9 = lm[9], p12 = lm[12], p17 = lm[17];
   ctx.setLineDash([4,3]); ctx.lineWidth = 1.8;
   // Finger length (MCP→TIP of middle finger)
   ctx.strokeStyle = 'rgba(255,220,50,.9)';
-  ctx.beginPath(); ctx.moveTo(p9.x*W-16, p9.y*H); ctx.lineTo(p12.x*W-16, p12.y*H); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(lx(9)-16, ly(9)); ctx.lineTo(lx(12)-16, ly(12)); ctx.stroke();
   ctx.fillStyle = 'rgba(255,220,50,.95)'; ctx.font = 'bold 11px Inter,sans-serif'; ctx.textAlign = 'right';
-  ctx.fillText('FINGER LEN', p12.x*W-19, (p9.y+p12.y)/2*H+4);
+  ctx.fillText('FINGER LEN', lx(12)-19, (ly(9)+ly(12))/2+4);
   // Palm width (index MCP→pinky MCP)
   ctx.strokeStyle = 'rgba(100,200,255,.9)';
-  ctx.beginPath(); ctx.moveTo(p5.x*W, p5.y*H+22); ctx.lineTo(p17.x*W, p17.y*H+22); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(lx(5), ly(5)+22); ctx.lineTo(lx(17), ly(17)+22); ctx.stroke();
   ctx.fillStyle = 'rgba(100,200,255,.95)'; ctx.textAlign = 'center';
-  ctx.fillText('PALM WIDTH', (p5.x+p17.x)/2*W, (p5.y+p17.y)/2*H+36);
+  ctx.fillText('PALM WIDTH', (lx(5)+lx(17))/2, (ly(5)+ly(17))/2+36);
   ctx.setLineDash([]);
 }
 
@@ -1362,6 +1372,10 @@ function dartTierCard(dart, tierLabel, tierColor, accentBorder, delay, profile) 
           </div>
         </div>
       </div>
+      <div id="pic_${uid}" style="display:none;margin-bottom:6px">
+        <img alt="${dart.name}" style="width:100%;max-height:120px;object-fit:contain;background:#111;border-radius:8px;border:1px solid var(--border)"
+          onerror="this.parentElement.style.display='none'">
+      </div>
       <canvas class="tier-dart-canvas" id="tdc_${uid}"></canvas>
       <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:4px;margin-bottom:8px">
         ${dims.map(d => {
@@ -1432,11 +1446,16 @@ function renderResults() {
         </div>
       </div>
 
+      <!-- Product photo (loads async, falls back to canvas) -->
+      <div id="top-product-img-wrap" style="display:none;margin-bottom:8px">
+        <img id="top-product-img" alt="${topDart.name}" style="width:100%;max-height:160px;object-fit:contain;background:#111;border-radius:10px;border:1px solid var(--border)">
+      </div>
+
       <!-- Ideal vs Dart overlay canvas -->
       <div style="font-family:'Share Tech Mono',monospace;font-size:8px;letter-spacing:2px;color:var(--muted);margin-bottom:4px">
         <span style="color:rgba(255,85,0,.6)">— — —</span> IDEAL &nbsp;|&nbsp; <span style="color:#ccc">━━━</span> THIS DART
       </div>
-      <div class="dart-vis-wrap"><canvas class="dart-vis-canvas-lg" id="dart-match-canvas"></canvas></div>
+      <div class="dart-vis-wrap" id="top-dart-canvas-wrap"><canvas class="dart-vis-canvas-lg" id="dart-match-canvas"></canvas></div>
 
       <!-- Spec comparison: ideal vs this dart -->
       <div class="spec-compare">
@@ -1590,6 +1609,42 @@ function renderResults() {
   }, 200);
 
   fetchAIExplanation();
+  // Load product photos async — they replace canvas renders when available
+  loadAllProductImages(topDart, budgetDart, valueDart, premiumDart);
+}
+
+// ─── PRODUCT IMAGE LOADER ────────────────────────────────────────
+async function loadDartProductImage(dartId, imgEl, wrapEl, canvasWrapEl) {
+  try {
+    const data = await api(`/api/darts/${dartId}/image`);
+    if (data.image_url) {
+      imgEl.onload = () => {
+        wrapEl.style.display = 'block';
+        if (canvasWrapEl) canvasWrapEl.style.display = 'none';
+      };
+      imgEl.onerror = () => { wrapEl.style.display = 'none'; };
+      imgEl.src = data.image_url;
+    }
+  } catch { /* silently fall back to canvas */ }
+}
+
+async function loadAllProductImages(topDart, budgetDart, valueDart, premiumDart) {
+  // Top match card
+  const topImg  = document.getElementById('top-product-img');
+  const topWrap = document.getElementById('top-product-img-wrap');
+  const topCvs  = document.getElementById('top-dart-canvas-wrap');
+  if (topImg && topWrap) loadDartProductImage(topDart.id, topImg, topWrap, topCvs);
+
+  // Tier cards: find pic_ elements by dart id prefix
+  [budgetDart, valueDart, premiumDart].forEach(dart => {
+    if (!dart) return;
+    // Tier card uid is tc_{id}_{random}, find the pic_ wrapper
+    document.querySelectorAll('[id^="pic_tc_' + dart.id + '_"]').forEach(wrap => {
+      const img = wrap.querySelector('img');
+      const canvas = wrap.nextElementSibling; // tier-dart-canvas
+      if (img) loadDartProductImage(dart.id, img, wrap, canvas ? wrap.parentElement : null);
+    });
+  });
 }
 
 // ─── SAVE PROFILE ────────────────────────────────────────────────

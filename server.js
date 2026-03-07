@@ -111,6 +111,40 @@ app.get('/api/pros', (req, res) => {
   res.json(db.prepare('SELECT * FROM pro_players').all());
 });
 
+// Product image: fetch + cache OG image from dart's buy_url
+app.get('/api/darts/:id/image', async (req, res) => {
+  const db = getDb();
+  const dart = db.prepare('SELECT id,buy_url,image_url FROM darts WHERE id = ?').get(req.params.id);
+  if (!dart) return res.status(404).json({ error: 'Dart not found' });
+
+  // Return cached URL if we have it
+  if (dart.image_url) return res.json({ image_url: dart.image_url });
+
+  // Attempt to scrape og:image from buy_url
+  try {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 5000);
+    const response = await fetch(dart.buy_url, {
+      signal: controller.signal,
+      headers: { 'User-Agent': 'Mozilla/5.0 (compatible; DartFit/1.0)' },
+    });
+    clearTimeout(timeout);
+    const html = await response.text();
+    // Extract og:image or first large product image
+    const ogMatch = html.match(/<meta[^>]+property=["']og:image["'][^>]+content=["']([^"']+)["']/i)
+                 || html.match(/<meta[^>]+content=["']([^"']+)["'][^>]+property=["']og:image["']/i);
+    const imageUrl = ogMatch?.[1] || null;
+
+    if (imageUrl) {
+      db.prepare('UPDATE darts SET image_url = ? WHERE id = ?').run(imageUrl, dart.id);
+      return res.json({ image_url: imageUrl });
+    }
+    res.json({ image_url: null });
+  } catch {
+    res.json({ image_url: null });
+  }
+});
+
 // ════════════════════════════════════════════════════════════════
 // FITTING
 // ════════════════════════════════════════════════════════════════
