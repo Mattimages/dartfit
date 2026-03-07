@@ -667,6 +667,7 @@ function navigate(screenId) {
   if (el) el.classList.add('active');
   updateNavbar(screenId);
   if (screenId !== 'scan') stopCamera();
+  if (screenId !== 'analyze') stopSkeletonAnim();
 }
 
 function updateNavbar(screenId) {
@@ -938,7 +939,8 @@ function captureHand() {
     const d  = (a, b) => Math.sqrt((a.x-b.x)**2 + (a.y-b.y)**2);
 
     // Scale: wrist(0)→middle-tip(12) pixel length → estimated actual hand length
-    const estHandMm = (state.questionnaire.heightCm || 175) * 10 * 0.108;
+    // Population mean hand length / height ratio: 0.1045 (Greiner 1991, n=2200)
+    const estHandMm = (state.questionnaire.heightCm || 175) * 10 * 0.1045;
     const pxPerMm   = d(px(0), px(12)) / estHandMm;
 
     // Middle finger length along bone chain (MCP9→PIP10→DIP11→TIP12)
@@ -947,8 +949,8 @@ function captureHand() {
     const palmWidth    = d(px(5), px(17)) / pxPerMm;
     // Finger span: thumb tip(4) to pinky tip(20)
     const fingerSpan   = d(px(4), px(20)) / pxPerMm;
-    // Grip diameter: empirical ratio from palm arch
-    const gripDiameter = palmWidth * 0.195;
+    // Grip diameter: ratio from palm arch (ANSUR II 2012: narrowest knuckle/palm = 0.182)
+    const gripDiameter = palmWidth * 0.182;
     // Flex index: chord vs chain ratio on middle finger (1.0 = straight)
     const chord = d(px(9), px(12));
     const chain = d(px(9),px(10)) + d(px(10),px(11)) + d(px(11),px(12));
@@ -982,7 +984,7 @@ function captureHand() {
     state.handMeasurements = {
       fingerLength:    parseFloat((h * 0.116 + r()*4).toFixed(1)),      // ~75–95mm
       palmWidth:       parseFloat((h * 0.110 + r()*5).toFixed(1)),      // ~80–100mm
-      gripDiameter:    parseFloat((h * 0.110 * 0.195 + r()*1.5).toFixed(1)),
+      gripDiameter:    parseFloat((h * 0.110 * 0.182 + r()*1.5).toFixed(1)),
       fingerSpan:      parseFloat((h * 0.230 + r()*10).toFixed(0)),     // ~180–220mm
       fingerFlexIndex: parseFloat((0.82 + r()*0.06).toFixed(2)),        // ~0.79–0.85
       throwAngleDeg:   taDeg,
@@ -1160,6 +1162,9 @@ function _drawArrow(ctx, x1, y1, x2, y2, color) {
   });
 }
 
+let _skeletonRaf = null;
+function stopSkeletonAnim() { if (_skeletonRaf) { cancelAnimationFrame(_skeletonRaf); _skeletonRaf = null; } }
+
 function drawHandSkeleton() {
   const canvas = document.getElementById('hand-canvas');
   const ctx = canvas.getContext('2d');
@@ -1306,7 +1311,7 @@ function drawHandSkeleton() {
       }
 
       frame++;
-      if (frame < 220) requestAnimationFrame(draw);
+      if (frame < 220) _skeletonRaf = requestAnimationFrame(draw);
     }
     draw();
   };

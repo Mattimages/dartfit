@@ -19,6 +19,7 @@ const { initWebPush, savePushSubscription, broadcastDartLaunch } = require('./li
 const app  = express();
 const PORT = process.env.PORT || 3000;
 const JWT_SECRET = process.env.JWT_SECRET || 'dartfit-dev-secret-CHANGE-IN-PROD';
+if (!process.env.JWT_SECRET) console.warn('[SECURITY] JWT_SECRET not set — using insecure default. Set JWT_SECRET in .env before deploying.');
 
 // ─── UPLOADS ────────────────────────────────────────────────────────
 const uploadDir = path.join(__dirname, 'uploads');
@@ -117,6 +118,8 @@ app.post('/api/fit/arm-scan', upload.single('armImage'), async (req, res) => {
   const heightCm = parseInt(req.body.height) || 175;
   if (!req.file) return res.status(400).json({ error: 'No image provided' });
   const result = await analyzeForearmImage(req.file.path, heightCm);
+  // Delete image after analysis — we only need the forearm estimate, not the file
+  fs.unlink(req.file.path, () => {});
   res.json({ ...result, imagePath: req.file.filename });
 });
 
