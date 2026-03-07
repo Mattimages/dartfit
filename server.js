@@ -19,6 +19,7 @@ const { initWebPush, savePushSubscription, broadcastDartLaunch } = require('./li
 const app  = express();
 const PORT = process.env.PORT || 3000;
 const JWT_SECRET = process.env.JWT_SECRET || 'dartfit-dev-secret-CHANGE-IN-PROD';
+if (!process.env.JWT_SECRET) console.warn('[SECURITY] JWT_SECRET not set — using insecure default. Set JWT_SECRET in .env before deploying.');
 
 // ─── UPLOADS ────────────────────────────────────────────────────────
 const uploadDir = path.join(__dirname, 'uploads');
@@ -41,6 +42,7 @@ const upload = multer({
 });
 
 // ─── MIDDLEWARE ────────────────────────────────────────────────────
+app.set('trust proxy', 1); // required when behind a reverse proxy (Codespaces, Railway, Render, etc.)
 app.use(helmet({ contentSecurityPolicy: false }));
 app.use(cors());
 app.use(express.json({ limit: '2mb' }));
@@ -116,29 +118,36 @@ app.post('/api/fit/arm-scan', upload.single('armImage'), async (req, res) => {
   const heightCm = parseInt(req.body.height) || 175;
   if (!req.file) return res.status(400).json({ error: 'No image provided' });
   const result = await analyzeForearmImage(req.file.path, heightCm);
+  // Delete image after analysis — we only need the forearm estimate, not the file
+  fs.unlink(req.file.path, () => {});
   res.json({ ...result, imagePath: req.file.filename });
 });
 
 app.post('/api/fit/calculate', async (req, res) => {
-  const db = getDb();
-  const p = req.body;
-  const profile = calculateIdealProfile({
-    fingerLength:     parseFloat(p.fingerLength) || 80,
-    palmWidth:        parseFloat(p.palmWidth) || 85,
-    gripDiameter:     parseFloat(p.gripDiameter) || 16,
-    fingerSpan:       parseFloat(p.fingerSpan) || 200,
-    fingerFlexIndex:  parseFloat(p.fingerFlexIndex) || 0.75,
-    throwAngleDeg:    p.throwAngleDeg ? parseFloat(p.throwAngleDeg) : null,
-    heightCm:         parseFloat(p.heightCm) || 175,
-    forearmLengthMm:  p.forearmLengthMm ? parseFloat(p.forearmLengthMm) : null,
-    gripPreference:   parseInt(p.gripPreference) || 3,
-    weightPreference: parseInt(p.weightPreference) || 3,
-    throwingStyle:    p.throwingStyle || 'middle',
-    playingLevel:     p.playingLevel || 'intermediate',
-  });
-  const darts = db.prepare('SELECT * FROM darts WHERE active = 1').all();
-  const pros  = db.prepare('SELECT * FROM pro_players').all();
-  res.json(runMatchPipeline(profile, darts, pros));
+  try {
+    const db = getDb();
+    const p = req.body;
+    const profile = calculateIdealProfile({
+      fingerLength:     parseFloat(p.fingerLength) || 80,
+      palmWidth:        parseFloat(p.palmWidth) || 85,
+      gripDiameter:     parseFloat(p.gripDiameter) || 16,
+      fingerSpan:       parseFloat(p.fingerSpan) || 200,
+      fingerFlexIndex:  parseFloat(p.fingerFlexIndex) || 0.75,
+      throwAngleDeg:    p.throwAngleDeg ? parseFloat(p.throwAngleDeg) : null,
+      heightCm:         parseFloat(p.heightCm) || 175,
+      forearmLengthMm:  p.forearmLengthMm ? parseFloat(p.forearmLengthMm) : null,
+      gripPreference:   parseInt(p.gripPreference) || 3,
+      weightPreference: parseInt(p.weightPreference) || 3,
+      throwingStyle:    p.throwingStyle || 'middle',
+      playingLevel:     p.playingLevel || 'intermediate',
+    });
+    const darts = db.prepare('SELECT * FROM darts WHERE active = 1').all();
+    const pros  = db.prepare('SELECT * FROM pro_players').all();
+    res.json(runMatchPipeline(profile, darts, pros));
+  } catch (err) {
+    console.error('[/api/fit/calculate]', err);
+    res.status(500).json({ error: err.message || 'Calculation failed' });
+  }
 });
 
 app.post('/api/fit/save', requireAuth, (req, res) => {
