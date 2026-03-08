@@ -551,11 +551,25 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:22px;heigh
     </div>
     <div class="scan-footer">
       <div class="scan-status-text" id="scan-status-text">Open your throwing hand and hold it inside the frame</div>
-      <button class="btn-capture" onclick="captureHand()">
-        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2">
-          <circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="3" fill="#fff"/>
-        </svg>
-      </button>
+      <!-- Capture + Upload row -->
+      <div style="display:flex;align-items:center;gap:20px">
+        <button class="btn-capture" onclick="captureHand()" title="Capture from camera">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2">
+            <circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="3" fill="#fff"/>
+          </svg>
+        </button>
+        <label title="Upload a photo of your hand" style="display:flex;flex-direction:column;align-items:center;gap:4px;cursor:pointer;opacity:0.85">
+          <div style="width:44px;height:44px;border-radius:50%;border:2px solid rgba(255,255,255,.35);
+                      display:flex;align-items:center;justify-content:center;background:rgba(255,255,255,.08)">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2">
+              <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/>
+              <polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/>
+            </svg>
+          </div>
+          <span style="font-family:'Share Tech Mono',monospace;font-size:9px;letter-spacing:1px;color:rgba(255,255,255,.55)">UPLOAD</span>
+          <input type="file" accept="image/*" id="scan-file-input" style="display:none" onchange="handleScanFileUpload(this)">
+        </label>
+      </div>
       <button style="background:none;border:none;color:var(--muted);font-family:'Share Tech Mono',monospace;
                      font-size:11px;letter-spacing:1px;cursor:pointer;padding:4px" onclick="skipScan()">
         SKIP — USE QUESTIONNAIRE ONLY
@@ -1017,6 +1031,97 @@ function skipScan() {
   state.handMeasurements = null;
   stopCamera();
   navigate('arm');
+}
+
+function handleScanFileUpload(input) {
+  const file = input.files?.[0];
+  if (!file) return;
+  input.value = '';  // reset so same file can be re-selected
+
+  const statusEl = document.getElementById('scan-status-text');
+  statusEl.textContent = 'Reading image…';
+
+  const reader = new FileReader();
+  reader.onload = async (e) => {
+    const dataUrl = e.target.result;
+    state.handImageData = dataUrl;
+
+    // Draw image to a temporary canvas so MediaPipe can process it
+    const img = new Image();
+    img.onload = async () => {
+      const tmpCanvas = document.createElement('canvas');
+      tmpCanvas.width  = img.naturalWidth;
+      tmpCanvas.height = img.naturalHeight;
+      tmpCanvas.getContext('2d').drawImage(img, 0, 0);
+
+      // Ensure MediaPipe is initialised before processing
+      if (!_mpHands) {
+        statusEl.textContent = 'Loading hand detector…';
+        await initMediaPipe();
+      }
+
+      if (_mpHands) {
+        statusEl.textContent = 'Detecting landmarks…';
+        // Process the static image — result lands in _lastLM via onResults callback
+        _lastLM = null;
+        await _mpHands.send({ image: tmpCanvas });
+        // Give the callback a tick to fire
+        await new Promise(r => setTimeout(r, 80));
+      }
+
+      // captureHand() reads _lastLM + state.handImageData — reuse its logic
+      // by running the measurement extraction directly (no video needed)
+      if (_lastLM) {
+        const lm = _lastLM;
+        const vW = tmpCanvas.width, vH = tmpCanvas.height;
+        const px = i => ({ x: lm[i].x * vW, y: lm[i].y * vH });
+        const d  = (a, b) => Math.sqrt((a.x-b.x)**2 + (a.y-b.y)**2);
+        const estHandMm = (state.questionnaire.heightCm || 175) * 10 * 0.1045;
+        const pxPerMm   = d(px(0), px(12)) / estHandMm;
+        const fingerLength    = (d(px(9),px(10)) + d(px(10),px(11)) + d(px(11),px(12))) / pxPerMm;
+        const palmWidth       = d(px(5), px(17)) / pxPerMm;
+        const fingerSpan      = d(px(4), px(20)) / pxPerMm;
+        const gripDiameter    = palmWidth * 0.182;
+        const chord = d(px(9), px(12));
+        const chain = d(px(9),px(10)) + d(px(10),px(11)) + d(px(11),px(12));
+        const fingerFlexIndex = Math.min(1, Math.max(0.5, chord / chain));
+        const h = (state.questionnaire.heightCm || 175);
+        const throwAngleDeg   = Math.atan2(1730 - h*0.936*10, 2370) * 180 / Math.PI;
+        state.handLandmarks   = lm;
+        state.handLandmarkVid = { w: vW, h: vH };
+        state.handMeasurements = {
+          fingerLength:    parseFloat(fingerLength.toFixed(1)),
+          palmWidth:       parseFloat(palmWidth.toFixed(1)),
+          gripDiameter:    parseFloat(gripDiameter.toFixed(1)),
+          fingerSpan:      parseFloat(fingerSpan.toFixed(0)),
+          fingerFlexIndex: parseFloat(fingerFlexIndex.toFixed(2)),
+          throwAngleDeg:   parseFloat(throwAngleDeg.toFixed(1)),
+        };
+        statusEl.textContent = '✓ Hand landmarks detected — processing...';
+      } else {
+        // No landmarks found — use height-based fallback
+        state.handLandmarks = null;
+        const h = state.questionnaire.heightCm || 175;
+        const r = () => (Math.random() - 0.5);
+        const eyeH = h * 0.936 * 10;
+        state.handMeasurements = {
+          fingerLength:    parseFloat((h * 0.116 + r()*4).toFixed(1)),
+          palmWidth:       parseFloat((h * 0.110 + r()*5).toFixed(1)),
+          gripDiameter:    parseFloat((h * 0.110 * 0.182 + r()*1.5).toFixed(1)),
+          fingerSpan:      parseFloat((h * 0.230 + r()*10).toFixed(0)),
+          fingerFlexIndex: parseFloat((0.82 + r()*0.06).toFixed(2)),
+          throwAngleDeg:   parseFloat((Math.atan2(1730 - eyeH, 2370) * 180 / Math.PI).toFixed(1)),
+        };
+        statusEl.textContent = '✓ Photo received — using estimated measurements';
+        toast('No hand detected in photo — using height-based estimates', 'error');
+      }
+
+      stopCamera();
+      setTimeout(() => navigate('arm'), 600);
+    };
+    img.src = dataUrl;
+  };
+  reader.readAsDataURL(file);
 }
 
 // ─── ARM IMAGE ───────────────────────────────────────────────────
