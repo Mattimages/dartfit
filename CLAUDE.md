@@ -129,11 +129,26 @@ node -e "const wp=require('web-push');const k=wp.generateVAPIDKeys();console.log
 
 ---
 
-## Notification System
-When an admin POSTs to `/api/admin/darts`, the system:
-1. Inserts the dart into the DB
-2. Scores it against every saved user profile
-3. Notifies users with match score ≥ 75 via Web Push AND email
+## Notification System — Perfect-Match Alerts
+Saving a fit persists the user's **theoretical perfect dart** (full ideal spec:
+weight/length/diameter/grip/balance/shape/tungsten/shaft/flight + archetype +
+fit confidence) in `profiles`. When an admin POSTs to `/api/admin/darts`:
+1. The dart is inserted and the API responds immediately (`{dartId, notifying:true}`)
+2. In the background it is scored against each user's **latest** saved perfect spec
+3. Score ≥ 75 → standard alert. Score ≥ 90 **or better than the user's saved
+   `top_dart_score`** → 🏆 PERFECT-MATCH alert ("your perfect dart just launched")
+4. Delivery via Web Push AND email (SMTP hard-capped at 10s/send, never blocks)
+
+Admin promotion: `UPDATE users SET is_admin = 1 WHERE email = '...'` (column
+added by migration; login embeds it in the JWT).
+
+## Real-Measurement Guarantees
+- Hand capture is **impossible without live MediaPipe landmarks** — the shutter
+  is disabled until a hand is locked; nothing is fabricated from empty frames
+- Optional true-scale calibration: user-entered hand length (wrist→middle tip, cm)
+  replaces the height regression for px→mm scale
+- Forearm: tape-measure entry (best) or MediaPipe Pose limb-ratio from photo;
+  the skip path uses population estimates and is always labelled ESTIMATED
 
 ---
 

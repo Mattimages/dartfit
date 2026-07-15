@@ -317,8 +317,44 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:22px;heigh
   color:var(--muted);box-shadow:var(--shadow)}
 
 @keyframes fadeUp{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
+.fade-in{animation:fadeUp .55s cubic-bezier(.22,.9,.35,1) both}
 .delay-1{animation-delay:.08s}.delay-2{animation-delay:.16s}.delay-3{animation-delay:.24s}
 .delay-4{animation-delay:.32s}.delay-5{animation-delay:.40s}
+@media (prefers-reduced-motion: reduce){
+  *,*::before,*::after{animation-duration:.01ms !important;transition-duration:.01ms !important}
+}
+
+/* ─── BEAUTY PASS ─── */
+.card{transition:box-shadow .25s ease,transform .25s ease,border-color .25s ease}
+.card:hover{box-shadow:var(--shadow-lg);transform:translateY(-1px)}
+.btn-primary{position:relative;overflow:hidden}
+.btn-primary::after{content:'';position:absolute;top:0;left:-80%;width:50%;height:100%;
+  background:linear-gradient(105deg,transparent,rgba(255,255,255,.28),transparent);
+  transform:skewX(-20deg);transition:left .5s ease}
+.btn-primary:hover::after{left:130%}
+.option-btn{transition:all .18s ease}
+.option-btn:hover{transform:translateY(-1px);border-color:rgba(232,87,14,.45)}
+.alt-dart-row{transition:transform .2s ease,box-shadow .2s ease,border-color .2s ease}
+.alt-dart-row:hover{transform:translateX(3px);border-color:rgba(232,87,14,.4);box-shadow:var(--shadow)}
+.shop-btn{transition:transform .18s ease,box-shadow .18s ease}
+.shop-btn:hover{transform:translateY(-2px);box-shadow:0 8px 28px rgba(232,87,14,.42)}
+.trust-badge{transition:all .2s ease}
+.trust-badge:hover{border-color:rgba(232,87,14,.4);color:var(--orange);transform:translateY(-1px)}
+.step-icon{transition:transform .25s ease}
+.step-item:hover .step-icon{transform:scale(1.1) rotate(-4deg)}
+#toast{box-shadow:0 8px 32px rgba(0,0,0,.25);backdrop-filter:blur(8px)}
+
+/* Decorative dartboard rings behind the hero */
+.hero-board{position:absolute;right:-140px;top:50%;transform:translateY(-50%);
+  width:520px;height:520px;pointer-events:none;opacity:.5;z-index:0;
+  animation:boardSpin 90s linear infinite}
+.home-hero{position:relative;z-index:1}
+@keyframes boardSpin{to{transform:translateY(-50%) rotate(360deg)}}
+@media(max-width:1180px){.hero-board{display:none}}
+
+/* Scroll-reveal for result sections */
+.reveal{opacity:0;transform:translateY(18px);transition:opacity .6s ease,transform .6s cubic-bezier(.22,.9,.35,1)}
+.reveal.shown{opacity:1;transform:none}
 </style>
 <!-- MediaPipe (hands + pose) is loaded lazily when a scan actually starts —
      it is by far the heaviest asset and most visitors reach the questionnaire first -->
@@ -340,6 +376,16 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:22px;heigh
   SCREEN: WELCOME
 ══════════════════════════════════════════════════ -->
 <div class="screen active" id="screen-home">
+  <svg class="hero-board" viewBox="0 0 520 520" aria-hidden="true">
+    <g fill="none" stroke="#e8570e">
+      <circle cx="260" cy="260" r="250" stroke-opacity=".10" stroke-width="2"/>
+      <circle cx="260" cy="260" r="200" stroke-opacity=".14" stroke-width="14" stroke-dasharray="49 16"/>
+      <circle cx="260" cy="260" r="150" stroke-opacity=".10" stroke-width="2"/>
+      <circle cx="260" cy="260" r="105" stroke-opacity=".16" stroke-width="10" stroke-dasharray="33 11"/>
+      <circle cx="260" cy="260" r="55"  stroke-opacity=".12" stroke-width="2"/>
+      <circle cx="260" cy="260" r="14"  fill="#e8570e" fill-opacity=".18" stroke="none"/>
+    </g>
+  </svg>
   <div class="home-hero">
 
     <!-- LEFT: Marketing copy -->
@@ -602,7 +648,14 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:22px;heigh
     </div>
     <div class="scan-footer">
       <div class="scan-status-text" id="scan-status-text">Open your throwing hand and hold it inside the frame</div>
-      <button class="btn-capture" onclick="captureHand()">
+      <div style="display:flex;align-items:center;gap:8px">
+        <label for="scan-hand-cm" style="font-family:'Share Tech Mono',monospace;font-size:9px;letter-spacing:1px;color:#999">HAND LENGTH (OPTIONAL)</label>
+        <input type="number" id="scan-hand-cm" min="14" max="25" step="0.5" placeholder="cm"
+               style="width:64px;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.25);color:#fff;
+                      font-family:'Inter',sans-serif;font-size:13px;padding:5px 8px;border-radius:8px;outline:none"
+               aria-label="Measured hand length in centimetres, wrist crease to middle fingertip">
+      </div>
+      <button class="btn-capture" id="btn-capture" disabled style="opacity:.35;animation:none" onclick="captureHand()">
         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2">
           <circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="3" fill="#fff"/>
         </svg>
@@ -921,6 +974,22 @@ async function initMediaPipe() {
     _mpHands.onResults(results => {
       _lastLM = results.multiHandLandmarks?.[0] || null;
       drawLiveLandmarks(_lastLM);
+      // Capture is only possible with a real hand in frame — measurements
+      // are never fabricated from a hand-less photo.
+      const btn = document.getElementById('btn-capture');
+      const status = document.getElementById('scan-status-text');
+      if (btn) {
+        const ready = !!_lastLM;
+        btn.disabled = !ready;
+        btn.style.opacity = ready ? '1' : '.35';
+        btn.style.animation = ready ? '' : 'none';
+        if (status && !status.dataset.captured) {
+          status.textContent = ready
+            ? '✓ Hand locked — tap to capture'
+            : 'Open your throwing hand and hold it inside the frame';
+          status.style.color = ready ? '#4ade80' : '#ddd';
+        }
+      }
     });
     await _mpHands.initialize();
   } catch(e) { console.warn('MediaPipe init error:', e); _mpHands = null; }
@@ -988,6 +1057,12 @@ function drawLiveLandmarks(lm) {
 }
 
 async function startCamera() {
+  // Reset capture state for a fresh scan
+  const status = document.getElementById('scan-status-text');
+  if (status) { delete status.dataset.captured; status.style.color = ''; status.textContent = 'Open your throwing hand and hold it inside the frame'; }
+  const btn = document.getElementById('btn-capture');
+  if (btn) { btn.disabled = true; btn.style.opacity = '.35'; btn.style.animation = 'none'; }
+  _lastLM = null;
   try {
     const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment', width:1280, height:720 } });
     state.videoStream = stream;
@@ -1016,6 +1091,12 @@ function stopCamera() {
 }
 
 function captureHand() {
+  // Hard requirement: no landmarks, no capture. Measurements are only
+  // ever derived from a real detected hand.
+  if (!_lastLM) {
+    toast('No hand detected — hold your open hand inside the frame', 'error');
+    return;
+  }
   const video = document.getElementById('scan-video');
   const tempCanvas = document.createElement('canvas');
   tempCanvas.width  = video.videoWidth  || 640;
@@ -1024,16 +1105,21 @@ function captureHand() {
   ctx.drawImage(video, 0, 0);
   state.handImageData = tempCanvas.toDataURL('image/jpeg', 0.85);
 
-  if (_lastLM) {
+  {
     // ── Real measurements from MediaPipe landmarks ──────────────
     const lm = _lastLM;
     const vW = tempCanvas.width, vH = tempCanvas.height;
     const px = i => ({ x: lm[i].x * vW, y: lm[i].y * vH });
     const d  = (a, b) => Math.sqrt((a.x-b.x)**2 + (a.y-b.y)**2);
 
-    // Scale: wrist(0)→middle-tip(12) pixel length → estimated actual hand length
-    // Population mean hand length / height ratio: 0.1045 (Greiner 1991, n=2200)
-    const estHandMm = (state.questionnaire.heightCm || 175) * 10 * 0.1045;
+    // Scale: wrist(0)→middle-tip(12) pixel length → actual hand length.
+    // Best: the user's own tape measurement (true absolute scale).
+    // Fallback: population regression 0.1045·height (Greiner 1991, n=2200).
+    const calCm = parseFloat(document.getElementById('scan-hand-cm')?.value);
+    const calibrated = calCm >= 14 && calCm <= 25;
+    const estHandMm = calibrated ? calCm * 10
+      : (state.questionnaire.heightCm || 175) * 10 * 0.1045;
+    state.handScaleCalibrated = calibrated;
     const pxPerMm   = d(px(0), px(12)) / estHandMm;
 
     // Middle finger length along bone chain (MCP9→PIP10→DIP11→TIP12)
@@ -1061,23 +1147,11 @@ function captureHand() {
       fingerFlexIndex: parseFloat(fingerFlexIndex.toFixed(2)),
     };
     state.handMeasured = true;
-    document.getElementById('scan-status-text').textContent = '✓ Hand landmarks detected — processing...';
-  } else {
-    // ── Fallback: height-derived population estimates (labelled as such) ──
-    // Regressions in mm from height in cm (Greiner 1991 / ANSUR II):
-    // hand length ≈ 1.045·h, middle finger ≈ 0.44 of hand ≈ 0.46·h,
-    // palm width ≈ 0.49·h, span ≈ 1.145·h, grip arch ≈ 0.182·palm.
-    state.handLandmarks = null;
-    state.handMeasured = false;
-    const h = state.questionnaire.heightCm || 175;
-    state.handMeasurements = {
-      fingerLength:    parseFloat((h * 0.46).toFixed(1)),   // ≈80mm @175cm
-      palmWidth:       parseFloat((h * 0.49).toFixed(1)),   // ≈86mm @175cm
-      gripDiameter:    parseFloat((h * 0.49 * 0.182).toFixed(1)),
-      fingerSpan:      parseFloat((h * 1.145).toFixed(0)),  // ≈200mm @175cm
-      fingerFlexIndex: 0.82,
-    };
-    document.getElementById('scan-status-text').textContent = 'No hand detected — using height-based estimates';
+    const status = document.getElementById('scan-status-text');
+    status.dataset.captured = '1';
+    status.textContent = state.handScaleCalibrated
+      ? '✓ Captured — true scale from your hand measurement'
+      : '✓ Captured — landmark geometry scaled from height';
   }
 
   setTimeout(() => { stopCamera(); navigate('arm'); }, 700);
@@ -1722,13 +1796,18 @@ function renderResults() {
       }).join('')}
     </div>
 
-    <!-- ⑦ SAVE -->
-    <div class="section-head" style="margin-top:20px">SAVE YOUR PROFILE</div>
+    <!-- ⑦ SAVE — persists the theoretical perfect dart for launch alerts -->
+    <div class="section-head" style="margin-top:20px">SAVE YOUR PERFECT DART</div>
+    <div style="font-family:'Inter',sans-serif;font-size:12px;color:var(--muted);line-height:1.6;margin-bottom:10px">
+      Your theoretical ideal (${profile.idealWeight}g · ${profile.idealLength}mm · ${fmtGrip(profile.idealGripType)}) doesn't
+      exist as a product yet — your best match is ${topDart.matchScore}%. Save it and we'll score
+      <b style="color:var(--text)">every new dart launch</b> against it, and alert you the moment something closer (or a ≥90% perfect match) hits the market.
+    </div>
     ${state.user
-      ? `<button class="btn btn-green fade-in delay-5" onclick="saveProfile()">✓ SAVE TO MY PROFILE</button>`
+      ? `<button class="btn btn-green fade-in delay-5" onclick="saveProfile()">⭐ SAVE MY PERFECT DART & WATCH THE MARKET</button>`
       : `<div class="card fade-in delay-5" style="text-align:center">
            <div style="font-family:'Share Tech Mono',monospace;font-size:11px;color:var(--muted);margin-bottom:12px;letter-spacing:1px">
-             CREATE A FREE ACCOUNT · GET NOTIFIED WHEN BETTER DARTS LAUNCH
+             CREATE A FREE ACCOUNT · GET A PERFECT-MATCH ALERT WHEN IT LAUNCHES
            </div>
            <button class="btn btn-primary" onclick="navigate('auth')" style="margin-bottom:8px">CREATE ACCOUNT</button>
          </div>`}
@@ -1776,6 +1855,19 @@ function renderResults() {
     });
     document.querySelectorAll('[id^="rv_"]').forEach((el, i) => {
       if (tierDarts[i]) animateCount(el, tierDarts[i].matchScore, 900);
+    });
+
+    // Scroll-reveal: below-the-fold sections glide in as you reach them
+    const screen = document.getElementById('screen-results');
+    const io = new IntersectionObserver(entries => {
+      entries.forEach(en => { if (en.isIntersecting) { en.target.classList.add('shown'); io.unobserve(en.target); } });
+    }, { root: screen, threshold: 0.08 });
+    container.querySelectorAll('.card, .alt-dart-row').forEach(el => {
+      if (el.getBoundingClientRect().top > window.innerHeight) {
+        el.classList.remove('fade-in','delay-1','delay-2','delay-3','delay-4','delay-5');
+        el.classList.add('reveal');
+        io.observe(el);
+      }
     });
   }, 200);
 
@@ -2236,17 +2328,33 @@ async function renderProfile() {
       </div>
 
       ${p ? `
-      <div class="card fade-in delay-1">
-        <div class="card-label">SAVED DART PROFILE</div>
-        <div class="profile-stat"><span class="profile-stat-label">IDEAL WEIGHT</span><span class="profile-stat-val">${p.ideal_weight}g</span></div>
-        <div class="profile-stat"><span class="profile-stat-label">IDEAL LENGTH</span><span class="profile-stat-val">${p.ideal_length_mm}mm</span></div>
-        <div class="profile-stat"><span class="profile-stat-label">GRIP TYPE</span><span class="profile-stat-val">${fmtGrip(p.ideal_grip_type)}</span></div>
-        <div class="profile-stat"><span class="profile-stat-label">BARREL SHAPE</span><span class="profile-stat-val">${(p.ideal_barrel_shape||'').toUpperCase()}</span></div>
-        <div class="profile-stat"><span class="profile-stat-label">BALANCE</span><span class="profile-stat-val">${(p.ideal_balance||'').toUpperCase()}</span></div>
-        <div class="profile-stat"><span class="profile-stat-label">HEIGHT</span><span class="profile-stat-val">${p.height_cm}cm</span></div>
-        <div class="profile-stat"><span class="profile-stat-label">LAST UPDATED</span><span class="profile-stat-val">${new Date(p.created_at).toLocaleDateString('en-GB')}</span></div>
+      <div class="card fade-in delay-1" style="background:linear-gradient(135deg,#1c1917,#292524);border-color:rgba(232,87,14,.35)">
+        <div class="card-label">⭐ YOUR THEORETICAL PERFECT DART</div>
+        <div class="dart-vis-wrap" style="height:110px"><canvas class="dart-vis-canvas-lg" id="profile-perfect-canvas"></canvas></div>
+        <div class="ideal-spec-grid" style="margin-top:10px">
+          <div class="ideal-spec" style="background:rgba(255,255,255,.05);border-color:rgba(255,255,255,.1)"><div class="ideal-spec-val" style="color:#fff">${p.ideal_weight}<span style="color:#a8a29e">g</span></div><div class="ideal-spec-label" style="color:#a8a29e">WEIGHT</div></div>
+          <div class="ideal-spec" style="background:rgba(255,255,255,.05);border-color:rgba(255,255,255,.1)"><div class="ideal-spec-val" style="color:#fff">${p.ideal_length_mm}<span style="color:#a8a29e">mm</span></div><div class="ideal-spec-label" style="color:#a8a29e">LENGTH</div></div>
+          <div class="ideal-spec" style="background:rgba(255,255,255,.05);border-color:rgba(255,255,255,.1)"><div class="ideal-spec-val" style="color:#fff">${p.ideal_diameter_mm}<span style="color:#a8a29e">mm</span></div><div class="ideal-spec-label" style="color:#a8a29e">DIAM</div></div>
+          <div class="ideal-spec" style="background:rgba(255,255,255,.05);border-color:rgba(255,255,255,.1)"><div class="ideal-spec-val" style="font-size:12px;color:#fff">${fmtGrip(p.ideal_grip_type)}</div><div class="ideal-spec-label" style="color:#a8a29e">GRIP</div></div>
+          <div class="ideal-spec" style="background:rgba(255,255,255,.05);border-color:rgba(255,255,255,.1)"><div class="ideal-spec-val" style="font-size:13px;color:#fff">${(p.ideal_balance||'').toUpperCase()}</div><div class="ideal-spec-label" style="color:#a8a29e">BALANCE</div></div>
+          <div class="ideal-spec" style="background:rgba(255,255,255,.05);border-color:rgba(255,255,255,.1)"><div class="ideal-spec-val" style="font-size:12px;color:#fff">${(p.ideal_barrel_shape||'').replace('_',' ').toUpperCase()}</div><div class="ideal-spec-label" style="color:#a8a29e">BARREL</div></div>
+        </div>
+        <div style="font-family:'Share Tech Mono',monospace;font-size:10px;color:#a8a29e;line-height:1.8;margin-top:10px">
+          ${p.ideal_tungsten_pct ? `TUNGSTEN <span style="color:#fff">${p.ideal_tungsten_pct}%+</span> · ` : ''}${p.ideal_shaft_mm ? `SHAFT <span style="color:#fff">${p.ideal_shaft_mm}mm</span> · ` : ''}${p.ideal_flight ? `FLIGHTS <span style="color:#fff">${p.ideal_flight}</span>` : ''}
+          ${p.fit_confidence ? `<br>FIT CONFIDENCE <span style="color:#fff">${p.fit_confidence}%</span>` : ''}
+          · BEST CATALOG MATCH <span style="color:var(--orange)">${p.top_dart_score != null ? p.top_dart_score + '%' : '—'}</span>
+        </div>
+        <div style="background:rgba(232,87,14,.12);border:1px solid rgba(232,87,14,.3);border-radius:10px;padding:10px 12px;margin-top:12px">
+          <div style="font-family:'Inter',sans-serif;font-size:11.5px;color:#e7e5e4;line-height:1.6">
+            🔔 No dart on the market matches this spec 100% yet. We score <b>every new launch</b> against
+            it — the moment one lands closer than your current ${p.top_dart_score != null ? p.top_dart_score + '%' : 'best'} (or ≥90%),
+            you'll get a <b>perfect-match alert</b>.
+          </div>
+        </div>
+        <div class="profile-stat" style="margin-top:8px"><span class="profile-stat-label" style="color:#78716c">HEIGHT</span><span class="profile-stat-val" style="color:#e7e5e4">${p.height_cm}cm</span></div>
+        <div class="profile-stat"><span class="profile-stat-label" style="color:#78716c">LAST FITTED</span><span class="profile-stat-val" style="color:#e7e5e4">${new Date(p.created_at).toLocaleDateString('en-GB')}</span></div>
         <div style="height:10px"></div>
-        <button class="btn btn-primary" onclick="restartFit()">UPDATE PROFILE</button>
+        <button class="btn btn-primary" onclick="restartFit()">RE-RUN MY FITTING</button>
       </div>` : `
       <div class="card fade-in delay-1" style="text-align:center;padding:24px">
         <div style="font-family:'Share Tech Mono',monospace;font-size:11px;color:var(--muted);letter-spacing:1px;margin-bottom:14px">NO PROFILE YET</div>
@@ -2268,6 +2376,12 @@ async function renderProfile() {
       <button class="btn btn-ghost" onclick="logout()">SIGN OUT</button>
       <div style="height:32px"></div>
     `;
+    // Render the perfect-dart silhouette from the saved ideal spec
+    if (p) setTimeout(() => renderDartCanvas('profile-perfect-canvas', {
+      weight: p.ideal_weight, length_mm: p.ideal_length_mm, diameter_mm: p.ideal_diameter_mm,
+      barrel_shape: p.ideal_barrel_shape, grip_type: p.ideal_grip_type,
+      balance_point: p.ideal_balance, tungsten_pct: p.ideal_tungsten_pct || 90,
+    }), 60);
   } catch(e) {
     container.innerHTML = `<div style="text-align:center;padding:40px;color:var(--muted)">${e.message}</div>`;
   }

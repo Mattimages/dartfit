@@ -241,8 +241,9 @@ app.post('/api/fit/save', requireAuth, (req, res) => {
       finger_flex_index,throw_angle_deg,height_cm,forearm_length_mm,forearm_ratio,
       arm_image_path,grip_preference,weight_preference,throwing_style,playing_level,play_frequency,
       ideal_weight,ideal_length_mm,ideal_diameter_mm,ideal_grip_type,ideal_balance,ideal_barrel_shape,
+      ideal_tungsten_pct,ideal_shaft_mm,ideal_flight,archetype_id,fit_confidence,
       natural_throw_angle,leverage_ratio,top_dart_id,top_dart_score,top_pro_id,top_pro_similarity
-    ) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
+    ) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
   `).run(
     id, req.user.id,
     num(profile.fingerLength), num(profile.palmWidth), num(profile.gripDiameter), num(profile.fingerSpan),
@@ -255,6 +256,10 @@ app.post('/api/fit/save', requireAuth, (req, res) => {
     typeof profile.idealGripType === 'string' ? profile.idealGripType.slice(0, 24) : null,
     typeof profile.balance === 'string' ? profile.balance.slice(0, 8) : null,
     typeof profile.barrelShape === 'string' ? profile.barrelShape.slice(0, 16) : null,
+    num(profile.idealTungstenPct), num(profile.idealShaft?.lengthMm),
+    typeof profile.idealFlight?.label === 'string' ? profile.idealFlight.label.slice(0, 24) : null,
+    typeof profile.archetype?.id === 'string' ? profile.archetype.id.slice(0, 24) : null,
+    num(profile.fitConfidence),
     num(profile.releaseAngleDeg), num(profile.leverageRatio),
     num(topDart?.id), num(topDart?.matchScore), topPro?.id ? String(topPro.id).slice(0, 32) : null, num(topPro?.similarity)
   );
@@ -315,8 +320,15 @@ app.post('/api/admin/darts', requireAdmin, async (req, res) => {
   bustCatalogCache();
   const dartId = r.lastInsertRowid;
   db.prepare('INSERT INTO dart_launches (dart_id) VALUES (?)').run(dartId);
-  const notifResults = await broadcastDartLaunch(dartId);
-  res.json({ dartId, notified: notifResults.length });
+  // Notify in the background — a slow push/SMTP endpoint must never
+  // stall the admin request. Results land in the server log.
+  broadcastDartLaunch(dartId)
+    .then(results => {
+      const perfect = results.filter(x => x.perfect).length;
+      console.log(`[Launch] dart ${dartId}: notified ${results.length} user(s), ${perfect} perfect-match alert(s)`);
+    })
+    .catch(err => console.error('[Launch] broadcast failed:', err));
+  res.json({ dartId, notifying: true });
 });
 
 app.get('/api/admin/users', requireAdmin, (req, res) => {
