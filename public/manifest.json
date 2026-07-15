@@ -1,10 +1,13 @@
 {
   "name": "DartFit",
   "short_name": "DartFit",
-  "description": "Precision biomechanical dart matching",
+  "description": "Precision biomechanical dart matching — hand scan, release physics, 176 pro-grade darts",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#080808",
-  "theme_color": "#ff5500",
-  "icons": [{"src":"/icon-192.png","sizes":"192x192","type":"image/png"}]
+  "background_color": "#f8f7f4",
+  "theme_color": "#e8570e",
+  "icons": [
+    { "src": "/icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "/icon-512.png", "sizes": "512x512", "type": "image/png" }
+  ]
 }

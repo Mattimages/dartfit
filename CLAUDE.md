@@ -1,7 +1,7 @@
 # DartFit — Claude Code Project
 
 ## What This Is
-A full-stack precision dart-fitting web application. Users scan their hand, answer a questionnaire, upload an arm photo, and receive a scientifically-calculated dart recommendation matched against a database of 22 real pro-grade darts and 8 pro player profiles.
+A full-stack precision dart-fitting web application. Users scan their hand, answer a questionnaire, optionally measure their forearm (photo pose-analysis or tape measure), and receive a physics-calculated dart recommendation matched against a database of 176 real pro-grade darts and 25 pro player profiles.
 
 **Live stack:** Node.js + Express + SQLite (better-sqlite3) + vanilla JS frontend (single HTML file).
 
@@ -15,15 +15,19 @@ dartfit/
 ├── package.json           # Dependencies
 ├── .env.example           # Environment variable template
 ├── lib/
-│   ├── algorithm.js       # Biomechanical fitting algorithm (core logic)
-│   ├── database.js        # SQLite schema + 22 dart catalog + 8 pro players
+│   ├── algorithm.js       # Biomechanical fitting algorithm v2 (core logic)
+│   ├── database.js        # SQLite schema + 176 dart catalog + 25 pro players
 │   └── notifications.js   # Web Push (VAPID) + Nodemailer email alerts
+├── test/
+│   └── algorithm.test.js  # 25 unit tests (node --test) — run: npm test
 ├── public/
 │   ├── index.html         # Full SPA frontend (single file, no build step)
 │   ├── sw.js              # Service Worker for push notifications
-│   └── manifest.json      # PWA manifest
+│   ├── manifest.json      # PWA manifest
+│   └── icon-192/512.png   # PWA icons (generated with sharp)
 └── docs/
-    └── dartfit_audit.docx # Internet-wide biomechanics research audit
+    ├── dartfit_audit.docx # Internet-wide biomechanics research audit
+    └── v2_*.png           # Current UI screenshots
 ```
 
 ---
@@ -50,7 +54,8 @@ npm start
 | GET  | /api/auth/me | Current user + profile |
 | GET  | /api/darts | Full dart catalog |
 | GET  | /api/pros | Pro player profiles |
-| POST | /api/fit/arm-scan | Upload arm image → forearm estimate |
+| GET  | /api/stats | Catalog stats (darts/pros/brands) for the hero |
+| POST | /api/fit/arm-scan | Arm image (+ optional client poseRatio) → forearm estimate |
 | POST | /api/fit/calculate | Run biomechanical fitting algorithm |
 | POST | /api/fit/save | Save profile to DB (auth required) |
 | GET  | /api/fit/history | User's profile history (auth required) |
@@ -63,35 +68,39 @@ npm start
 ### Core Algorithm (lib/algorithm.js)
 The fitting engine takes these inputs and returns ideal dart specs:
 
-**Inputs:**
-- `fingerLength`, `palmWidth`, `gripDiameter`, `fingerSpan` — hand biometrics (mm)
-- `fingerFlexIndex`, `throwAngleDeg` — kinematic estimates
-- `heightCm` — used to calculate natural throw angle via board geometry
-- `forearmLengthMm` — from arm image analysis or estimated from height
-- `gripPreference` (1–5), `weightPreference` (1–5) — questionnaire
-- `throwingStyle` — front/middle/rear barrel grip position
-- `playingLevel` — beginner/intermediate/advanced/competitive
+**Inputs (all clamped to anatomical bounds — see INPUT_BOUNDS):**
+- `fingerLength`, `palmWidth`, `gripDiameter`, `fingerSpan`, `fingerFlexIndex` — hand biometrics (mm)
+- `heightCm`, `forearmLengthMm` (pose analysis / tape measure / height estimate)
+- `gripPreference` (1–5), `weightPreference` (1–5)
+- `throwSpeed` (1–5 → 5.0–6.4 m/s release speed), `wristAction` (1–5), `handMoisture` (dry/normal/moist)
+- `throwingStyle` — front/middle/rear/varies · `playingLevel` — beginner…competitive
+- `handMeasured` — whether biometrics came from a real scan (drives fitConfidence)
 
-**Physics used:**
-- Natural throw angle = `atan2(boardHeight - eyeHeight, ocheDistance)` where board=1730mm, oche=2370mm
-- Leverage ratio = forearmLength / totalHeight (population mean 0.148)
-- Weight formula accounts for: palm width (2.5g range), finger length (0.8g), height (1.2g), leverage (-1.5g), preference (±4g)
+**Physics used (v2):**
+- Release angle: projectile solve `tanθ = (v² − √(v⁴ − g(gd² + 2Δy·v²)))/(gd)` targeting the bull from release height ≈0.90·height at distance oche − 0.85·forearm — yields the researched 17–37° band
+- Arrival pitch feeds the shaft/flight oscillation model (James & Potts 2018, λ≈2.16m)
+- Tungsten minimum from barrel geometry: density(pct) ≈ 4.5 + 0.142·pct, fill factor 0.80, plus skill floor
+- Leverage ratio = forearmLength / height (population mean 0.148)
+- Weight: palm (±2.5g), fingers (∓0.8g), height (±1.2g), leverage (∓1.5g), preference (±4g), level, throw speed (±1.8g), wrist snap (±0.8g)
 
-**Outputs:** `idealWeight`, `idealLength`, `idealDiameter`, `idealGripType`, `balance`, `barrelShape`, `naturalThrowAngle`, `leverageRatio`
+**Outputs:** `idealWeight/Length/Diameter/GripType/TungstenPct`, `balance`, `barrelShape`, `idealShaft`, `idealFlight`, `setupRationale`, `releaseAngleDeg`, `releaseSpeedMs`, `arrivalAngleDeg`, `leverageRatio`, `archetype` (6 named thrower identities), `fitConfidence` + `confidenceHints`
 
-### Dart Scoring
+### Dart Scoring (v2 — server also returns per-component breakdown)
 Each dart in the DB is scored against the ideal profile:
-- Weight match: **35%**
-- Length match: **20%**
-- Diameter match: **15%**
-- Grip type match: **15%**
+- Weight match: **30%**
+- Length match: **18%**
+- Diameter match: **14%**
+- Grip type match: **14%**
 - Balance point match: **10%**
-- Barrel shape match: **5%**
+- Tungsten density: **8%**
+- Barrel shape match: **6%**
+
+The pipeline attaches `breakdown` to every scored dart — the frontend renders these values directly and never recomputes scores.
 
 ### Database (lib/database.js)
 SQLite auto-seeds on first run. Tables:
-- `darts` — 22 real product entries (Target, Winmau, Harrows, Red Dragon, Unicorn, Mission, Loxley)
-- `pro_players` — 8 pro profiles (MvG, Taylor, Wright, Price, Anderson, Sherrock, Clayton, Chisnall)
+- `darts` — 176 real product entries across 17 brands (Target, Winmau, Harrows, Red Dragon, Unicorn, Mission, Shot, Designa, Bull's, One80, Datadart, Cuesoul, Legend, Loxley, …)
+- `pro_players` — 25 pro profiles (Littler, Humphries, MvG, Taylor, Smith, van Barneveld, Sherrock, …)
 - `users` — accounts with bcrypt passwords
 - `profiles` — saved fitting results per user
 - `push_subscriptions` — Web Push endpoint/key storage
@@ -107,6 +116,7 @@ JWT_SECRET=<random-64-char-string>       # Required
 VAPID_PUBLIC_KEY=<from npm run generate-vapid>
 VAPID_PRIVATE_KEY=<from npm run generate-vapid>
 ADMIN_EMAIL=admin@yourdomain.com
+APP_URL=https://yourdomain.com          # Used in notification emails
 SMTP_HOST=smtp.gmail.com                 # Optional — for email alerts
 SMTP_USER=your@gmail.com
 SMTP_PASS=your-app-password

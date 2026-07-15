@@ -2,11 +2,20 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="theme-color" content="#f8f7f4">
 <meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="description" content="Scan your hand, answer a 60-second questionnaire and get matched to your ideal dart from 176 pro-grade barrels — using real release physics and biomechanics research.">
+<meta property="og:title" content="DartFit — Find Your Perfect Dart">
+<meta property="og:description" content="Biomechanical dart fitting: hand scan + release physics matched against 176 pro-grade darts.">
+<meta property="og:type" content="website">
 <title>DartFit — Find Your Perfect Dart</title>
 <link rel="manifest" href="/manifest.json">
+<link rel="icon" type="image/png" href="/favicon.png">
+<link rel="apple-touch-icon" href="/icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@700;800&family=Inter:wght@400;500;600;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
 <style>
 :root{
@@ -311,8 +320,8 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:22px;heigh
 .delay-1{animation-delay:.08s}.delay-2{animation-delay:.16s}.delay-3{animation-delay:.24s}
 .delay-4{animation-delay:.32s}.delay-5{animation-delay:.40s}
 </style>
-<!-- MediaPipe Hands for real-time landmark detection -->
-<script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js" crossorigin="anonymous"></script>
+<!-- MediaPipe (hands + pose) is loaded lazily when a scan actually starts —
+     it is by far the heaviest asset and most visitors reach the questionnaire first -->
 </head>
 <body>
 
@@ -338,16 +347,16 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:22px;heigh
       <div class="hero-badge">🎯 Science-Backed Dart Fitting</div>
       <h1 class="hero-headline">Find Your Perfect<br>Dart in <span>3 Minutes</span></h1>
       <p class="hero-sub">
-        Scan your throwing hand, answer a few quick questions, and get matched to your ideal barrel from our database of 135 pro-grade darts — using real biomechanics used by world champions.
+        Scan your throwing hand, answer a few quick questions, and get matched to your ideal barrel from our database of <span id="hero-dart-count-inline">176</span> pro-grade darts — using real release physics and the biomechanics of world champions.
       </p>
       <div class="hero-stats">
         <div class="hero-stat">
-          <div class="stat-num">135</div>
+          <div class="stat-num" id="hero-dart-count">176</div>
           <div class="stat-lbl">Pro Darts</div>
         </div>
         <div class="hero-stat-div"></div>
         <div class="hero-stat">
-          <div class="stat-num">23</div>
+          <div class="stat-num" id="hero-pro-count">25</div>
           <div class="stat-lbl">Pro Profiles</div>
         </div>
         <div class="hero-stat-div"></div>
@@ -480,7 +489,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:22px;heigh
       <div class="slider-labels">
         <span>SMOOTH</span><span>AGGRESSIVE</span>
       </div>
-      <input type="range" min="1" max="5" value="3" id="q-grip" oninput="updateSliderLabel('q-grip','q-grip-val',gripLabels)">
+      <input type="range" min="1" max="5" value="3" id="q-grip" aria-label="Grip texture preference from smooth to aggressive" oninput="updateSliderLabel('q-grip','q-grip-val',gripLabels)">
       <div class="slider-val" id="q-grip-val">MEDIUM KNURL</div>
       <div style="font-family:'Share Tech Mono',monospace;font-size:9px;color:var(--muted);letter-spacing:1px;margin-top:4px">
         HOW TEXTURED DO YOU WANT THE BARREL?
@@ -493,26 +502,68 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:22px;heigh
       <div class="slider-labels">
         <span>LIGHT 14–18g</span><span>HEAVY 24–28g</span>
       </div>
-      <input type="range" min="1" max="5" value="3" id="q-weight" oninput="updateSliderLabel('q-weight','q-weight-val',weightLabels)">
+      <input type="range" min="1" max="5" value="3" id="q-weight" aria-label="Weight preference from very light to very heavy" oninput="updateSliderLabel('q-weight','q-weight-val',weightLabels)">
       <div class="slider-val" id="q-weight-val">NEUTRAL</div>
+    </div>
+
+    <!-- Throw Speed -->
+    <div class="card fade-in delay-2">
+      <div class="card-label">HOW FAST DO YOU THROW?</div>
+      <div class="slider-labels">
+        <span>SLOW &amp; LOOPY</span><span>FAST &amp; FLAT</span>
+      </div>
+      <input type="range" min="1" max="5" value="3" id="q-speed" aria-label="Throw speed from slow looping arc to fast flat delivery" oninput="updateSliderLabel('q-speed','q-speed-val',speedLabels)">
+      <div class="slider-val" id="q-speed-val">MEDIUM PACE</div>
+      <div style="font-family:'Share Tech Mono',monospace;font-size:9px;color:var(--muted);letter-spacing:1px;margin-top:4px">
+        SETS YOUR RELEASE-PHYSICS MODEL (5.0–6.4 m/s)
+      </div>
+    </div>
+
+    <!-- Wrist Action -->
+    <div class="card fade-in delay-3">
+      <div class="card-label">WRIST ACTION AT RELEASE</div>
+      <div class="slider-labels">
+        <span>LOCKED WRIST</span><span>HEAVY SNAP</span>
+      </div>
+      <input type="range" min="1" max="5" value="3" id="q-wrist" aria-label="Wrist action from locked wrist to heavy snap" oninput="updateSliderLabel('q-wrist','q-wrist-val',wristLabels)">
+      <div class="slider-val" id="q-wrist-val">MODERATE FLICK</div>
+      <div style="font-family:'Share Tech Mono',monospace;font-size:9px;color:var(--muted);letter-spacing:1px;margin-top:4px">
+        A HARD SNAP TORQUES THE BARREL — CHANGES YOUR GRIP TEXTURE
+      </div>
+    </div>
+
+    <!-- Hand Moisture -->
+    <div class="card fade-in delay-3">
+      <div class="card-label">HOW ARE YOUR HANDS DURING A MATCH?</div>
+      <div class="option-grid" style="grid-template-columns:repeat(3,1fr)">
+        <button type="button" class="option-btn" data-group="moisture" data-val="dry" onclick="selectOption(this,'moisture')">
+          DRY<br><span style="font-size:9px;color:var(--muted)">Chalky / rough</span>
+        </button>
+        <button type="button" class="option-btn active" data-group="moisture" data-val="normal" onclick="selectOption(this,'moisture')">
+          NORMAL<br><span style="font-size:9px;color:var(--muted)">No issues</span>
+        </button>
+        <button type="button" class="option-btn" data-group="moisture" data-val="moist" onclick="selectOption(this,'moisture')">
+          SWEATY<br><span style="font-size:9px;color:var(--muted)">Grip slips</span>
+        </button>
+      </div>
     </div>
 
     <!-- Throwing Style -->
     <div class="card fade-in delay-3">
       <div class="card-label">WHERE DO YOU GRIP THE DART?</div>
       <div class="option-grid">
-        <div class="option-btn active" data-group="grip-pos" data-val="front" onclick="selectOption(this,'grip-pos')">
+        <button type="button" class="option-btn active" data-group="grip-pos" data-val="front" onclick="selectOption(this,'grip-pos')">
           FRONT<br><span style="font-size:9px;color:var(--muted)">Near the tip</span>
-        </div>
-        <div class="option-btn" data-group="grip-pos" data-val="middle" onclick="selectOption(this,'grip-pos')">
+        </button>
+        <button type="button" class="option-btn" data-group="grip-pos" data-val="middle" onclick="selectOption(this,'grip-pos')">
           MIDDLE<br><span style="font-size:9px;color:var(--muted)">Centre barrel</span>
-        </div>
-        <div class="option-btn" data-group="grip-pos" data-val="rear" onclick="selectOption(this,'grip-pos')">
+        </button>
+        <button type="button" class="option-btn" data-group="grip-pos" data-val="rear" onclick="selectOption(this,'grip-pos')">
           REAR<br><span style="font-size:9px;color:var(--muted)">Toward flights</span>
-        </div>
-        <div class="option-btn" data-group="grip-pos" data-val="varies" onclick="selectOption(this,'grip-pos')">
+        </button>
+        <button type="button" class="option-btn" data-group="grip-pos" data-val="varies" onclick="selectOption(this,'grip-pos')">
           VARIES<br><span style="font-size:9px;color:var(--muted)">Changes each throw</span>
-        </div>
+        </button>
       </div>
     </div>
 
@@ -520,10 +571,10 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:22px;heigh
     <div class="card fade-in delay-4">
       <div class="card-label">PLAYING LEVEL</div>
       <div class="option-grid">
-        <div class="option-btn active" data-group="level" data-val="beginner" onclick="selectOption(this,'level')">BEGINNER</div>
-        <div class="option-btn" data-group="level" data-val="intermediate" onclick="selectOption(this,'level')">INTERMEDIATE</div>
-        <div class="option-btn" data-group="level" data-val="advanced" onclick="selectOption(this,'level')">ADVANCED</div>
-        <div class="option-btn" data-group="level" data-val="competitive" onclick="selectOption(this,'level')">COMPETITIVE</div>
+        <button type="button" class="option-btn active" data-group="level" data-val="beginner" onclick="selectOption(this,'level')">BEGINNER</button>
+        <button type="button" class="option-btn" data-group="level" data-val="intermediate" onclick="selectOption(this,'level')">INTERMEDIATE</button>
+        <button type="button" class="option-btn" data-group="level" data-val="advanced" onclick="selectOption(this,'level')">ADVANCED</button>
+        <button type="button" class="option-btn" data-group="level" data-val="competitive" onclick="selectOption(this,'level')">COMPETITIVE</button>
       </div>
     </div>
 
@@ -604,6 +655,16 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:22px;heigh
            color:var(--muted);text-align:center;margin-top:4px"></div>
     </div>
 
+    <div class="card fade-in delay-1">
+      <div class="card-label">OR MEASURE IT — MOST ACCURATE</div>
+      <p style="font-size:12px;color:var(--muted);line-height:1.6;margin-bottom:10px;font-weight:300">
+        With a tape measure: inside of the elbow crease to the wrist crease, arm relaxed.
+      </p>
+      <div class="input-group" style="margin-bottom:0">
+        <input type="number" class="input" id="arm-manual-cm" placeholder="Forearm length in cm (e.g. 26.5)" min="18" max="36" step="0.5" aria-label="Forearm length in centimetres">
+      </div>
+    </div>
+
     <div class="card fade-in delay-1" style="background:rgba(232,87,14,.04);border-color:rgba(232,87,14,.2)">
       <div style="font-family:'Share Tech Mono',monospace;font-size:9px;letter-spacing:2px;color:var(--orange);margin-bottom:6px">HOW IT WORKS</div>
       <p style="font-size:11px;color:var(--muted);line-height:1.6;font-weight:300">
@@ -658,7 +719,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:22px;heigh
 const state = {
   token: localStorage.getItem('dartfit_token'),
   user: JSON.parse(localStorage.getItem('dartfit_user') || 'null'),
-  questionnaire: { heightCm:0, gripPreference:3, weightPreference:3, throwingStyle:'front', playingLevel:'beginner' },
+  questionnaire: { heightCm:0, gripPreference:3, weightPreference:3, throwSpeed:3, wristAction:3, handMoisture:'normal', throwingStyle:'front', playingLevel:'beginner' },
   handMeasurements: null,
   armData: null,
   fitResult: null,
@@ -667,6 +728,8 @@ const state = {
 
 const gripLabels = ['','SMOOTH','MICRO GRIP','MEDIUM KNURL','AGGRESSIVE KNURL','SHARK / RINGED'];
 const weightLabels = ['','VERY LIGHT','LIGHT','NEUTRAL','HEAVY','VERY HEAVY'];
+const speedLabels = ['','SLOW LOB','RELAXED','MEDIUM PACE','QUICK','FAST & FLAT'];
+const wristLabels = ['','LOCKED WRIST','FIRM','MODERATE FLICK','STRONG SNAP','HEAVY SNAP'];
 
 // ─── NAVIGATION ─────────────────────────────────────────────────
 function navigate(screenId) {
@@ -685,13 +748,13 @@ function updateNavbar(screenId) {
   nav.style.display = noNavScreens.includes(screenId) ? 'none' : 'flex';
   actions.innerHTML = '';
 
+  if (screenId !== 'results' && state.fitResult) {
+    const btn = document.createElement('button');
+    btn.className = 'nav-btn'; btn.textContent = 'RESULTS';
+    btn.onclick = () => navigate('results');
+    actions.appendChild(btn);
+  }
   if (state.user) {
-    if (screenId !== 'results' && state.fitResult) {
-      const btn = document.createElement('button');
-      btn.className = 'nav-btn'; btn.textContent = 'RESULTS';
-      btn.onclick = () => navigate('results');
-      actions.appendChild(btn);
-    }
     const av = document.createElement('div');
     av.className = 'nav-avatar';
     av.textContent = (state.user.name || state.user.email)[0].toUpperCase();
@@ -780,9 +843,11 @@ async function api(path, method='GET', body=null) {
   if (state.token) opts.headers['Authorization'] = `Bearer ${state.token}`;
   if (body) opts.body = JSON.stringify(body);
   const res = await fetch(path, opts);
-  const data = await res.json();
-  if (!res.ok) throw new Error(data.error || 'Request failed');
-  return data;
+  let data = null;
+  try { data = await res.json(); }
+  catch { /* non-JSON response (proxy error page etc.) */ }
+  if (!res.ok) throw new Error(data?.error || `Request failed (${res.status})`);
+  return data ?? {};
 }
 
 // ─── FLOW: START ────────────────────────────────────────────────
@@ -797,6 +862,9 @@ function goToScan() {
   state.questionnaire.heightCm = h;
   state.questionnaire.gripPreference = parseInt(document.getElementById('q-grip').value);
   state.questionnaire.weightPreference = parseInt(document.getElementById('q-weight').value);
+  state.questionnaire.throwSpeed = parseInt(document.getElementById('q-speed').value);
+  state.questionnaire.wristAction = parseInt(document.getElementById('q-wrist').value);
+  state.questionnaire.handMoisture = document.querySelector('[data-group="moisture"].active')?.dataset.val || 'normal';
   state.questionnaire.throwingStyle = document.querySelector('[data-group="grip-pos"].active')?.dataset.val || 'middle';
   state.questionnaire.playingLevel  = document.querySelector('[data-group="level"].active')?.dataset.val || 'beginner';
   navigate('scan');
@@ -827,8 +895,25 @@ function _mpColor(maxIdx) {
   return MP_COLORS[4];
 }
 
+// Lazy script loader — MediaPipe is ~1.5MB of JS+WASM, so it only loads
+// the moment a scan actually begins, keeping first paint fast.
+const _loadedScripts = {};
+function loadScript(src) {
+  if (_loadedScripts[src]) return _loadedScripts[src];
+  _loadedScripts[src] = new Promise((resolve, reject) => {
+    const s = document.createElement('script');
+    s.src = src; s.crossOrigin = 'anonymous';
+    s.onload = resolve; s.onerror = () => reject(new Error('Failed to load ' + src));
+    document.head.appendChild(s);
+  });
+  return _loadedScripts[src];
+}
+
 async function initMediaPipe() {
   if (_mpHands) return;
+  try {
+    await loadScript('https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js');
+  } catch(e) { console.warn('MediaPipe script load failed:', e); return; }
   if (typeof Hands === 'undefined') { console.warn('MediaPipe not loaded'); return; }
   try {
     _mpHands = new Hands({ locateFile: f => `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${f}` });
@@ -963,10 +1048,6 @@ function captureHand() {
     const chord = d(px(9), px(12));
     const chain = d(px(9),px(10)) + d(px(10),px(11)) + d(px(11),px(12));
     const fingerFlexIndex = Math.min(1, Math.max(0.5, chord / chain));
-    // Natural throw angle from height (same as algorithm)
-    const h = (state.questionnaire.heightCm || 175);
-    const eyeH = h * 0.936 * 10; // mm
-    const throwAngleDeg = Math.atan2(1730 - eyeH, 2370) * 180 / Math.PI;
 
     // Store landmarks for analysis overlay, keyed to video dimensions
     state.handLandmarks   = lm;
@@ -978,26 +1059,25 @@ function captureHand() {
       gripDiameter:    parseFloat(gripDiameter.toFixed(1)),
       fingerSpan:      parseFloat(fingerSpan.toFixed(0)),
       fingerFlexIndex: parseFloat(fingerFlexIndex.toFixed(2)),
-      throwAngleDeg:   parseFloat(throwAngleDeg.toFixed(1)),
     };
+    state.handMeasured = true;
     document.getElementById('scan-status-text').textContent = '✓ Hand landmarks detected — processing...';
   } else {
-    // ── Fallback: height-derived estimates + small random variance ──
+    // ── Fallback: height-derived population estimates (labelled as such) ──
+    // Regressions in mm from height in cm (Greiner 1991 / ANSUR II):
+    // hand length ≈ 1.045·h, middle finger ≈ 0.44 of hand ≈ 0.46·h,
+    // palm width ≈ 0.49·h, span ≈ 1.145·h, grip arch ≈ 0.182·palm.
     state.handLandmarks = null;
+    state.handMeasured = false;
     const h = state.questionnaire.heightCm || 175;
-    // Height-scaled base biometrics (population regressions)
-    const eyeH = h * 0.936 * 10;
-    const taDeg = parseFloat((Math.atan2(1730 - eyeH, 2370) * 180 / Math.PI).toFixed(1));
-    const r = () => (Math.random() - 0.5); // ±0.5 noise
     state.handMeasurements = {
-      fingerLength:    parseFloat((h * 0.116 + r()*4).toFixed(1)),      // ~75–95mm
-      palmWidth:       parseFloat((h * 0.110 + r()*5).toFixed(1)),      // ~80–100mm
-      gripDiameter:    parseFloat((h * 0.110 * 0.182 + r()*1.5).toFixed(1)),
-      fingerSpan:      parseFloat((h * 0.230 + r()*10).toFixed(0)),     // ~180–220mm
-      fingerFlexIndex: parseFloat((0.82 + r()*0.06).toFixed(2)),        // ~0.79–0.85
-      throwAngleDeg:   taDeg,
+      fingerLength:    parseFloat((h * 0.46).toFixed(1)),   // ≈80mm @175cm
+      palmWidth:       parseFloat((h * 0.49).toFixed(1)),   // ≈86mm @175cm
+      gripDiameter:    parseFloat((h * 0.49 * 0.182).toFixed(1)),
+      fingerSpan:      parseFloat((h * 1.145).toFixed(0)),  // ≈200mm @175cm
+      fingerFlexIndex: 0.82,
     };
-    document.getElementById('scan-status-text').textContent = '✓ Hand captured — processing...';
+    document.getElementById('scan-status-text').textContent = 'No hand detected — using height-based estimates';
   }
 
   setTimeout(() => { stopCamera(); navigate('arm'); }, 700);
@@ -1005,6 +1085,7 @@ function captureHand() {
 
 function skipScan() {
   state.handMeasurements = null;
+  state.handMeasured = false;
   stopCamera();
   navigate('arm');
 }
@@ -1057,21 +1138,70 @@ function handleArmImage(input) {
 
 function skipArm() { state.armData = null; goToAnalyze(); }
 
+// ─── POSE ANALYSIS ───────────────────────────────────────────────
+// Absolute length can't be measured from an unscaled photo, but the
+// RATIO elbow→wrist / shoulder→elbow is scale-free. MediaPipe Pose
+// gives us both limb segments; deviation from the population mean
+// ratio (~0.80, ANSUR II) personalises the height-based estimate.
+async function analyzeArmPose(file) {
+  try {
+    await loadScript('https://cdn.jsdelivr.net/npm/@mediapipe/pose/pose.js');
+    if (typeof Pose === 'undefined') return null;
+    const pose = new Pose({ locateFile: f => `https://cdn.jsdelivr.net/npm/@mediapipe/pose/${f}` });
+    pose.setOptions({ modelComplexity: 1, staticImageMode: true, minDetectionConfidence: 0.5 });
+
+    const img = await new Promise((resolve, reject) => {
+      const i = new Image();
+      i.onload = () => resolve(i);
+      i.onerror = reject;
+      i.src = URL.createObjectURL(file);
+    });
+
+    const lm = await new Promise((resolve) => {
+      const timer = setTimeout(() => resolve(null), 12000);
+      pose.onResults(r => { clearTimeout(timer); resolve(r.poseLandmarks || null); });
+      pose.send({ image: img }).catch(() => { clearTimeout(timer); resolve(null); });
+    });
+    URL.revokeObjectURL(img.src);
+    pose.close?.();
+    if (!lm) return null;
+
+    // Pick the arm with better landmark visibility: R = 12/14/16, L = 11/13/15
+    const arms = [[12,14,16],[11,13,15]].map(([s,e,w]) => ({
+      s: lm[s], e: lm[e], w: lm[w],
+      vis: Math.min(lm[s]?.visibility ?? 0, lm[e]?.visibility ?? 0, lm[w]?.visibility ?? 0),
+    })).sort((a,b) => b.vis - a.vis);
+    const arm = arms[0];
+    if (!arm || arm.vis < 0.5) return null;
+
+    const d = (a, b) => Math.hypot(a.x - b.x, a.y - b.y);
+    const upper = d(arm.s, arm.e), fore = d(arm.e, arm.w);
+    if (upper < 0.02) return null; // degenerate — arm pointing at camera
+    return parseFloat((fore / upper).toFixed(3));
+  } catch(e) {
+    console.warn('Pose analysis failed:', e);
+    return null;
+  }
+}
+
 async function goToAnalyze() {
   navigate('analyze');
-  // Upload arm image if present
-  if (state.armFile) {
+
+  // Priority 1: manual tape measurement (most accurate)
+  const manualCm = parseFloat(document.getElementById('arm-manual-cm')?.value);
+  if (manualCm >= 18 && manualCm <= 36) {
+    state.armData = { forearmLengthMm: Math.round(manualCm * 10), method: 'manual' };
+  } else if (state.armFile) {
+    // Priority 2: photo → client-side pose landmarks → server converts the
+    // scale-free ratio; server falls back to anthropometrics on failure.
     try {
+      const poseRatio = await analyzeArmPose(state.armFile);
       const fd = new FormData();
       fd.append('armImage', state.armFile);
       fd.append('height', state.questionnaire.heightCm);
-      const res = await fetch('/api/fit/arm-scan', {
-        method:'POST',
-        headers: state.token ? { Authorization: `Bearer ${state.token}` } : {},
-        body: fd,
-      });
-      const data = await res.json();
-      state.armData = data;
+      if (poseRatio) fd.append('poseRatio', poseRatio);
+      const res = await fetch('/api/fit/arm-scan', { method:'POST', body: fd });
+      state.armData = await res.json();
     } catch(e) { state.armData = null; }
   }
   runAnalysisAnimation();
@@ -1084,23 +1214,31 @@ const MEAS_DEFS = [
   { label:'GRIP DIAM.',     key:'gripDiameter',    unit:'mm', range:[13,21] },
   { label:'FINGER SPAN',    key:'fingerSpan',      unit:'mm', range:[180,225] },
   { label:'FLEX INDEX',     key:'fingerFlexIndex', unit:'',   range:[0.6,0.98] },
-  { label:'THROW ANGLE',    key:'throwAngleDeg',   unit:'°',  range:[10,32] },
 ];
 
 const STATUSES = [
   'INITIALIZING SCAN...','DETECTING KEYPOINTS...','MAPPING JOINTS...',
-  'CALCULATING PROPORTIONS...','APPLYING LEVERAGE MODEL...','QUERYING DATABASE...','GENERATING PROFILE...'
+  'CALCULATING PROPORTIONS...','SOLVING RELEASE PHYSICS...','TUNING OSCILLATION MODEL...',
+  'QUERYING 176-DART DATABASE...','GENERATING PROFILE...'
 ];
 
 function runAnalysisAnimation() {
   drawHandSkeleton();
   const list = document.getElementById('meas-list');
   list.innerHTML = '';
+  const measured = !!state.handMeasurements && state.handMeasured;
   const measurements = state.handMeasurements || generateDefaultMeasurements();
+
+  // Honesty label: measured vs population-estimated values
+  const srcTag = document.createElement('div');
+  srcTag.style.cssText = 'font-family:"Share Tech Mono",monospace;font-size:9px;letter-spacing:2px;text-align:center;margin-bottom:10px;color:' + (measured ? 'var(--green)' : '#888');
+  srcTag.textContent = measured ? '● LIVE HAND-LANDMARK MEASUREMENTS' : '○ ESTIMATED FROM HEIGHT (SCAN SKIPPED)';
+  list.appendChild(srcTag);
+
   MEAS_DEFS.forEach((m, i) => {
     const row = document.createElement('div');
     row.className = 'meas-row';
-    const pct = ((measurements[m.key] - m.range[0]) / (m.range[1] - m.range[0]) * 100).toFixed(0);
+    const pct = Math.max(4, Math.min(100, ((measurements[m.key] - m.range[0]) / (m.range[1] - m.range[0]) * 100))).toFixed(0);
     row.innerHTML = `
       <span class="meas-label">${m.label}</span>
       <div class="meas-bar-bg"><div class="meas-bar" id="mbar-${i}"></div></div>
@@ -1113,14 +1251,14 @@ function runAnalysisAnimation() {
         el.style.opacity = '1';
         el.textContent = measurements[m.key] + m.unit;
       }, 900);
-    }, i * 650 + 200);
+    }, i * 600 + 200);
   });
 
   STATUSES.forEach((s, i) => {
-    setTimeout(() => { document.getElementById('analyze-status').textContent = s; }, i * 650);
+    setTimeout(() => { document.getElementById('analyze-status').textContent = s; }, i * 520);
   });
 
-  const totalTime = MEAS_DEFS.length * 650 + 1400;
+  const totalTime = Math.max(MEAS_DEFS.length * 600 + 1300, STATUSES.length * 520 + 400);
   setTimeout(() => {
     document.getElementById('analyze-status').textContent = '✓ PROFILE COMPLETE';
     submitToAPI(measurements);
@@ -1128,7 +1266,15 @@ function runAnalysisAnimation() {
 }
 
 function generateDefaultMeasurements() {
-  return { fingerLength:80, palmWidth:85, gripDiameter:16, fingerSpan:200, fingerFlexIndex:0.75, throwAngleDeg:15 };
+  // Same population regressions as the scan fallback (mm from height in cm)
+  const h = state.questionnaire.heightCm || 175;
+  return {
+    fingerLength: parseFloat((h * 0.46).toFixed(1)),
+    palmWidth:    parseFloat((h * 0.49).toFixed(1)),
+    gripDiameter: parseFloat((h * 0.49 * 0.182).toFixed(1)),
+    fingerSpan:   parseFloat((h * 1.145).toFixed(0)),
+    fingerFlexIndex: 0.82,
+  };
 }
 
 async function submitToAPI(measurements, _attempt = 0) {
@@ -1139,6 +1285,10 @@ async function submitToAPI(measurements, _attempt = 0) {
       forearmLengthMm: state.armData?.forearmLengthMm || null,
       gripPreference:  state.questionnaire.gripPreference,
       weightPreference:state.questionnaire.weightPreference,
+      throwSpeed:      state.questionnaire.throwSpeed,
+      wristAction:     state.questionnaire.wristAction,
+      handMoisture:    state.questionnaire.handMoisture,
+      handMeasured:    state.handMeasured === true,
       throwingStyle:   state.questionnaire.throwingStyle,
       playingLevel:    state.questionnaire.playingLevel,
     };
@@ -1308,9 +1458,9 @@ function drawHandSkeleton() {
           ctx.fillStyle='rgba(232,87,14,.9)'; ctx.font='bold 8px Inter,sans-serif'; ctx.textAlign='center';
           ctx.fillText(`SPAN ${m.fingerSpan}mm`, (px4+px20)/2, (py4+py20)/2 - 6);
 
-          // 4. THROW ANGLE label (bottom-right)
+          // 4. FLEX INDEX label (bottom-right)
           ctx.fillStyle='rgba(232,87,14,.85)'; ctx.font='bold 9px Inter,sans-serif'; ctx.textAlign='right';
-          ctx.fillText(`${m.throwAngleDeg}° throw arc`, W-6, H-8);
+          ctx.fillText(`flex ${m.fingerFlexIndex}`, W-6, H-8);
 
           // 5. GRIP DIAMETER badge (bottom-left)
           ctx.fillStyle='rgba(150,230,180,.85)'; ctx.textAlign='left';
@@ -1337,13 +1487,16 @@ function drawHandSkeleton() {
 function dartTierCard(dart, tierLabel, tierColor, accentBorder, delay, profile) {
   if (!dart) return '';
   const uid = 'tc_' + dart.id + '_' + Math.random().toString(36).slice(2,6);
-  const b = computeBreakdown(dart, profile || {});
+  // The server computes every score component — the UI only displays them,
+  // so the breakdown can never drift from the real algorithm.
+  const b = dart.breakdown || {};
   const dims = [
-    { l:'WT', s: Math.round(b.wt) },
-    { l:'LEN', s: Math.round(b.ln) },
-    { l:'DIA', s: Math.round(b.dm) },
-    { l:'GRIP', s: Math.round(b.gp) },
-    { l:'BAL', s: Math.round(b.bl) },
+    { l:'WT',  s: b.weight ?? 0 },
+    { l:'LEN', s: b.length ?? 0 },
+    { l:'DIA', s: b.diameter ?? 0 },
+    { l:'GRIP',s: b.grip ?? 0 },
+    { l:'BAL', s: b.balance ?? 0 },
+    { l:'TNG', s: b.tungsten ?? 0 },
   ];
   return `
     <div class="card fade-in ${delay}" style="border-color:${accentBorder};margin-bottom:12px" id="card_${uid}">
@@ -1363,7 +1516,7 @@ function dartTierCard(dart, tierLabel, tierColor, accentBorder, delay, profile) 
         </div>
       </div>
       <canvas class="tier-dart-canvas" id="tdc_${uid}"></canvas>
-      <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:4px;margin-bottom:8px">
+      <div style="display:grid;grid-template-columns:repeat(6,1fr);gap:4px;margin-bottom:8px">
         ${dims.map(d => {
           const cls = d.s >= 80 ? 'var(--green)' : d.s >= 55 ? '#ffc400' : '#ef5350';
           return `<div style="text-align:center;background:var(--bg);border:1px solid var(--border);padding:4px 2px">
@@ -1380,8 +1533,9 @@ function dartTierCard(dart, tierLabel, tierColor, accentBorder, delay, profile) 
 
 function renderResults() {
   const { profile, topDart, budgetDart, valueDart, premiumDart,
-          alternateDarts, topPro, allScoredDarts } = state.fitResult;
+          alternateDarts, topPro, catalogStats } = state.fitResult;
   const container = document.getElementById('results-content');
+  const arch = profile.archetype || {};
 
   const wDelta = (topDart.weight - profile.idealWeight);
   const lDelta = (topDart.length_mm - profile.idealLength);
@@ -1396,7 +1550,29 @@ function renderResults() {
     <div class="section-title fade-in">YOUR <span>FIT</span></div>
     <div class="section-sub fade-in">BIOMECHANICAL PROFILE · ${new Date().toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'}).toUpperCase()}</div>
 
-    <!-- ① IDEAL DART PROFILE + THROW ARC -->
+    <!-- ⓪ THROWER ARCHETYPE -->
+    ${arch.name ? `
+    <div class="card fade-in" style="background:linear-gradient(135deg,#1c1917,#292524);border-color:rgba(232,87,14,.35)">
+      <div style="display:flex;align-items:center;gap:14px">
+        <div style="font-size:38px;line-height:1">${arch.emoji || '🎯'}</div>
+        <div style="flex:1">
+          <div style="font-family:'Share Tech Mono',monospace;font-size:9px;letter-spacing:2px;color:var(--orange)">YOUR THROWER ARCHETYPE</div>
+          <div style="font-family:'Outfit',sans-serif;font-weight:800;font-size:26px;letter-spacing:-0.5px;color:#fff;line-height:1.1">${arch.name}</div>
+          <div style="font-family:'Inter',sans-serif;font-size:12px;color:#a8a29e;margin-top:2px">${arch.tagline || ''} · like <b style="color:#e7e5e4">${arch.proExample || ''}</b></div>
+        </div>
+      </div>
+      <p style="font-size:12px;color:#a8a29e;line-height:1.65;margin-top:12px;font-weight:300">${arch.detail || ''}</p>
+      <div style="display:flex;align-items:center;gap:10px;margin-top:12px;padding-top:12px;border-top:1px solid rgba(255,255,255,.08)">
+        <span style="font-family:'Inter',sans-serif;font-size:10px;font-weight:600;letter-spacing:1px;color:#78716c;flex-shrink:0">FIT CONFIDENCE</span>
+        <div style="flex:1;height:6px;background:rgba(255,255,255,.08);border-radius:3px;overflow:hidden">
+          <div id="conf-fill" style="height:100%;width:0%;border-radius:3px;background:${profile.fitConfidence >= 80 ? 'linear-gradient(90deg,#16a34a,#22c55e)' : profile.fitConfidence >= 60 ? 'linear-gradient(90deg,#d97706,#fbbf24)' : 'linear-gradient(90deg,#dc2626,#f87171)'};transition:width 1.1s cubic-bezier(.4,0,.2,1)"></div>
+        </div>
+        <span style="font-family:'Outfit',sans-serif;font-weight:800;font-size:16px;color:#fff">${profile.fitConfidence}%</span>
+      </div>
+      ${(profile.confidenceHints || []).map(h => `<div style="font-size:10.5px;color:#78716c;margin-top:6px;line-height:1.5">↑ ${h}</div>`).join('')}
+    </div>` : ''}
+
+    <!-- ① IDEAL DART PROFILE + RELEASE PHYSICS -->
     <div class="card fade-in">
       <div class="card-label">YOUR IDEAL DART PROFILE</div>
       <div class="dart-vis-wrap"><canvas class="dart-vis-canvas-lg" id="dart-ideal-canvas"></canvas></div>
@@ -1409,9 +1585,20 @@ function renderResults() {
         <div class="ideal-spec"><div class="ideal-spec-val" style="font-size:12px">${profile.barrelShape.replace('_',' ').toUpperCase()}</div><div class="ideal-spec-label">BARREL</div></div>
       </div>
       <div class="throw-arc-block">
-        <div class="throw-arc-ttl">NATURAL THROW ARC — ${profile.naturalThrowAngle.toFixed(1)}° · LEVERAGE ${(profile.leverageRatio*100).toFixed(1)}%</div>
+        <div class="throw-arc-ttl">RELEASE PHYSICS — ${profile.releaseAngleDeg.toFixed(1)}° AT ${profile.releaseSpeedMs} m/s · LEVERAGE ${(profile.leverageRatio*100).toFixed(1)}%${profile.forearmMeasured ? '' : ' (est.)'}</div>
         <canvas class="throw-arc-canvas" id="throw-arc-canvas"></canvas>
       </div>
+    </div>
+
+    <!-- ①b COMPLETE SETUP -->
+    <div class="card fade-in delay-1">
+      <div class="card-label">COMPLETE SETUP — BARREL · SHAFT · FLIGHT</div>
+      <div class="ideal-spec-grid" style="grid-template-columns:1fr 1fr 1fr;margin-top:2px">
+        <div class="ideal-spec"><div class="ideal-spec-val" style="font-size:14px">${profile.idealTungstenPct}%+</div><div class="ideal-spec-label">TUNGSTEN</div></div>
+        <div class="ideal-spec"><div class="ideal-spec-val" style="font-size:14px">${profile.idealShaft?.label || 'Medium'}</div><div class="ideal-spec-label">SHAFT</div></div>
+        <div class="ideal-spec"><div class="ideal-spec-val" style="font-size:14px">${profile.idealFlight?.label || 'Standard'}</div><div class="ideal-spec-label">FLIGHTS</div></div>
+      </div>
+      <p style="font-size:11.5px;color:var(--muted);line-height:1.65;margin-top:10px;font-weight:300">${profile.setupRationale || ''}</p>
     </div>
 
     <!-- ② TOP MATCH -->
@@ -1460,7 +1647,7 @@ function renderResults() {
       <!-- Algorithm breakdown -->
       <div id="top-breakdown"></div>
 
-      <!-- Weight position in catalog -->
+      <!-- Weight position in catalog (uses server catalogStats) -->
       <div id="top-catalog-strip"></div>
 
       <p style="font-size:12px;color:var(--muted);line-height:1.65;margin:12px 0;font-weight:300">${topDart.description}</p>
@@ -1554,7 +1741,8 @@ function renderResults() {
   const idealOpts = {
     weight: profile.idealWeight, length_mm: profile.idealLength,
     diameter_mm: profile.idealDiameter, barrel_shape: profile.barrelShape,
-    grip_type: profile.idealGripType, balance_point: profile.balance, tungsten_pct: 90
+    grip_type: profile.idealGripType, balance_point: profile.balance,
+    tungsten_pct: profile.idealTungstenPct || 90
   };
   const topOpts = {
     weight: topDart.weight, length_mm: topDart.length_mm,
@@ -1569,10 +1757,12 @@ function renderResults() {
     renderDartCanvas('dart-ideal-canvas', idealOpts);
     renderDartCanvas('dart-match-canvas', topOpts, true, idealOpts);
     renderThrowArc('throw-arc-canvas', profile);
-    renderBreakdown(topDart, profile, 'top-breakdown');
-    renderCatalogStrip('top-catalog-strip', topDart.weight, allScoredDarts);
+    renderBreakdown(topDart, 'top-breakdown');
+    renderCatalogStrip('top-catalog-strip', topDart.weight, catalogStats);
     animateCount(document.getElementById('top-ring-val'), topDart.matchScore, 1000);
     initScoreRings();
+    const cf = document.getElementById('conf-fill');
+    if (cf) cf.style.width = profile.fitConfidence + '%';
 
     // Tier card canvases + score counters (IDs encoded as tdc_/rv_ + uid prefix on id)
     document.querySelectorAll('canvas.tier-dart-canvas').forEach((c, i) => {
@@ -1601,7 +1791,6 @@ async function saveProfile() {
       profile, topDart, topPro,
       heightCm: state.questionnaire.heightCm,
       forearmLengthMm: state.armData?.forearmLengthMm || null,
-      armImagePath: state.armData?.imagePath || null,
       gripPreference:  state.questionnaire.gripPreference,
       weightPreference:state.questionnaire.weightPreference,
       throwingStyle:   state.questionnaire.throwingStyle,
@@ -1880,36 +2069,22 @@ function animateCount(el, target, duration) {
 }
 
 // ─── SCORE BREAKDOWN BARS ────────────────────────────────────────
-const GRIP_ORDER_JS = ['smooth','micro_grip','fine_knurl','medium_knurl','aggressive_knurl','shark_cut','ringed'];
-function shapeFamily_js(s) {
-  return ['teardrop','torpedo'].includes(s) ? 'A' : ['bomb','shark','bullet'].includes(s) ? 'B' : 'C';
-}
-function computeBreakdown(dart, profile) {
-  const wt  = Math.max(0, 100 - Math.abs(dart.weight - profile.idealWeight) * 14);
-  const ln  = Math.max(0, 100 - Math.abs(dart.length_mm - profile.idealLength) * 4.5);
-  const dm  = Math.max(0, 100 - Math.abs(dart.diameter_mm - profile.idealDiameter) * 22);
-  const gd  = Math.abs(GRIP_ORDER_JS.indexOf(dart.grip_type) - GRIP_ORDER_JS.indexOf(profile.idealGripType));
-  const gp  = gd === 0 ? 100 : gd === 1 ? 70 : Math.max(0, 100 - gd * 30);
-  const bl  = dart.balance_point === profile.balance ? 100 :
-              (dart.balance_point === 'middle' || profile.balance === 'middle') ? 62 : 30;
-  const sh  = dart.barrel_shape === profile.barrelShape ? 100 :
-              shapeFamily_js(dart.barrel_shape) === shapeFamily_js(profile.barrelShape) ? 65 : 40;
-  return { wt, ln, dm, gp, bl, sh };
-}
-
-function renderBreakdown(dart, profile, containerId) {
+// All component scores come from the server's scored darts — the UI
+// never recomputes them, so what you see is exactly what was scored.
+function renderBreakdown(dart, containerId) {
   const el = document.getElementById(containerId);
-  if (!el) return;
-  const b = computeBreakdown(dart, profile);
+  if (!el || !dart.breakdown) return;
+  const b = dart.breakdown;
   const rows = [
-    { label:'WEIGHT',   wt:'35%', score: Math.round(b.wt), contrib: b.wt * .35 },
-    { label:'LENGTH',   wt:'20%', score: Math.round(b.ln), contrib: b.ln * .20 },
-    { label:'DIAMETER', wt:'15%', score: Math.round(b.dm), contrib: b.dm * .15 },
-    { label:'GRIP',     wt:'15%', score: Math.round(b.gp), contrib: b.gp * .15 },
-    { label:'BALANCE',  wt:'10%', score: Math.round(b.bl), contrib: b.bl * .10 },
-    { label:'SHAPE',    wt:'5%',  score: Math.round(b.sh), contrib: b.sh * .05 },
+    { label:'WEIGHT',   wt:'30%', score: b.weight },
+    { label:'LENGTH',   wt:'18%', score: b.length },
+    { label:'DIAMETER', wt:'14%', score: b.diameter },
+    { label:'GRIP',     wt:'14%', score: b.grip },
+    { label:'BALANCE',  wt:'10%', score: b.balance },
+    { label:'TUNGSTEN', wt:'8%',  score: b.tungsten },
+    { label:'SHAPE',    wt:'6%',  score: b.shape },
   ];
-  const total = Math.round(rows.reduce((a, r) => a + r.contrib, 0));
+  const total = dart.matchScore;
   el.innerHTML = `
     <div class="breakdown-section">
       <div class="breakdown-title">ALGORITHM BREAKDOWN</div>
@@ -1954,72 +2129,78 @@ function renderThrowArc(canvasId, profile) {
   ctx.fillStyle = '#1c1c1c';
   ctx.fillRect(0, 0, W, H);
 
-  // Physical constants (mm → pixels mapped to canvas)
-  const oche = 2370; const boardH = 1730; const eyeHmm = profile.heightCm * 8.5;
-  const totalDist = oche + 200;
-  const sx = W * 0.06; const ex = W * 0.92;
-  const canvasFloorY = H - 10;
-  const mmToY = (mm) => canvasFloorY - (mm / (eyeHmm * 1.15)) * (H - 14);
-  const mmToX = (mm) => sx + (mm / totalDist) * (ex - sx);
+  // Real projectile trajectory from the server's release-physics solve.
+  const relH   = profile.releaseHeightMm || (profile.heightCm * 9);   // mm
+  const dist   = profile.flightDistanceMm || 2150;                    // mm
+  const boardH = 1730;
+  const theta  = (profile.releaseAngleDeg || 20) * Math.PI / 180;
+  const v      = profile.releaseSpeedMs || 5.5;                       // m/s
+  const g      = 9.81;
+
+  // Sample the parabola to find its true peak so the viewport fits it
+  const N = 40;
+  const ys = [];
+  for (let i = 0; i <= N; i++) {
+    const x = dist * i / N / 1000; // m
+    const y = relH / 1000 + Math.tan(theta) * x - (g * x * x) / (2 * v * v * Math.cos(theta) * Math.cos(theta));
+    ys.push(y * 1000); // mm
+  }
+  const maxY = Math.max(boardH, relH, ...ys) * 1.1;
+
+  const sx = W * 0.07; const ex = W * 0.93;
+  const canvasFloorY = H - 12;
+  const mmToY = (mm) => canvasFloorY - (mm / maxY) * (H - 18);
+  const mmToX = (mm) => sx + (mm / dist) * (ex - sx);
 
   // Floor
   ctx.strokeStyle = '#222'; ctx.lineWidth = 1;
   ctx.beginPath(); ctx.moveTo(sx - 4, canvasFloorY); ctx.lineTo(ex + 4, canvasFloorY); ctx.stroke();
 
-  // Oche marker
+  // Oche marker + player head
   const ocheX = mmToX(0);
   ctx.strokeStyle = 'rgba(255,85,0,.4)'; ctx.lineWidth = 1.5; ctx.setLineDash([2, 3]);
-  ctx.beginPath(); ctx.moveTo(ocheX, canvasFloorY); ctx.lineTo(ocheX, mmToY(eyeHmm * 1.1)); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(ocheX, canvasFloorY); ctx.lineTo(ocheX, mmToY(relH * 1.06)); ctx.stroke();
   ctx.setLineDash([]);
+  ctx.beginPath(); ctx.arc(ocheX - 6, mmToY(relH), 4, 0, Math.PI*2);
+  ctx.strokeStyle = '#444'; ctx.lineWidth = 1; ctx.stroke();
 
-  // Board face
-  const boardX = mmToX(oche);
+  // Board face + bull
+  const boardX = mmToX(dist);
   ctx.strokeStyle = '#333'; ctx.lineWidth = 2;
-  ctx.beginPath(); ctx.moveTo(boardX, canvasFloorY); ctx.lineTo(boardX, mmToY(boardH * 1.18)); ctx.stroke();
-  // Bullseye dot
+  ctx.beginPath(); ctx.moveTo(boardX, canvasFloorY); ctx.lineTo(boardX, mmToY(boardH * 1.15)); ctx.stroke();
   ctx.beginPath(); ctx.arc(boardX, mmToY(boardH), 3, 0, Math.PI*2);
   ctx.fillStyle = 'rgba(255,85,0,.7)'; ctx.fill();
 
-  // Player silhouette (simple stick figure suggestion)
-  const playerY = mmToY(eyeHmm);
-  ctx.beginPath(); ctx.arc(ocheX - 6, playerY, 4, 0, Math.PI*2);
-  ctx.strokeStyle = '#444'; ctx.lineWidth = 1; ctx.stroke();
-
-  // Throw arc — parabolic from release to bullseye
-  const releaseX = ocheX + 10; const releaseY = playerY;
-  const landX = boardX; const landY = mmToY(boardH);
-  const arcPeakX = (releaseX + landX) / 2;
-  const arcPeakY = Math.min(releaseY, landY) - (H * 0.28);
-
+  // The actual parabola
   ctx.beginPath();
-  ctx.moveTo(releaseX, releaseY);
-  ctx.quadraticCurveTo(arcPeakX, arcPeakY, landX, landY);
-  const grad = ctx.createLinearGradient(releaseX, 0, landX, 0);
-  grad.addColorStop(0, 'rgba(255,85,0,.8)');
-  grad.addColorStop(1, 'rgba(255,85,0,.25)');
-  ctx.strokeStyle = grad; ctx.lineWidth = 1.5; ctx.setLineDash([4, 3]); ctx.stroke();
+  for (let i = 0; i <= N; i++) {
+    const px = mmToX(dist * i / N), py = mmToY(ys[i]);
+    i === 0 ? ctx.moveTo(px, py) : ctx.lineTo(px, py);
+  }
+  const grad = ctx.createLinearGradient(ocheX, 0, boardX, 0);
+  grad.addColorStop(0, 'rgba(255,85,0,.85)');
+  grad.addColorStop(1, 'rgba(255,85,0,.3)');
+  ctx.strokeStyle = grad; ctx.lineWidth = 1.6; ctx.setLineDash([4, 3]); ctx.stroke();
   ctx.setLineDash([]);
 
-  // Angle annotation
-  const angle = profile.naturalThrowAngle;
-  ctx.fillStyle = 'rgba(255,85,0,.55)';
+  // Release-angle annotation
+  ctx.fillStyle = 'rgba(255,85,0,.6)';
   ctx.font = `9px 'Share Tech Mono'`;
   ctx.textAlign = 'left';
-  ctx.fillText(`${angle.toFixed(1)}°`, releaseX + 14, releaseY - 6);
+  ctx.fillText(`${(profile.releaseAngleDeg || 0).toFixed(1)}° @ ${v} m/s`, ocheX + 12, mmToY(relH) - 8);
 
   // Labels
-  ctx.fillStyle = '#333'; ctx.font = `7px 'Share Tech Mono'`; ctx.textAlign = 'center';
+  ctx.fillStyle = '#444'; ctx.font = `7px 'Share Tech Mono'`; ctx.textAlign = 'center';
   ctx.fillText('OCHE', ocheX, canvasFloorY + 9);
   ctx.fillText('BOARD', boardX, canvasFloorY + 9);
 }
 
 // ─── WEIGHT CATALOG STRIP ────────────────────────────────────────
-function renderCatalogStrip(containerId, dartWeight, allDarts) {
+function renderCatalogStrip(containerId, dartWeight, stats) {
   const el = document.getElementById(containerId);
-  if (!el || !allDarts) return;
-  const weights = allDarts.map(d => d.weight).filter(Boolean);
-  const minW = Math.min(...weights); const maxW = Math.max(...weights);
-  const pct = ((dartWeight - minW) / (maxW - minW) * 100).toFixed(1);
+  if (!el || !stats) return;
+  const minW = stats.minWeight; const maxW = stats.maxWeight;
+  const pct = ((dartWeight - minW) / Math.max(1, maxW - minW) * 100).toFixed(1);
   el.innerHTML = `
     <div class="catalog-strip">
       <div class="catalog-strip-ttl">WEIGHT POSITION IN CATALOG (${minW}g – ${maxW}g)</div>
@@ -2114,17 +2295,38 @@ function trackClick(dartId) {
 }
 
 function restartFit() {
-  state.handMeasurements = null; state.armData = null; state.armFile = null; state.fitResult = null;
+  state.handMeasurements = null; state.handMeasured = false;
+  state.armData = null; state.armFile = null; state.fitResult = null;
+  const manual = document.getElementById('arm-manual-cm');
+  if (manual) manual.value = '';
   navigate('questionnaire');
 }
 
 // ─── BOOT ─────────────────────────────────────────────────────────
 if (state.token && state.user) updateNavbar('home');
 
-// Grip/weight slider init
 document.addEventListener('DOMContentLoaded', () => {
   updateSliderLabel('q-grip','q-grip-val',gripLabels);
   updateSliderLabel('q-weight','q-weight-val',weightLabels);
+  updateSliderLabel('q-speed','q-speed-val',speedLabels);
+  updateSliderLabel('q-wrist','q-wrist-val',wristLabels);
+
+  // Live catalog numbers in the hero
+  fetch('/api/stats').then(r => r.json()).then(s => {
+    if (!s?.darts) return;
+    const set = (id, v) => { const el = document.getElementById(id); if (el) el.textContent = v; };
+    set('hero-dart-count', s.darts);
+    set('hero-dart-count-inline', s.darts);
+    set('hero-pro-count', s.pros);
+  }).catch(() => {});
+
+  // Enter submits the visible auth form
+  const bind = (ids, fn) => ids.forEach(id => {
+    document.getElementById(id)?.addEventListener('keydown', e => { if (e.key === 'Enter') fn(); });
+  });
+  bind(['login-email','login-password'], doLogin);
+  bind(['reg-name','reg-email','reg-password'], doRegister);
+  bind(['q-height'], goToScan);
 });
 </script>
 
