@@ -240,13 +240,16 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:22px;heigh
 .bk-total-fill{height:100%;width:0;border-radius:4px;background:var(--orange-grad);transition:width 1.1s cubic-bezier(.4,0,.2,1);transition-delay:.5s}
 .bk-total-score{font-family:'Outfit',sans-serif;font-size:20px;font-weight:800;color:var(--orange);width:30px;text-align:right;flex-shrink:0}
 
-/* ─── DART CANVAS ENHANCED ─── */
-.dart-vis-wrap{position:relative;width:100%;height:160px;margin-bottom:4px;background:#1c1c1c;border-radius:10px;overflow:hidden}
+/* ─── DART CANVAS (light, low-contrast) ─── */
+.dart-vis-wrap{position:relative;width:100%;height:160px;margin-bottom:4px;
+  background:linear-gradient(180deg,#faf9f6,#f1efe9);border:1px solid var(--border);border-radius:10px;overflow:hidden}
 .dart-vis-canvas-lg{position:absolute;inset:0;width:100%;height:100%}
+.dart-compare-wrap{position:relative;width:100%;height:230px;margin-bottom:4px;
+  background:linear-gradient(180deg,#faf9f6,#f1efe9);border:1px solid var(--border);border-radius:10px;overflow:hidden}
 
-/* ─── THROW ARC ─── */
-.throw-arc-block{background:#1c1c1c;border:1px solid #2e2e2e;padding:12px;margin-top:12px;border-radius:10px}
-.throw-arc-ttl{font-family:'Inter',sans-serif;font-size:11px;font-weight:600;color:#888;margin-bottom:6px}
+/* ─── THROW ARC (light) ─── */
+.throw-arc-block{background:linear-gradient(180deg,#faf9f6,#f1efe9);border:1px solid var(--border);padding:12px;margin-top:12px;border-radius:10px}
+.throw-arc-ttl{font-family:'Inter',sans-serif;font-size:11px;font-weight:600;color:var(--muted);margin-bottom:6px}
 .throw-arc-canvas{width:100%;height:80px;display:block}
 
 /* ─── SPEC COMPARE ─── */
@@ -268,7 +271,8 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:22px;heigh
   font-family:'Inter',sans-serif;font-size:10px;color:var(--muted2);font-weight:500}
 
 /* ─── TIER CARD MINI DART ─── */
-.tier-dart-canvas{width:100%;height:50px;display:block;margin-bottom:8px}
+.tier-dart-canvas{width:100%;height:50px;display:block;margin-bottom:8px;
+  background:linear-gradient(180deg,#faf9f6,#f1efe9);border:1px solid var(--border);border-radius:8px}
 
 /* ─── HOME SCREEN ─── */
 #screen-home{background:radial-gradient(ellipse 70% 50% at 50% -10%,rgba(232,87,14,.08) 0%,transparent 70%)}
@@ -1626,24 +1630,24 @@ function renderResults() {
 
     <!-- ⓪ THROWER ARCHETYPE -->
     ${arch.name ? `
-    <div class="card fade-in" style="background:linear-gradient(135deg,#1c1917,#292524);border-color:rgba(232,87,14,.35)">
+    <div class="card fade-in" style="background:linear-gradient(135deg,#fff8f3,#ffeee1);border-color:rgba(232,87,14,.28)">
       <div style="display:flex;align-items:center;gap:14px">
         <div style="font-size:38px;line-height:1">${arch.emoji || '🎯'}</div>
         <div style="flex:1">
           <div style="font-family:'Share Tech Mono',monospace;font-size:9px;letter-spacing:2px;color:var(--orange)">YOUR THROWER ARCHETYPE</div>
-          <div style="font-family:'Outfit',sans-serif;font-weight:800;font-size:26px;letter-spacing:-0.5px;color:#fff;line-height:1.1">${arch.name}</div>
-          <div style="font-family:'Inter',sans-serif;font-size:12px;color:#a8a29e;margin-top:2px">${arch.tagline || ''} · like <b style="color:#e7e5e4">${arch.proExample || ''}</b></div>
+          <div style="font-family:'Outfit',sans-serif;font-weight:800;font-size:26px;letter-spacing:-0.5px;color:var(--text);line-height:1.1">${arch.name}</div>
+          <div style="font-family:'Inter',sans-serif;font-size:12px;color:var(--muted);margin-top:2px">${arch.tagline || ''} · like <b style="color:var(--text)">${arch.proExample || ''}</b></div>
         </div>
       </div>
-      <p style="font-size:12px;color:#a8a29e;line-height:1.65;margin-top:12px;font-weight:300">${arch.detail || ''}</p>
-      <div style="display:flex;align-items:center;gap:10px;margin-top:12px;padding-top:12px;border-top:1px solid rgba(255,255,255,.08)">
-        <span style="font-family:'Inter',sans-serif;font-size:10px;font-weight:600;letter-spacing:1px;color:#78716c;flex-shrink:0">FIT CONFIDENCE</span>
-        <div style="flex:1;height:6px;background:rgba(255,255,255,.08);border-radius:3px;overflow:hidden">
+      <p style="font-size:12px;color:var(--muted);line-height:1.65;margin-top:12px;font-weight:400">${arch.detail || ''}</p>
+      <div style="display:flex;align-items:center;gap:10px;margin-top:12px;padding-top:12px;border-top:1px solid rgba(232,87,14,.15)">
+        <span style="font-family:'Inter',sans-serif;font-size:10px;font-weight:600;letter-spacing:1px;color:var(--muted);flex-shrink:0">FIT CONFIDENCE</span>
+        <div style="flex:1;height:6px;background:rgba(0,0,0,.07);border-radius:3px;overflow:hidden">
           <div id="conf-fill" style="height:100%;width:0%;border-radius:3px;background:${profile.fitConfidence >= 80 ? 'linear-gradient(90deg,#16a34a,#22c55e)' : profile.fitConfidence >= 60 ? 'linear-gradient(90deg,#d97706,#fbbf24)' : 'linear-gradient(90deg,#dc2626,#f87171)'};transition:width 1.1s cubic-bezier(.4,0,.2,1)"></div>
         </div>
-        <span style="font-family:'Outfit',sans-serif;font-weight:800;font-size:16px;color:#fff">${profile.fitConfidence}%</span>
+        <span style="font-family:'Outfit',sans-serif;font-weight:800;font-size:16px;color:var(--text)">${profile.fitConfidence}%</span>
       </div>
-      ${(profile.confidenceHints || []).map(h => `<div style="font-size:10.5px;color:#78716c;margin-top:6px;line-height:1.5">↑ ${h}</div>`).join('')}
+      ${(profile.confidenceHints || []).map(h => `<div style="font-size:10.5px;color:var(--muted);margin-top:6px;line-height:1.5">↑ ${h}</div>`).join('')}
     </div>` : ''}
 
     <!-- ① IDEAL DART PROFILE + RELEASE PHYSICS -->
@@ -1693,11 +1697,11 @@ function renderResults() {
         </div>
       </div>
 
-      <!-- Ideal vs Dart overlay canvas -->
-      <div style="font-family:'Share Tech Mono',monospace;font-size:8px;letter-spacing:2px;color:var(--muted);margin-bottom:4px">
-        <span style="color:rgba(255,85,0,.6)">— — —</span> IDEAL &nbsp;|&nbsp; <span style="color:#ccc">━━━</span> THIS DART
+      <!-- Theoretical perfect vs matched dart — side-by-side models -->
+      <div style="font-family:'Inter',sans-serif;font-size:11px;font-weight:600;letter-spacing:.8px;color:var(--muted);margin-bottom:6px;text-transform:uppercase">
+        Your theoretical perfect dart vs this match
       </div>
-      <div class="dart-vis-wrap"><canvas class="dart-vis-canvas-lg" id="dart-match-canvas"></canvas></div>
+      <div class="dart-compare-wrap"><canvas class="dart-vis-canvas-lg" id="dart-match-canvas"></canvas></div>
 
       <!-- Spec comparison: ideal vs this dart -->
       <div class="spec-compare">
@@ -1834,7 +1838,7 @@ function renderResults() {
   setTimeout(() => {
     // Main visualizations
     renderDartCanvas('dart-ideal-canvas', idealOpts);
-    renderDartCanvas('dart-match-canvas', topOpts, true, idealOpts);
+    renderDartComparison('dart-match-canvas', idealOpts, topOpts, `${topDart.brand} ${topDart.name}`);
     renderThrowArc('throw-arc-canvas', profile);
     renderBreakdown(topDart, 'top-breakdown');
     renderCatalogStrip('top-catalog-strip', topDart.weight, catalogStats);
@@ -1971,7 +1975,7 @@ function drawDartSilhouette(ctx, W, H, opts, offsetY) {
     ctx.lineTo(startX + tipMm * scale, cy - 2);
     ctx.lineTo(startX + tipMm * scale, cy + 2);
     ctx.closePath();
-    ctx.fillStyle = '#aaa';
+    ctx.fillStyle = '#8f8b85';
     ctx.fill();
   }
 
@@ -2019,17 +2023,17 @@ function drawDartSilhouette(ctx, W, H, opts, offsetY) {
     return; // ghost only needs outline
   }
 
-  // Metallic fill — brighter for higher tungsten %
-  const brightness = 0.6 + (tungsten_pct - 70) / 120;
-  const lo = Math.round(brightness * 80), hi = Math.round(brightness * 210);
+  // Metallic fill on light ground — denser tungsten reads slightly darker
+  const dk = Math.round(148 - (tungsten_pct - 80) * 1.6);   // edge tone
+  const lt = Math.round(224 - (tungsten_pct - 80) * 0.8);   // highlight tone
   const g = ctx.createLinearGradient(bx, cy - maxR, bx, cy + maxR);
-  g.addColorStop(0, `rgb(${lo},${lo},${lo})`);
-  g.addColorStop(0.35, `rgb(${hi},${hi},${hi})`);
-  g.addColorStop(0.65, `rgb(${hi},${hi},${hi})`);
-  g.addColorStop(1, `rgb(${lo},${lo},${lo})`);
+  g.addColorStop(0, `rgb(${dk},${dk - 3},${dk - 8})`);
+  g.addColorStop(0.35, `rgb(${lt},${lt - 2},${lt - 6})`);
+  g.addColorStop(0.65, `rgb(${lt},${lt - 2},${lt - 6})`);
+  g.addColorStop(1, `rgb(${dk},${dk - 3},${dk - 8})`);
   ctx.fillStyle = g;
   ctx.fill();
-  ctx.strokeStyle = 'rgba(255,255,255,.12)'; ctx.lineWidth = .6; ctx.stroke();
+  ctx.strokeStyle = 'rgba(0,0,0,.18)'; ctx.lineWidth = .8; ctx.stroke();
 
   // ── GRIP TEXTURE ──
   const gripDensity = { smooth:0, micro_grip:3, fine_knurl:5, medium_knurl:8, aggressive_knurl:11, shark_cut:10, ringed:5 };
@@ -2044,17 +2048,17 @@ function drawDartSilhouette(ctx, W, H, opts, offsetY) {
     for (let i = 0; i <= gcount; i++) {
       const gx = gripStart + (gripW / gcount) * i;
       ctx.beginPath(); ctx.moveTo(gx, cy - maxR * .95); ctx.lineTo(gx, cy + maxR * .95);
-      ctx.strokeStyle = 'rgba(0,0,0,.45)'; ctx.lineWidth = grip_type === 'ringed' ? 2 : 1.5; ctx.stroke();
+      ctx.strokeStyle = 'rgba(60,55,48,.4)'; ctx.lineWidth = grip_type === 'ringed' ? 2 : 1.5; ctx.stroke();
       if (grip_type === 'shark_cut' && i < gcount) {
         ctx.beginPath(); ctx.moveTo(gx + 2, cy - maxR * .6); ctx.lineTo(gx + gripW/gcount - 1, cy - maxR * .95);
-        ctx.strokeStyle = 'rgba(0,0,0,.3)'; ctx.lineWidth = .8; ctx.stroke();
+        ctx.strokeStyle = 'rgba(60,55,48,.28)'; ctx.lineWidth = .8; ctx.stroke();
       }
     }
   } else if (gcount > 0) {
     for (let i = 1; i < gcount; i++) {
       const gx = gripStart + (gripW / gcount) * i;
       ctx.beginPath(); ctx.moveTo(gx, cy - maxR * .9); ctx.lineTo(gx, cy + maxR * .9);
-      ctx.strokeStyle = 'rgba(0,0,0,.3)'; ctx.lineWidth = 1; ctx.stroke();
+      ctx.strokeStyle = 'rgba(60,55,48,.28)'; ctx.lineWidth = 1; ctx.stroke();
     }
   }
 
@@ -2077,17 +2081,17 @@ function drawDartSilhouette(ctx, W, H, opts, offsetY) {
   ctx.fillStyle = 'rgba(255,85,0,.8)'; ctx.fill();
 
   // ── SHAFT ──
-  ctx.fillStyle = '#1e1e1e';
+  ctx.fillStyle = '#4a453f';
   ctx.fillRect(ex, cy - 2.2, shaftMm * scale, 4.4);
-  ctx.strokeStyle = '#333'; ctx.lineWidth = .5; ctx.strokeRect(ex, cy - 2.2, shaftMm * scale, 4.4);
+  ctx.strokeStyle = 'rgba(0,0,0,.15)'; ctx.lineWidth = .5; ctx.strokeRect(ex, cy - 2.2, shaftMm * scale, 4.4);
 
   // ── FLIGHTS ──
   const fx = ex + shaftMm * scale;
   [[cy - 14, cy - 3], [cy + 14, cy + 3]].forEach(([tip, root]) => {
     ctx.beginPath(); ctx.moveTo(fx, cy); ctx.lineTo(fx + flightMm * scale, tip);
     ctx.lineTo(fx + 5 * scale, root); ctx.closePath();
-    ctx.fillStyle = 'rgba(255,85,0,.7)'; ctx.fill();
-    ctx.strokeStyle = 'rgba(255,85,0,.3)'; ctx.lineWidth = .5; ctx.stroke();
+    ctx.fillStyle = 'rgba(232,87,14,.75)'; ctx.fill();
+    ctx.strokeStyle = 'rgba(232,87,14,.35)'; ctx.lineWidth = .5; ctx.stroke();
   });
 }
 
@@ -2103,9 +2107,7 @@ function renderDartCanvas(canvasId, opts, showGhostIdeal, idealOpts) {
   const ctx = canvas.getContext('2d');
   ctx.scale(dpr, dpr);
   ctx.clearRect(0, 0, W, H);
-  // Dark canvas background so dart metallic renders correctly
-  ctx.fillStyle = '#1c1c1c';
-  ctx.fillRect(0, 0, W, H);
+  // Transparent canvas — the wrapper supplies the soft light ground
 
   if (showGhostIdeal && idealOpts) {
     // Draw ideal as ghost first (behind)
@@ -2114,12 +2116,73 @@ function renderDartCanvas(canvasId, opts, showGhostIdeal, idealOpts) {
   drawDartSilhouette(ctx, W, H, opts);
 
   // Label
-  ctx.fillStyle = 'rgba(255,85,0,.4)';
-  ctx.font = `${9 * dpr / dpr}px 'Share Tech Mono'`;
+  ctx.fillStyle = 'rgba(120,113,108,.75)';
+  ctx.font = `9px 'Share Tech Mono'`;
   ctx.textAlign = 'center';
   const label = opts.ghost ? '' :
     `${opts.weight}g · ${opts.length_mm}mm · ∅${opts.diameter_mm}mm · ${opts.barrel_shape}`;
   if (label) ctx.fillText(label, W / 2, H - 6);
+}
+
+// ─── PERFECT vs MATCHED — SIDE-BY-SIDE MODEL COMPARISON ──────────
+// Draws the theoretical perfect dart above the real matched dart on one
+// canvas, aligned at the tip, with per-spec delta callouts between them.
+function renderDartComparison(canvasId, idealOpts, dartOpts, dartName) {
+  const canvas = document.getElementById(canvasId);
+  if (!canvas) return;
+  const dpr = window.devicePixelRatio || 1;
+  const W = canvas.offsetWidth, H = canvas.offsetHeight;
+  canvas.width = W * dpr; canvas.height = H * dpr;
+  const ctx = canvas.getContext('2d');
+  ctx.scale(dpr, dpr);
+  ctx.clearRect(0, 0, W, H);
+
+  const rowH = H / 2;
+  // Theoretical perfect dart (top)
+  drawDartSilhouette(ctx, W, rowH, idealOpts, 6);
+  // Matched real dart (bottom)
+  drawDartSilhouette(ctx, W, rowH, dartOpts, rowH - 6);
+
+  // Row labels
+  ctx.font = `bold 8px 'Share Tech Mono'`;
+  ctx.textAlign = 'left';
+  ctx.fillStyle = 'rgba(232,87,14,.9)';
+  ctx.fillText('★ THEORETICAL PERFECT', 10, 14);
+  ctx.fillStyle = 'rgba(87,83,78,.9)';
+  ctx.fillText(('✓ ' + (dartName || 'YOUR MATCH')).toUpperCase().slice(0, 34), 10, rowH + 8);
+
+  // Divider
+  ctx.strokeStyle = 'rgba(0,0,0,.07)'; ctx.lineWidth = 1;
+  ctx.beginPath(); ctx.moveTo(8, rowH); ctx.lineTo(W - 8, rowH); ctx.stroke();
+
+  // Length-delta guides: vertical dashes at each barrel's end
+  const tipMm = 15, shaftMm = 26, flightMm = 20;
+  const endX = (o) => {
+    const totalMm = tipMm + o.length_mm + shaftMm + flightMm + 8;
+    const scale = (W * 0.84) / totalMm;
+    return W * 0.08 + (tipMm + o.length_mm) * scale;
+  };
+  const e1 = endX(idealOpts), e2 = endX(dartOpts);
+  if (Math.abs(idealOpts.length_mm - dartOpts.length_mm) >= 1) {
+    ctx.setLineDash([3, 3]); ctx.lineWidth = 1;
+    ctx.strokeStyle = 'rgba(232,87,14,.45)';
+    ctx.beginPath(); ctx.moveTo(e1, 18); ctx.lineTo(e1, H - 14); ctx.stroke();
+    ctx.strokeStyle = 'rgba(87,83,78,.45)';
+    ctx.beginPath(); ctx.moveTo(e2, 18); ctx.lineTo(e2, H - 14); ctx.stroke();
+    ctx.setLineDash([]);
+  }
+
+  // Delta summary along the divider
+  const fmt = (d, u) => (Math.abs(d) < 0.05 ? '=' : (d > 0 ? '+' : '') + (u === 'g' ? d.toFixed(0) : d.toFixed(1)) + u);
+  const deltas = [
+    `WT ${fmt(dartOpts.weight - idealOpts.weight, 'g')}`,
+    `LEN ${fmt(dartOpts.length_mm - idealOpts.length_mm, 'mm')}`,
+    `∅ ${fmt(dartOpts.diameter_mm - idealOpts.diameter_mm, 'mm')}`,
+  ].join('   ');
+  ctx.font = `8px 'Share Tech Mono'`;
+  ctx.textAlign = 'right';
+  ctx.fillStyle = 'rgba(120,113,108,.85)';
+  ctx.fillText(deltas, W - 10, rowH - 5);
 }
 
 // ─── SCORE RING SVG ──────────────────────────────────────────────
@@ -2218,8 +2281,7 @@ function renderThrowArc(canvasId, profile) {
   const ctx = canvas.getContext('2d');
   ctx.scale(dpr, dpr);
   ctx.clearRect(0, 0, W, H);
-  ctx.fillStyle = '#1c1c1c';
-  ctx.fillRect(0, 0, W, H);
+  // Transparent — the wrapper supplies the soft light ground
 
   // Real projectile trajectory from the server's release-physics solve.
   const relH   = profile.releaseHeightMm || (profile.heightCm * 9);   // mm
@@ -2245,23 +2307,23 @@ function renderThrowArc(canvasId, profile) {
   const mmToX = (mm) => sx + (mm / dist) * (ex - sx);
 
   // Floor
-  ctx.strokeStyle = '#222'; ctx.lineWidth = 1;
+  ctx.strokeStyle = 'rgba(0,0,0,.15)'; ctx.lineWidth = 1;
   ctx.beginPath(); ctx.moveTo(sx - 4, canvasFloorY); ctx.lineTo(ex + 4, canvasFloorY); ctx.stroke();
 
   // Oche marker + player head
   const ocheX = mmToX(0);
-  ctx.strokeStyle = 'rgba(255,85,0,.4)'; ctx.lineWidth = 1.5; ctx.setLineDash([2, 3]);
+  ctx.strokeStyle = 'rgba(232,87,14,.45)'; ctx.lineWidth = 1.5; ctx.setLineDash([2, 3]);
   ctx.beginPath(); ctx.moveTo(ocheX, canvasFloorY); ctx.lineTo(ocheX, mmToY(relH * 1.06)); ctx.stroke();
   ctx.setLineDash([]);
   ctx.beginPath(); ctx.arc(ocheX - 6, mmToY(relH), 4, 0, Math.PI*2);
-  ctx.strokeStyle = '#444'; ctx.lineWidth = 1; ctx.stroke();
+  ctx.strokeStyle = 'rgba(0,0,0,.35)'; ctx.lineWidth = 1; ctx.stroke();
 
   // Board face + bull
   const boardX = mmToX(dist);
-  ctx.strokeStyle = '#333'; ctx.lineWidth = 2;
+  ctx.strokeStyle = 'rgba(0,0,0,.28)'; ctx.lineWidth = 2;
   ctx.beginPath(); ctx.moveTo(boardX, canvasFloorY); ctx.lineTo(boardX, mmToY(boardH * 1.15)); ctx.stroke();
   ctx.beginPath(); ctx.arc(boardX, mmToY(boardH), 3, 0, Math.PI*2);
-  ctx.fillStyle = 'rgba(255,85,0,.7)'; ctx.fill();
+  ctx.fillStyle = 'rgba(232,87,14,.8)'; ctx.fill();
 
   // The actual parabola
   ctx.beginPath();
@@ -2270,19 +2332,19 @@ function renderThrowArc(canvasId, profile) {
     i === 0 ? ctx.moveTo(px, py) : ctx.lineTo(px, py);
   }
   const grad = ctx.createLinearGradient(ocheX, 0, boardX, 0);
-  grad.addColorStop(0, 'rgba(255,85,0,.85)');
-  grad.addColorStop(1, 'rgba(255,85,0,.3)');
+  grad.addColorStop(0, 'rgba(232,87,14,.9)');
+  grad.addColorStop(1, 'rgba(232,87,14,.35)');
   ctx.strokeStyle = grad; ctx.lineWidth = 1.6; ctx.setLineDash([4, 3]); ctx.stroke();
   ctx.setLineDash([]);
 
   // Release-angle annotation
-  ctx.fillStyle = 'rgba(255,85,0,.6)';
+  ctx.fillStyle = 'rgba(232,87,14,.8)';
   ctx.font = `9px 'Share Tech Mono'`;
   ctx.textAlign = 'left';
   ctx.fillText(`${(profile.releaseAngleDeg || 0).toFixed(1)}° @ ${v} m/s`, ocheX + 12, mmToY(relH) - 8);
 
   // Labels
-  ctx.fillStyle = '#444'; ctx.font = `7px 'Share Tech Mono'`; ctx.textAlign = 'center';
+  ctx.fillStyle = 'rgba(120,113,108,.8)'; ctx.font = `7px 'Share Tech Mono'`; ctx.textAlign = 'center';
   ctx.fillText('OCHE', ocheX, canvasFloorY + 9);
   ctx.fillText('BOARD', boardX, canvasFloorY + 9);
 }
@@ -2328,31 +2390,31 @@ async function renderProfile() {
       </div>
 
       ${p ? `
-      <div class="card fade-in delay-1" style="background:linear-gradient(135deg,#1c1917,#292524);border-color:rgba(232,87,14,.35)">
+      <div class="card fade-in delay-1" style="background:linear-gradient(135deg,#fff8f3,#ffeee1);border-color:rgba(232,87,14,.28)">
         <div class="card-label">⭐ YOUR THEORETICAL PERFECT DART</div>
         <div class="dart-vis-wrap" style="height:110px"><canvas class="dart-vis-canvas-lg" id="profile-perfect-canvas"></canvas></div>
         <div class="ideal-spec-grid" style="margin-top:10px">
-          <div class="ideal-spec" style="background:rgba(255,255,255,.05);border-color:rgba(255,255,255,.1)"><div class="ideal-spec-val" style="color:#fff">${p.ideal_weight}<span style="color:#a8a29e">g</span></div><div class="ideal-spec-label" style="color:#a8a29e">WEIGHT</div></div>
-          <div class="ideal-spec" style="background:rgba(255,255,255,.05);border-color:rgba(255,255,255,.1)"><div class="ideal-spec-val" style="color:#fff">${p.ideal_length_mm}<span style="color:#a8a29e">mm</span></div><div class="ideal-spec-label" style="color:#a8a29e">LENGTH</div></div>
-          <div class="ideal-spec" style="background:rgba(255,255,255,.05);border-color:rgba(255,255,255,.1)"><div class="ideal-spec-val" style="color:#fff">${p.ideal_diameter_mm}<span style="color:#a8a29e">mm</span></div><div class="ideal-spec-label" style="color:#a8a29e">DIAM</div></div>
-          <div class="ideal-spec" style="background:rgba(255,255,255,.05);border-color:rgba(255,255,255,.1)"><div class="ideal-spec-val" style="font-size:12px;color:#fff">${fmtGrip(p.ideal_grip_type)}</div><div class="ideal-spec-label" style="color:#a8a29e">GRIP</div></div>
-          <div class="ideal-spec" style="background:rgba(255,255,255,.05);border-color:rgba(255,255,255,.1)"><div class="ideal-spec-val" style="font-size:13px;color:#fff">${(p.ideal_balance||'').toUpperCase()}</div><div class="ideal-spec-label" style="color:#a8a29e">BALANCE</div></div>
-          <div class="ideal-spec" style="background:rgba(255,255,255,.05);border-color:rgba(255,255,255,.1)"><div class="ideal-spec-val" style="font-size:12px;color:#fff">${(p.ideal_barrel_shape||'').replace('_',' ').toUpperCase()}</div><div class="ideal-spec-label" style="color:#a8a29e">BARREL</div></div>
+          <div class="ideal-spec"><div class="ideal-spec-val">${p.ideal_weight}<span>g</span></div><div class="ideal-spec-label">WEIGHT</div></div>
+          <div class="ideal-spec"><div class="ideal-spec-val">${p.ideal_length_mm}<span>mm</span></div><div class="ideal-spec-label">LENGTH</div></div>
+          <div class="ideal-spec"><div class="ideal-spec-val">${p.ideal_diameter_mm}<span>mm</span></div><div class="ideal-spec-label">DIAM</div></div>
+          <div class="ideal-spec"><div class="ideal-spec-val" style="font-size:12px">${fmtGrip(p.ideal_grip_type)}</div><div class="ideal-spec-label">GRIP</div></div>
+          <div class="ideal-spec"><div class="ideal-spec-val" style="font-size:13px">${(p.ideal_balance||'').toUpperCase()}</div><div class="ideal-spec-label">BALANCE</div></div>
+          <div class="ideal-spec"><div class="ideal-spec-val" style="font-size:12px">${(p.ideal_barrel_shape||'').replace('_',' ').toUpperCase()}</div><div class="ideal-spec-label">BARREL</div></div>
         </div>
-        <div style="font-family:'Share Tech Mono',monospace;font-size:10px;color:#a8a29e;line-height:1.8;margin-top:10px">
-          ${p.ideal_tungsten_pct ? `TUNGSTEN <span style="color:#fff">${p.ideal_tungsten_pct}%+</span> · ` : ''}${p.ideal_shaft_mm ? `SHAFT <span style="color:#fff">${p.ideal_shaft_mm}mm</span> · ` : ''}${p.ideal_flight ? `FLIGHTS <span style="color:#fff">${p.ideal_flight}</span>` : ''}
-          ${p.fit_confidence ? `<br>FIT CONFIDENCE <span style="color:#fff">${p.fit_confidence}%</span>` : ''}
+        <div style="font-family:'Share Tech Mono',monospace;font-size:10px;color:var(--muted);line-height:1.8;margin-top:10px">
+          ${p.ideal_tungsten_pct ? `TUNGSTEN <span style="color:var(--text)">${p.ideal_tungsten_pct}%+</span> · ` : ''}${p.ideal_shaft_mm ? `SHAFT <span style="color:var(--text)">${p.ideal_shaft_mm}mm</span> · ` : ''}${p.ideal_flight ? `FLIGHTS <span style="color:var(--text)">${p.ideal_flight}</span>` : ''}
+          ${p.fit_confidence ? `<br>FIT CONFIDENCE <span style="color:var(--text)">${p.fit_confidence}%</span>` : ''}
           · BEST CATALOG MATCH <span style="color:var(--orange)">${p.top_dart_score != null ? p.top_dart_score + '%' : '—'}</span>
         </div>
-        <div style="background:rgba(232,87,14,.12);border:1px solid rgba(232,87,14,.3);border-radius:10px;padding:10px 12px;margin-top:12px">
-          <div style="font-family:'Inter',sans-serif;font-size:11.5px;color:#e7e5e4;line-height:1.6">
+        <div style="background:rgba(232,87,14,.08);border:1px solid rgba(232,87,14,.25);border-radius:10px;padding:10px 12px;margin-top:12px">
+          <div style="font-family:'Inter',sans-serif;font-size:11.5px;color:var(--text);line-height:1.6">
             🔔 No dart on the market matches this spec 100% yet. We score <b>every new launch</b> against
             it — the moment one lands closer than your current ${p.top_dart_score != null ? p.top_dart_score + '%' : 'best'} (or ≥90%),
             you'll get a <b>perfect-match alert</b>.
           </div>
         </div>
-        <div class="profile-stat" style="margin-top:8px"><span class="profile-stat-label" style="color:#78716c">HEIGHT</span><span class="profile-stat-val" style="color:#e7e5e4">${p.height_cm}cm</span></div>
-        <div class="profile-stat"><span class="profile-stat-label" style="color:#78716c">LAST FITTED</span><span class="profile-stat-val" style="color:#e7e5e4">${new Date(p.created_at).toLocaleDateString('en-GB')}</span></div>
+        <div class="profile-stat" style="margin-top:8px"><span class="profile-stat-label">HEIGHT</span><span class="profile-stat-val">${p.height_cm}cm</span></div>
+        <div class="profile-stat"><span class="profile-stat-label">LAST FITTED</span><span class="profile-stat-val">${new Date(p.created_at).toLocaleDateString('en-GB')}</span></div>
         <div style="height:10px"></div>
         <button class="btn btn-primary" onclick="restartFit()">RE-RUN MY FITTING</button>
       </div>` : `
