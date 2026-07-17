@@ -60,8 +60,8 @@ app.use(helmet({
       // everything else stays locked to self.
       scriptSrc: ["'self'", "'unsafe-inline'", 'https://cdn.jsdelivr.net'],
       scriptSrcAttr: ["'unsafe-inline'"], // the SPA uses inline onclick handlers
-      styleSrc: ["'self'", "'unsafe-inline'", 'https://fonts.googleapis.com'],
-      fontSrc: ["'self'", 'https://fonts.gstatic.com'],
+      styleSrc: ["'self'", "'unsafe-inline'"],   // fonts are self-hosted now
+      fontSrc: ["'self'"],
       imgSrc: ["'self'", 'data:', 'blob:'],
       mediaSrc: ["'self'", 'blob:'],
       connectSrc: ["'self'", 'https://cdn.jsdelivr.net'],
@@ -169,9 +169,13 @@ app.get('/api/auth/me', requireAuth, (req, res) => {
 // ════════════════════════════════════════════════════════════════
 // DARTS & PROS
 // ════════════════════════════════════════════════════════════════
-app.get('/api/darts', (req, res) => res.json(getDarts()));
-app.get('/api/pros',  (req, res) => res.json(getPros()));
+// Catalog reads change only on admin inserts — let clients/CDNs hold
+// them briefly instead of re-fetching on every visit.
+const catalogCacheHeader = (res) => res.set('Cache-Control', 'public, max-age=300');
+app.get('/api/darts', (req, res) => { catalogCacheHeader(res); res.json(getDarts()); });
+app.get('/api/pros',  (req, res) => { catalogCacheHeader(res); res.json(getPros()); });
 app.get('/api/stats', (req, res) => {
+  catalogCacheHeader(res);
   const darts = getDarts();
   res.json({ darts: darts.length, pros: getPros().length, brands: new Set(darts.map(d => d.brand)).size });
 });

@@ -13,10 +13,12 @@
 <link rel="manifest" href="/manifest.json">
 <link rel="icon" type="image/png" href="/favicon.png">
 <link rel="apple-touch-icon" href="/icon-192.png">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@700;800&family=Inter:wght@400;500;600;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+<!-- Fonts are self-hosted (latin subsets, variable files) — no external
+     font CDN in the critical path, works offline, no layout flash -->
+<link rel="preload" href="/fonts/inter-var.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="/fonts/outfit-var.woff2" as="font" type="font/woff2" crossorigin>
+<link href="/fonts.css" rel="stylesheet">
 <style>
 :root{
   --bg:#f8f7f4;--surface:#ffffff;--surface2:#f2f0ec;--border:#e5e1d8;
@@ -363,6 +365,12 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:22px;heigh
 /* Scroll-reveal for result sections */
 .reveal{opacity:0;transform:translateY(18px);transition:opacity .6s ease,transform .6s cubic-bezier(.22,.9,.35,1)}
 .reveal.shown{opacity:1;transform:none}
+
+/* Keyboard focus — visible ring without polluting mouse interaction */
+:focus-visible{outline:2.5px solid var(--orange);outline-offset:2px;border-radius:6px}
+.history-row{display:flex;justify-content:space-between;align-items:center;gap:10px;
+  padding:11px 0;border-bottom:1px solid var(--border);font-family:'Inter',sans-serif}
+.history-row:last-child{border-bottom:none}
 </style>
 <!-- MediaPipe (hands + pose) is loaded lazily when a scan actually starts —
      it is by far the heaviest asset and most visitors reach the questionnaire first -->
@@ -376,7 +384,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:22px;heigh
 </nav>
 
 <!-- TOAST -->
-<div id="toast"></div>
+<div id="toast" role="status" aria-live="polite"></div>
 
 <div id="app">
 
@@ -1820,6 +1828,8 @@ function renderResults() {
            <button class="btn btn-primary" onclick="navigate('auth')" style="margin-bottom:8px">CREATE ACCOUNT</button>
          </div>`}
     <div style="height:8px"></div>
+    <button class="btn btn-ghost" onclick="shareFit()">⤴ SHARE MY FIT</button>
+    <div style="height:8px"></div>
     <button class="btn btn-ghost" onclick="restartFit()">↺ NEW SCAN</button>
     <div style="height:40px"></div>
   `;
@@ -2154,7 +2164,7 @@ window.addEventListener('resize', () => {
 function renderDartCanvas(canvasId, opts, showGhostIdeal, idealOpts) {
   const canvas = document.getElementById(canvasId);
   if (!canvas) return;
-  const dpr = window.devicePixelRatio || 1;
+  const dpr = Math.min(window.devicePixelRatio || 1, 2);
   const W = canvas.offsetWidth;
   const H = canvas.offsetHeight;
   canvas.width  = W * dpr;
@@ -2185,7 +2195,7 @@ function renderDartCanvas(canvasId, opts, showGhostIdeal, idealOpts) {
 function renderDartComparison(canvasId, idealOpts, dartOpts, dartName) {
   const canvas = document.getElementById(canvasId);
   if (!canvas) return;
-  const dpr = window.devicePixelRatio || 1;
+  const dpr = Math.min(window.devicePixelRatio || 1, 2);
   const W = canvas.offsetWidth, H = canvas.offsetHeight;
   canvas.width = W * dpr; canvas.height = H * dpr;
   const ctx = canvas.getContext('2d');
@@ -2329,7 +2339,7 @@ function renderBreakdown(dart, containerId) {
 function renderThrowArc(canvasId, profile) {
   const canvas = document.getElementById(canvasId);
   if (!canvas) return;
-  const dpr = window.devicePixelRatio || 1;
+  const dpr = Math.min(window.devicePixelRatio || 1, 2);
   const W = canvas.offsetWidth; const H = canvas.offsetHeight;
   canvas.width = W * dpr; canvas.height = H * dpr;
   const ctx = canvas.getContext('2d');
@@ -2431,7 +2441,10 @@ async function renderProfile() {
   const container = document.getElementById('profile-content');
   container.innerHTML = `<div style="font-family:'Share Tech Mono',monospace;font-size:11px;color:var(--muted);text-align:center;padding:40px">LOADING...</div>`;
   try {
-    const data = await api('/api/auth/me');
+    const [data, history] = await Promise.all([
+      api('/api/auth/me'),
+      api('/api/fit/history').catch(() => []),
+    ]);
     const p = data.profile;
     container.innerHTML = `
       <div class="section-title fade-in">MY <span>PROFILE</span></div>
@@ -2476,6 +2489,19 @@ async function renderProfile() {
         <div style="font-family:'Share Tech Mono',monospace;font-size:11px;color:var(--muted);letter-spacing:1px;margin-bottom:14px">NO PROFILE YET</div>
         <button class="btn btn-primary" onclick="startFit();navigate('questionnaire')">START FITTING</button>
       </div>`}
+
+      ${Array.isArray(history) && history.length > 1 ? `
+      <div class="section-head">FITTING HISTORY</div>
+      <div class="card fade-in delay-2">
+        ${history.slice(0, 8).map(h => `
+          <div class="history-row">
+            <div>
+              <div style="font-size:13px;font-weight:600;color:var(--text)">${h.ideal_weight}g · ${h.ideal_length_mm}mm · ${fmtGrip(h.ideal_grip_type)}</div>
+              <div style="font-size:11px;color:var(--muted);margin-top:1px">${h.dart_brand ? `${h.dart_brand} ${h.dart_name}` : '—'} · ${new Date(h.created_at).toLocaleDateString('en-GB')}</div>
+            </div>
+            <div style="font-family:'Outfit',sans-serif;font-weight:800;font-size:18px;color:${h.top_dart_score >= 90 ? 'var(--green)' : 'var(--orange)'}">${h.top_dart_score ?? '—'}%</div>
+          </div>`).join('')}
+      </div>` : ''}
 
       <div class="section-head">NOTIFICATIONS</div>
       <div class="notif-toggle fade-in delay-2">
@@ -2527,6 +2553,28 @@ function trackClick(dartId) {
   fetch(`/api/track/click`, { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({dartId}) }).catch(()=>{});
 }
 
+// ─── SHARE ───────────────────────────────────────────────────────
+// Web Share API on mobile, clipboard fallback on desktop.
+async function shareFit() {
+  if (!state.fitResult) return;
+  const { profile, topDart } = state.fitResult;
+  const arch = profile.archetype || {};
+  const text =
+    `${arch.emoji || '🎯'} I throw like ${arch.name || 'a pro'} — DartFit measured my hand and solved my release physics ` +
+    `(${profile.releaseAngleDeg}° at ${profile.releaseSpeedMs} m/s). My perfect dart: ${profile.idealWeight}g ` +
+    `${profile.barrelShape}, and my best real-world match is the ${topDart.brand} ${topDart.name} at ${topDart.matchScore}%. ` +
+    `Find yours:`;
+  const url = location.origin;
+  try {
+    if (navigator.share) {
+      await navigator.share({ title: 'My DartFit result', text, url });
+    } else {
+      await navigator.clipboard.writeText(`${text} ${url}`);
+      toast('Result copied to clipboard!', 'success');
+    }
+  } catch (e) { /* user dismissed the share sheet */ }
+}
+
 function restartFit() {
   state.handMeasurements = null; state.handMeasured = false;
   state.armData = null; state.armFile = null; state.fitResult = null;
@@ -2537,6 +2585,9 @@ function restartFit() {
 
 // ─── BOOT ─────────────────────────────────────────────────────────
 if (state.token && state.user) updateNavbar('home');
+
+// Register the SW early: offline shell + push, independent of opt-in
+if ('serviceWorker' in navigator) navigator.serviceWorker.register('/sw.js').catch(() => {});
 
 document.addEventListener('DOMContentLoaded', () => {
   updateSliderLabel('q-grip','q-grip-val',gripLabels);

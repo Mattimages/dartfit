@@ -22,7 +22,8 @@ dartfit/
 │   └── algorithm.test.js  # 25 unit tests (node --test) — run: npm test
 ├── public/
 │   ├── index.html         # Full SPA frontend (single file, no build step)
-│   ├── sw.js              # Service Worker for push notifications
+│   ├── fonts/ + fonts.css # Self-hosted fonts (latin subsets, variable files)
+│   ├── sw.js              # Service Worker: push + offline app shell (bump CACHE version on asset changes)
 │   ├── manifest.json      # PWA manifest
 │   └── icon-192/512.png   # PWA icons (generated with sharp)
 └── docs/
