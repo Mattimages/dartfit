@@ -246,6 +246,10 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:22px;heigh
 .dart-vis-canvas-lg{position:absolute;inset:0;width:100%;height:100%}
 .dart-compare-wrap{position:relative;width:100%;height:230px;margin-bottom:4px;
   background:linear-gradient(180deg,#faf9f6,#f1efe9);border:1px solid var(--border);border-radius:10px;overflow:hidden}
+@media(max-width:480px){
+  .dart-vis-wrap{height:118px}
+  .dart-compare-wrap{height:196px}
+}
 
 /* ─── THROW ARC (light) ─── */
 .throw-arc-block{background:linear-gradient(180deg,#faf9f6,#f1efe9);border:1px solid var(--border);padding:12px;margin-top:12px;border-radius:10px}
@@ -1955,25 +1959,37 @@ function typeWriter(el, text, speed=16) {
 // Draws a dart silhouette. opts: { weight, length_mm, diameter_mm,
 // barrel_shape, grip_type, balance_point, tungsten_pct, matchScore,
 // ghost: bool (draw as dashed orange outline instead of solid) }
+// Shared geometry: ONE uniform mm→px scale for both axes, capped by the
+// canvas height and centred horizontally. The dart keeps true physical
+// proportions at every canvas size — previously flight/shaft heights were
+// hardcoded pixels, which warped the dart badly on narrow mobile canvases.
+const DART_MM = { tip: 15, shaft: 26, flight: 20, pad: 4, vSpan: 30, rExag: 1.8 };
+function dartGeometry(W, H, length_mm) {
+  const totalMm = DART_MM.tip + length_mm + DART_MM.shaft + DART_MM.flight + DART_MM.pad;
+  const scale = Math.min((W * 0.9) / totalMm, (H * 0.84) / DART_MM.vSpan);
+  const startX = (W - totalMm * scale) / 2;
+  return { totalMm, scale, startX };
+}
+
 function drawDartSilhouette(ctx, W, H, opts, offsetY) {
   const { weight=22, length_mm=50, diameter_mm=6.5, barrel_shape='straight',
           grip_type='medium_knurl', balance_point='middle',
           tungsten_pct=90, ghost=false } = opts;
   const cy = (offsetY || 0) + H / 2;
-  const dpr = window.devicePixelRatio || 1;
 
-  const tipMm=15, shaftMm=26, flightMm=20;
-  const totalMm = tipMm + length_mm + shaftMm + flightMm + 8;
-  const scale = (W * 0.84) / totalMm;
-  const startX = W * 0.08;
-  const maxR = Math.max(2.5, (diameter_mm / 2) * scale * 1.4);
+  const tipMm = DART_MM.tip, shaftMm = DART_MM.shaft, flightMm = DART_MM.flight;
+  // _geom lets the comparison view impose one shared scale + origin so
+  // both darts stay tip-aligned and the length difference reads true.
+  const { scale, startX } = opts._geom || dartGeometry(W, H, length_mm);
+  const maxR = Math.max(2.5, (diameter_mm / 2) * scale * DART_MM.rExag);
 
-  // ── TIP ──
+  // ── TIP ── (1.1mm half-thickness at the barrel, to a point)
+  const tipR = Math.max(1.2, 1.1 * scale);
   if (!ghost) {
     ctx.beginPath();
     ctx.moveTo(startX, cy);
-    ctx.lineTo(startX + tipMm * scale, cy - 2);
-    ctx.lineTo(startX + tipMm * scale, cy + 2);
+    ctx.lineTo(startX + tipMm * scale, cy - tipR);
+    ctx.lineTo(startX + tipMm * scale, cy + tipR);
     ctx.closePath();
     ctx.fillStyle = '#8f8b85';
     ctx.fill();
@@ -1985,10 +2001,10 @@ function drawDartSilhouette(ctx, W, H, opts, offsetY) {
   ctx.beginPath();
   const sh = barrel_shape;
   if (sh === 'teardrop') {
-    ctx.moveTo(bx, cy - 2);
+    ctx.moveTo(bx, cy - tipR);
     ctx.bezierCurveTo(bx + length_mm*scale*.3, cy - maxR, bx + length_mm*scale*.55, cy - maxR, ex, cy - maxR*.45);
     ctx.lineTo(ex, cy + maxR*.45);
-    ctx.bezierCurveTo(bx + length_mm*scale*.55, cy + maxR, bx + length_mm*scale*.3, cy + maxR, bx, cy + 2);
+    ctx.bezierCurveTo(bx + length_mm*scale*.55, cy + maxR, bx + length_mm*scale*.3, cy + maxR, bx, cy + tipR);
   } else if (sh === 'torpedo') {
     const t = maxR * 0.45;
     ctx.moveTo(bx, cy - t);
@@ -2070,30 +2086,69 @@ function drawDartSilhouette(ctx, W, H, opts, offsetY) {
   glow.addColorStop(1, 'rgba(255,85,0,.18)');
   ctx.fillStyle = glow; ctx.fill();
 
-  // ── BALANCE / CoG MARKER ──
+  // ── BALANCE / CoG MARKER ── (size follows the scale)
   const cogX = balance_point === 'front' ? bx + length_mm*scale*.3 :
                balance_point === 'rear'  ? bx + length_mm*scale*.7 : bx + length_mm*scale*.5;
+  const mk = Math.max(3, 1.6 * scale);
   ctx.beginPath();
-  ctx.moveTo(cogX - 4, cy - maxR - 6);
-  ctx.lineTo(cogX + 4, cy - maxR - 6);
+  ctx.moveTo(cogX - mk, cy - maxR - mk * 1.6);
+  ctx.lineTo(cogX + mk, cy - maxR - mk * 1.6);
   ctx.lineTo(cogX, cy - maxR - 1);
   ctx.closePath();
   ctx.fillStyle = 'rgba(255,85,0,.8)'; ctx.fill();
 
-  // ── SHAFT ──
+  // ── SHAFT ── (nylon shaft ≈ 4mm diameter, in true scale)
+  const shR = Math.max(1.4, 2.0 * scale * 0.9);
   ctx.fillStyle = '#4a453f';
-  ctx.fillRect(ex, cy - 2.2, shaftMm * scale, 4.4);
-  ctx.strokeStyle = 'rgba(0,0,0,.15)'; ctx.lineWidth = .5; ctx.strokeRect(ex, cy - 2.2, shaftMm * scale, 4.4);
+  ctx.fillRect(ex, cy - shR, shaftMm * scale, shR * 2);
+  ctx.strokeStyle = 'rgba(0,0,0,.15)'; ctx.lineWidth = .5; ctx.strokeRect(ex, cy - shR, shaftMm * scale, shR * 2);
 
-  // ── FLIGHTS ──
+  // ── FLIGHTS ── (wing tips at ±13mm, roots at ±3mm — all in mm scale)
   const fx = ex + shaftMm * scale;
-  [[cy - 14, cy - 3], [cy + 14, cy + 3]].forEach(([tip, root]) => {
+  const wingTip = 13 * scale, wingRoot = 3 * scale;
+  [[cy - wingTip, cy - wingRoot], [cy + wingTip, cy + wingRoot]].forEach(([tip, root]) => {
     ctx.beginPath(); ctx.moveTo(fx, cy); ctx.lineTo(fx + flightMm * scale, tip);
     ctx.lineTo(fx + 5 * scale, root); ctx.closePath();
     ctx.fillStyle = 'rgba(232,87,14,.75)'; ctx.fill();
     ctx.strokeStyle = 'rgba(232,87,14,.35)'; ctx.lineWidth = .5; ctx.stroke();
   });
 }
+
+// ─── RESPONSIVE REDRAW ───────────────────────────────────────────
+// Canvases are bitmaps: without this, rotating the phone stretches
+// them. Any resize re-renders every dart/physics canvas at the new size.
+let _redrawT = null;
+window.addEventListener('resize', () => {
+  clearTimeout(_redrawT);
+  _redrawT = setTimeout(() => {
+    if (state.fitResult) {
+      const { profile, topDart, budgetDart, valueDart, premiumDart } = state.fitResult;
+      const idealOpts = {
+        weight: profile.idealWeight, length_mm: profile.idealLength,
+        diameter_mm: profile.idealDiameter, barrel_shape: profile.barrelShape,
+        grip_type: profile.idealGripType, balance_point: profile.balance,
+        tungsten_pct: profile.idealTungstenPct || 90,
+      };
+      renderDartCanvas('dart-ideal-canvas', idealOpts);
+      if (topDart) renderDartComparison('dart-match-canvas', idealOpts, {
+        weight: topDart.weight, length_mm: topDart.length_mm, diameter_mm: topDart.diameter_mm,
+        barrel_shape: topDart.barrel_shape, grip_type: topDart.grip_type,
+        balance_point: topDart.balance_point, tungsten_pct: topDart.tungsten_pct,
+      }, `${topDart.brand} ${topDart.name}`);
+      renderThrowArc('throw-arc-canvas', profile);
+      const tiers = [budgetDart, valueDart, premiumDart].filter(Boolean);
+      document.querySelectorAll('canvas.tier-dart-canvas').forEach((c, i) => {
+        const d = tiers[i];
+        if (d) renderDartCanvas(c.id, {
+          weight: d.weight, length_mm: d.length_mm, diameter_mm: d.diameter_mm,
+          barrel_shape: d.barrel_shape, grip_type: d.grip_type,
+          balance_point: d.balance_point, tungsten_pct: d.tungsten_pct,
+        });
+      });
+    }
+    if (state._profilePerfect) renderDartCanvas('profile-perfect-canvas', state._profilePerfect);
+  }, 220);
+});
 
 // ─── DRAW DART ON NAMED CANVAS ───────────────────────────────────
 function renderDartCanvas(canvasId, opts, showGhostIdeal, idealOpts) {
@@ -2138,10 +2193,13 @@ function renderDartComparison(canvasId, idealOpts, dartOpts, dartName) {
   ctx.clearRect(0, 0, W, H);
 
   const rowH = H / 2;
+  // One shared geometry (sized to the longer dart) keeps both rows
+  // tip-aligned at identical scale, so deltas are physically honest.
+  const gShared = dartGeometry(W, rowH, Math.max(idealOpts.length_mm, dartOpts.length_mm));
   // Theoretical perfect dart (top)
-  drawDartSilhouette(ctx, W, rowH, idealOpts, 6);
+  drawDartSilhouette(ctx, W, rowH, { ...idealOpts, _geom: gShared }, 6);
   // Matched real dart (bottom)
-  drawDartSilhouette(ctx, W, rowH, dartOpts, rowH - 6);
+  drawDartSilhouette(ctx, W, rowH, { ...dartOpts, _geom: gShared }, rowH - 6);
 
   // Row labels
   ctx.font = `bold 8px 'Share Tech Mono'`;
@@ -2155,13 +2213,9 @@ function renderDartComparison(canvasId, idealOpts, dartOpts, dartName) {
   ctx.strokeStyle = 'rgba(0,0,0,.07)'; ctx.lineWidth = 1;
   ctx.beginPath(); ctx.moveTo(8, rowH); ctx.lineTo(W - 8, rowH); ctx.stroke();
 
-  // Length-delta guides: vertical dashes at each barrel's end
-  const tipMm = 15, shaftMm = 26, flightMm = 20;
-  const endX = (o) => {
-    const totalMm = tipMm + o.length_mm + shaftMm + flightMm + 8;
-    const scale = (W * 0.84) / totalMm;
-    return W * 0.08 + (tipMm + o.length_mm) * scale;
-  };
+  // Length-delta guides: vertical dashes at each barrel's end,
+  // using the exact shared geometry the silhouettes were drawn with
+  const endX = (o) => gShared.startX + (DART_MM.tip + o.length_mm) * gShared.scale;
   const e1 = endX(idealOpts), e2 = endX(dartOpts);
   if (Math.abs(idealOpts.length_mm - dartOpts.length_mm) >= 1) {
     ctx.setLineDash([3, 3]); ctx.lineWidth = 1;
@@ -2439,11 +2493,14 @@ async function renderProfile() {
       <div style="height:32px"></div>
     `;
     // Render the perfect-dart silhouette from the saved ideal spec
-    if (p) setTimeout(() => renderDartCanvas('profile-perfect-canvas', {
-      weight: p.ideal_weight, length_mm: p.ideal_length_mm, diameter_mm: p.ideal_diameter_mm,
-      barrel_shape: p.ideal_barrel_shape, grip_type: p.ideal_grip_type,
-      balance_point: p.ideal_balance, tungsten_pct: p.ideal_tungsten_pct || 90,
-    }), 60);
+    if (p) {
+      state._profilePerfect = {
+        weight: p.ideal_weight, length_mm: p.ideal_length_mm, diameter_mm: p.ideal_diameter_mm,
+        barrel_shape: p.ideal_barrel_shape, grip_type: p.ideal_grip_type,
+        balance_point: p.ideal_balance, tungsten_pct: p.ideal_tungsten_pct || 90,
+      };
+      setTimeout(() => renderDartCanvas('profile-perfect-canvas', state._profilePerfect), 60);
+    }
   } catch(e) {
     container.innerHTML = `<div style="text-align:center;padding:40px;color:var(--muted)">${e.message}</div>`;
   }
