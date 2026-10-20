@@ -169,7 +169,8 @@ main,
   width: 100%;
   max-width: calc(var(--col) + 2 * var(--s4));
   margin-inline: auto;
-  padding-inline: var(--s4);
+  padding-left: max(var(--s4), env(safe-area-inset-left, 0px));
+  padding-right: max(var(--s4), env(safe-area-inset-right, 0px));
 }
 .site-header {
   display: flex;
@@ -437,6 +438,10 @@ input[type='text'] {
   .sheet {
     margin-inline: 0;
   }
+}
+.sheet.narrow {
+  max-width: 20rem;
+  margin-inline: 0;
 }
 .sheet figcaption {
   font-size: 0.85rem;

@@ -1,6 +1,10 @@
 /** Hash router. Hash routes work on any static host and match the API's magic-link redirects. */
 export type Cleanup = void | (() => void);
-export type View = (root: HTMLElement, params: Record<string, string>, query: URLSearchParams) => Cleanup | Promise<Cleanup>;
+export type View = (
+  root: HTMLElement,
+  params: Record<string, string>,
+  query: URLSearchParams,
+) => Cleanup | Promise<Cleanup>;
 
 const routes: Array<{ re: RegExp; keys: string[]; view: View }> = [];
 let cleanup: (() => void) | null = null;

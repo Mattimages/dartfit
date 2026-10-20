@@ -17,10 +17,12 @@ const nl = {
   'home.how3': 'We zoeken in {n} echte darts, per gewicht, met de specs van de productpagina.',
 
   'scan.title': 'Hand meten',
-  'scan.setup': 'Leg je werphand plat op tafel, vingers gespreid. Leg je bankpas in het kader bovenaan. Houd je telefoon recht erboven.',
+  'scan.setup':
+    'Leg je werphand plat op tafel, vingers gespreid. Leg je bankpas in het kader bovenaan. Houd je telefoon recht erboven.',
   'scan.camera': 'Camera starten',
   'scan.loading': 'Handherkenning laden…',
-  'scan.no_camera': 'We kunnen de camera niet openen. Geef toestemming in je browser, of vul je maat zelf in.',
+  'scan.no_camera':
+    'We kunnen de camera niet openen. Geef toestemming in je browser, of vul je maat zelf in.',
   'scan.no_model': 'De handherkenning laadt niet. Controleer je verbinding, of vul je maat zelf in.',
   'scan.manual': 'Zelf invullen met een liniaal',
   'scan.card_here': 'Pas hier',
@@ -42,7 +44,8 @@ const nl = {
   'scan.tap_fallback': 'Hoeken zelf aanwijzen',
 
   'manual.title': 'Meet je hand zelf',
-  'manual.lead': 'Meet van de plooi in je pols tot de top van je middelvinger, aan de binnenkant van je hand.',
+  'manual.lead':
+    'Meet van de plooi in je pols tot de top van je middelvinger, aan de binnenkant van je hand.',
   'manual.length': 'Handlengte in millimeters',
   'manual.go': 'Verder',
   'manual.range': 'Vul een maat tussen 130 en 240 mm in',
@@ -84,7 +87,8 @@ const nl = {
   'q.thickness.chunky': 'Dik',
   'q.thickness.auto': 'Bepaal jij maar',
   'q.current': 'Heb je nu darts die je kent?',
-  'q.current.lead': 'Dit is de sterkste aanwijzing die er is. Het gewicht staat meestal op de barrel of de verpakking.',
+  'q.current.lead':
+    'Dit is de sterkste aanwijzing die er is. Het gewicht staat meestal op de barrel of de verpakking.',
   'q.current.none': 'Nee',
   'q.current.yes': 'Ja',
   'q.current.weight': 'Gewicht in gram',
@@ -102,8 +106,10 @@ const nl = {
   'r.confidence.high': 'Vrij zeker',
   'r.confidence.medium': 'Redelijk zeker',
   'r.confidence.low': 'Een startpunt',
-  'r.confidence.why.low': 'We weten nog weinig. Geef het gewicht van je huidige darts op, of meet je hand, voor een scherper advies.',
-  'r.confidence.why.medium': 'Probeer de aanbevolen gewichten in de winkel, of geef je huidige darts op voor een scherper advies.',
+  'r.confidence.why.low':
+    'We weten nog weinig. Geef het gewicht van je huidige darts op, of meet je hand, voor een scherper advies.',
+  'r.confidence.why.medium':
+    'Probeer de aanbevolen gewichten in de winkel, of geef je huidige darts op voor een scherper advies.',
   'r.confidence.why.high': 'Je antwoorden en metingen wijzen dezelfde kant op.',
   'r.bands': 'Probeer darts binnen deze maten',
   'r.weight': 'Gewicht',
@@ -137,9 +143,12 @@ const nl = {
   'r.buy': 'Bekijk bij {shop}',
   'r.search': 'Zoek bij {shop}',
   'r.source': 'Specs van de productpagina',
-  'r.disclosure': 'Koop je via deze links, dan kan DartFit een commissie krijgen. Dat verandert je prijs niet en telt niet mee in de ranglijst.',
-  'r.thin': 'Onze catalogus heeft nog geen dart die echt dicht bij je fit zit. Gebruik de maten hierboven in de winkel.',
-  'r.none': 'We hebben nog geen {tip} in de catalogus. De maten hierboven gelden wel; neem ze mee naar de winkel.',
+  'r.disclosure':
+    'Koop je via deze links, dan kan DartFit een commissie krijgen. Dat verandert je prijs niet en telt niet mee in de ranglijst.',
+  'r.thin':
+    'Onze catalogus heeft nog geen dart die echt dicht bij je fit zit. Gebruik de maten hierboven in de winkel.',
+  'r.none':
+    'We hebben nog geen {tip} in de catalogus. De maten hierboven gelden wel; neem ze mee naar de winkel.',
   'r.twin': 'Qua specs zit je het dichtst bij',
   'r.twin.exact': 'Zijn eigen dart: {dart}',
   'r.twin.line': 'Uit zijn signature-lijn: {dart}',
@@ -200,7 +209,7 @@ const nl = {
   'footer.privacy': 'Privacy',
   'footer.method': 'Methode',
   'error.generic': 'Er ging iets mis. Probeer het opnieuw.',
-  'back': 'Terug',
+  back: 'Terug',
   'nav.darts': 'Alle darts',
   'nav.darts.short': 'Darts',
   'home.example': 'Voorbeeld: de ideale barrel voor een hand van 185 mm, drie vingers, middengrip.',
@@ -214,6 +223,14 @@ const nl = {
   'scan.status.tap_needed': 'We vinden je pas niet. Wijs de hoeken zelf aan.',
   'scan.privacy': 'Het camerabeeld blijft op je telefoon. Alleen de maten gaan verder.',
   'scan.tap_count': '{n} van 4 hoeken',
+  'scan.photo': 'Gebruik een foto',
+  'scan.unavailable':
+    'In deze preview kan de camera niet aan. Meet je hand met een liniaal: het duurt een minuut en de fit werkt precies hetzelfde.',
+  'scan.photo.hint':
+    'Leg je hand en pas naast elkaar op tafel en maak de foto recht van boven. Daarna tik je de vier hoeken van de pas aan.',
+  'scan.photo.unreadable': 'Die foto kunnen we niet openen. Probeer een JPG of PNG.',
+  'scan.photo.badcorners':
+    'Die hoeken geven een onmogelijke handmaat. Tik de vier hoeken van de pas opnieuw aan.',
   'scan.tap_failed': 'Dat lukte niet: houd je hand een paar tellen stil in beeld en probeer opnieuw.',
   'scan.detector': 'Handherkenning: {kind}',
   'fitting.title': 'Je fit wordt berekend',
@@ -231,7 +248,8 @@ const nl = {
   'why.diameter_hand': 'Je handmaat: {effect} mm dikte.',
   'why.diameter_default': 'Standaarddikte, want we kennen je hand niet.',
   'why.diameter_current': 'Je huidige barrel is {current} mm dik ({feel}).',
-  'why.physics_adjusted': 'Natuurkunde: {weightFrom} g bij {lengthFrom} × {diameterFrom} mm kan niet. Dichtstbij wat wel kan: {weightTo} g, {lengthTo} × {diameterTo} mm.',
+  'why.physics_adjusted':
+    'Natuurkunde: {weightFrom} g bij {lengthFrom} × {diameterFrom} mm kan niet. Dichtstbij wat wel kan: {weightTo} g, {lengthTo} × {diameterTo} mm.',
   'why.physics_tungsten': 'Zo zwaar in deze maat kan alleen met {pct}% tungsten.',
   'why.grip_feel': 'Je wilt grip {feel} van 5.',
   'why.grip_moisture': '{moisture} handen: {effect} stap grip.',
@@ -239,7 +257,8 @@ const nl = {
   'why.balance_hold': 'Je pakt hem {hold}: {balance}.',
   'why.balance_current': 'Je huidige dart voelt goed: richting {balance}.',
   'r.ideal.title': 'Je ideale barrel',
-  'r.ideal.lead': 'Deze barrel zouden we voor jou laten draaien: {L} mm lang, {D} mm op het dikste punt, {g} gram. Het zwaartepunt ligt {cog} mm achter de punt, waar je grip het wil hebben.',
+  'r.ideal.lead':
+    'Deze barrel zouden we voor jou laten draaien: {L} mm lang, {D} mm op het dikste punt, {g} gram. Het zwaartepunt ligt {cog} mm achter de punt, waar je grip het wil hebben.',
   'r.ideal.compare': 'De groene lijn is je beste match, op dezelfde schaal.',
   'r.setup.title': 'Shaft, flight en punt',
   'r.setup.shaft': 'Shaft',
@@ -262,7 +281,8 @@ const nl = {
   'r.match.lead': 'Uit {n} darts in de catalogus, per gewicht.',
   'r.flagged': '{n} dart(s) overgeslagen omdat het opgegeven gewicht niet klopt met de maten.',
   'darts.title': 'Alle darts',
-  'darts.lead': '{n} varianten van {m} modellen. Elke regel komt van een productpagina; de controledatum staat erbij.',
+  'darts.lead':
+    '{n} varianten van {m} modellen. Elke regel komt van een productpagina; de controledatum staat erbij.',
   'darts.check': 'Gewicht past niet bij de maten; wordt opnieuw gecontroleerd',
   'darts.search': 'Zoek op merk, speler of naam',
   'darts.col.dart': 'Dart',
@@ -321,7 +341,8 @@ const en: Record<Key, string> = {
   'home.how3': 'We search {n} real darts, weight by weight, with specs from the product page.',
 
   'scan.title': 'Measure your hand',
-  'scan.setup': 'Lay your throwing hand flat on a table, fingers spread. Put your bank card in the frame at the top. Hold your phone straight above.',
+  'scan.setup':
+    'Lay your throwing hand flat on a table, fingers spread. Put your bank card in the frame at the top. Hold your phone straight above.',
   'scan.camera': 'Start camera',
   'scan.loading': 'Loading hand recognition…',
   'scan.no_camera': 'We can’t open the camera. Allow it in your browser, or enter your size yourself.',
@@ -388,7 +409,8 @@ const en: Record<Key, string> = {
   'q.thickness.chunky': 'Chunky',
   'q.thickness.auto': 'You decide',
   'q.current': 'Do you have darts you know well?',
-  'q.current.lead': 'This is the strongest clue there is. The weight is usually printed on the barrel or the box.',
+  'q.current.lead':
+    'This is the strongest clue there is. The weight is usually printed on the barrel or the box.',
   'q.current.none': 'No',
   'q.current.yes': 'Yes',
   'q.current.weight': 'Weight in grams',
@@ -406,8 +428,10 @@ const en: Record<Key, string> = {
   'r.confidence.high': 'Fairly sure',
   'r.confidence.medium': 'Reasonably sure',
   'r.confidence.low': 'A starting point',
-  'r.confidence.why.low': 'We know little so far. Add the weight of your current darts, or measure your hand, for sharper advice.',
-  'r.confidence.why.medium': 'Try the suggested weights in a shop, or add your current darts for sharper advice.',
+  'r.confidence.why.low':
+    'We know little so far. Add the weight of your current darts, or measure your hand, for sharper advice.',
+  'r.confidence.why.medium':
+    'Try the suggested weights in a shop, or add your current darts for sharper advice.',
   'r.confidence.why.high': 'Your answers and measurements point the same way.',
   'r.bands': 'Try darts within these sizes',
   'r.weight': 'Weight',
@@ -441,8 +465,10 @@ const en: Record<Key, string> = {
   'r.buy': 'View at {shop}',
   'r.search': 'Search {shop}',
   'r.source': 'Specs from the product page',
-  'r.disclosure': 'If you buy through these links, DartFit may earn a commission. It doesn’t change your price and never affects the ranking.',
-  'r.thin': 'Our catalogue has no dart that sits really close to your fit yet. Take the sizes above to a shop.',
+  'r.disclosure':
+    'If you buy through these links, DartFit may earn a commission. It doesn’t change your price and never affects the ranking.',
+  'r.thin':
+    'Our catalogue has no dart that sits really close to your fit yet. Take the sizes above to a shop.',
   'r.none': 'We have no {tip} in the catalogue yet. The sizes above still apply; take them to a shop.',
   'r.twin': 'On specs you are closest to',
   'r.twin.exact': 'His own dart: {dart}',
@@ -504,7 +530,7 @@ const en: Record<Key, string> = {
   'footer.privacy': 'Privacy',
   'footer.method': 'Method',
   'error.generic': 'Something went wrong. Try again.',
-  'back': 'Back',
+  back: 'Back',
   'nav.darts': 'All darts',
   'nav.darts.short': 'Darts',
   'home.example': 'Example: the ideal barrel for a 185 mm hand, three fingers, middle grip.',
@@ -518,6 +544,14 @@ const en: Record<Key, string> = {
   'scan.status.tap_needed': 'We can’t find your card. Point out its corners yourself.',
   'scan.privacy': 'The camera image stays on your phone. Only the measurements go further.',
   'scan.tap_count': '{n} of 4 corners',
+  'scan.photo': 'Use a photo',
+  'scan.unavailable':
+    'The camera can’t run in this preview. Measure your hand with a ruler: it takes a minute and the fit works exactly the same.',
+  'scan.photo.hint':
+    'Lay your hand and card side by side on a table and take the photo straight from above. Then tap the four corners of the card.',
+  'scan.photo.unreadable': 'We can’t open that photo. Try a JPG or PNG.',
+  'scan.photo.badcorners':
+    'Those corners give an impossible hand size. Tap the four corners of the card again.',
   'scan.tap_failed': 'That didn’t work: keep your hand still in view for a few seconds and try again.',
   'scan.detector': 'Hand recognition: {kind}',
   'fitting.title': 'Working out your fit',
@@ -535,7 +569,8 @@ const en: Record<Key, string> = {
   'why.diameter_hand': 'Your hand size: {effect} mm thickness.',
   'why.diameter_default': 'Standard thickness, as we don’t know your hand.',
   'why.diameter_current': 'Your current barrel is {current} mm thick ({feel}).',
-  'why.physics_adjusted': 'Physics: {weightFrom} g at {lengthFrom} × {diameterFrom} mm can’t be made. Closest that can: {weightTo} g, {lengthTo} × {diameterTo} mm.',
+  'why.physics_adjusted':
+    'Physics: {weightFrom} g at {lengthFrom} × {diameterFrom} mm can’t be made. Closest that can: {weightTo} g, {lengthTo} × {diameterTo} mm.',
   'why.physics_tungsten': 'That weight in that size needs {pct}% tungsten.',
   'why.grip_feel': 'You want grip {feel} of 5.',
   'why.grip_moisture': '{moisture} hands: {effect} grip step.',
@@ -543,7 +578,8 @@ const en: Record<Key, string> = {
   'why.balance_hold': 'You hold it {hold}: {balance}.',
   'why.balance_current': 'Your current dart feels right: towards {balance}.',
   'r.ideal.title': 'Your ideal barrel',
-  'r.ideal.lead': 'This is the barrel we would have turned for you: {L} mm long, {D} mm at its thickest, {g} grams. Its centre of gravity sits {cog} mm behind the point, where your grip wants it.',
+  'r.ideal.lead':
+    'This is the barrel we would have turned for you: {L} mm long, {D} mm at its thickest, {g} grams. Its centre of gravity sits {cog} mm behind the point, where your grip wants it.',
   'r.ideal.compare': 'The green line is your best match, at the same scale.',
   'r.setup.title': 'Shaft, flight and point',
   'r.setup.shaft': 'Shaft',
@@ -566,7 +602,8 @@ const en: Record<Key, string> = {
   'r.match.lead': 'From {n} darts in the catalogue, weight by weight.',
   'r.flagged': '{n} dart(s) skipped because the listed weight doesn’t fit the listed size.',
   'darts.title': 'All darts',
-  'darts.lead': '{n} variants of {m} models. Every row comes from a product page; the date it was checked is shown.',
+  'darts.lead':
+    '{n} variants of {m} models. Every row comes from a product page; the date it was checked is shown.',
   'darts.check': 'Weight doesn’t fit the listed size; being re-checked',
   'darts.search': 'Search by brand, player or name',
   'darts.col.dart': 'Dart',

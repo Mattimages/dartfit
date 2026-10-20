@@ -81,9 +81,16 @@ function loadScript(src: string): Promise<void> {
 async function legacyBackend(): Promise<HandDetector> {
   const dir = `${base}mediapipe/hands/`;
   await loadScript(`${dir}hands.js`);
-  const Ctor = (globalThis as unknown as { Hands: new (o: { locateFile: (f: string) => string }) => LegacyHands }).Hands;
+  const Ctor = (
+    globalThis as unknown as { Hands: new (o: { locateFile: (f: string) => string }) => LegacyHands }
+  ).Hands;
   const hands = new Ctor({ locateFile: (f) => `${dir}${f}` });
-  hands.setOptions({ maxNumHands: 1, modelComplexity: 1, minDetectionConfidence: 0.6, minTrackingConfidence: 0.5 });
+  hands.setOptions({
+    maxNumHands: 1,
+    modelComplexity: 1,
+    minDetectionConfidence: 0.6,
+    minTrackingConfidence: 0.5,
+  });
   let latest: Landmark[] | null = null;
   hands.onResults((r) => {
     latest = r.multiHandLandmarks?.[0] ?? null;

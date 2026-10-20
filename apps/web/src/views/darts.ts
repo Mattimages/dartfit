@@ -6,7 +6,12 @@ import { balanceName, dartName, material, shapeName } from './words';
 export function dartsView(root: HTMLElement) {
   const all = [...variants()].sort((a, b) => dartName(a).localeCompare(dartName(b)) || a.weightG - b.weightG);
   const models = new Set(all.map((v) => v.modelId)).size;
-  const q = h('input', { type: 'search', id: 'q', placeholder: t('darts.search'), autocomplete: 'off' }) as HTMLInputElement;
+  const q = h('input', {
+    type: 'search',
+    id: 'q',
+    placeholder: t('darts.search'),
+    autocomplete: 'off',
+  }) as HTMLInputElement;
   const body = h('tbody');
   const render = () => {
     const s = q.value.trim().toLowerCase();

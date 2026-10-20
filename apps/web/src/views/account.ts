@@ -6,7 +6,12 @@ import { DEMO, deleteAccount, logout, me, requestLogin, setOptins } from '../api
 export function signinView(root: HTMLElement, _p: Record<string, string>, query: URLSearchParams) {
   if (DEMO) return go('/');
   const fitId = query.get('fit') ?? undefined;
-  const email = h('input', { type: 'email', id: 'email', autocomplete: 'email', required: true }) as HTMLInputElement;
+  const email = h('input', {
+    type: 'email',
+    id: 'email',
+    autocomplete: 'email',
+    required: true,
+  }) as HTMLInputElement;
   const box = (id: string, label: string) =>
     h('label', { class: 'check', for: id }, h('input', { type: 'checkbox', id }), h('span', null, label));
   const alerts = box('alerts', t('signin.alerts'));
@@ -35,7 +40,13 @@ export function signinView(root: HTMLElement, _p: Record<string, string>, query:
       return;
     }
     try {
-      await requestLogin({ email: email.value, fitId, alertsEmail: checked(alerts), feedbackEmail: checked(feedback), confirmsAge16: true });
+      await requestLogin({
+        email: email.value,
+        fitId,
+        alertsEmail: checked(alerts),
+        feedbackEmail: checked(feedback),
+        confirmsAge16: true,
+      });
       msg.className = '';
       msg.textContent = t('signin.sent');
     } catch {
@@ -43,7 +54,15 @@ export function signinView(root: HTMLElement, _p: Record<string, string>, query:
       msg.textContent = t('signin.error');
     }
   });
-  root.append(h('section', { class: 'stack' }, h('h1', null, t('signin.title')), h('p', { class: 'lead' }, t('signin.lead')), form));
+  root.append(
+    h(
+      'section',
+      { class: 'stack' },
+      h('h1', null, t('signin.title')),
+      h('p', { class: 'lead' }, t('signin.lead')),
+      form,
+    ),
+  );
 }
 
 export async function meView(root: HTMLElement) {
@@ -79,13 +98,27 @@ export async function meView(root: HTMLElement) {
             'ul',
             { class: 'whatif' },
             ...fits.map((f) =>
-              h('li', null, h('a', { href: `#/fit/${f.id}` }, `${new Date(f.created_at).toLocaleDateString()} · ${f.brand ?? ''} ${f.name ?? ''} ${f.weight_g ? `${f.weight_g} g` : ''}`)),
+              h(
+                'li',
+                null,
+                h(
+                  'a',
+                  { href: `#/fit/${f.id}` },
+                  `${new Date(f.created_at).toLocaleDateString()} · ${f.brand ?? ''} ${f.name ?? ''} ${f.weight_g ? `${f.weight_g} g` : ''}`,
+                ),
+              ),
             ),
           )
         : h('p', null, t('me.empty')),
       toggle('al', t('me.alerts'), u.alerts_email, 'alertsEmail'),
       toggle('fb', t('me.feedback'), u.feedback_email, 'feedbackEmail'),
-      h('div', { class: 'actions' }, h('a', { class: 'btn ghost', href: '/api/me/export' }, t('me.export')), del, out),
+      h(
+        'div',
+        { class: 'actions' },
+        h('a', { class: 'btn ghost', href: '/api/me/export' }, t('me.export')),
+        del,
+        out,
+      ),
     ),
   );
 }

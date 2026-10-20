@@ -4,7 +4,23 @@ type Attrs = Record<string, string | number | boolean | null | undefined | Event
 
 const SVG_NS = 'http://www.w3.org/2000/svg';
 const SVG_TAGS = new Set([
-  'svg', 'g', 'path', 'line', 'rect', 'circle', 'ellipse', 'polygon', 'polyline', 'text', 'tspan', 'defs', 'marker', 'pattern', 'clipPath', 'title', 'use',
+  'svg',
+  'g',
+  'path',
+  'line',
+  'rect',
+  'circle',
+  'ellipse',
+  'polygon',
+  'polyline',
+  'text',
+  'tspan',
+  'defs',
+  'marker',
+  'pattern',
+  'clipPath',
+  'title',
+  'use',
 ]);
 
 function append(el: Element, c: Child) {
@@ -28,7 +44,8 @@ export function h(tag: string, attrs: Attrs | null = null, ...children: Child[])
   return el as HTMLElement;
 }
 
-export const s = (tag: string, attrs: Attrs | null = null, ...children: Child[]) => h(tag, attrs, ...children) as unknown as SVGElement;
+export const s = (tag: string, attrs: Attrs | null = null, ...children: Child[]) =>
+  h(tag, attrs, ...children) as unknown as SVGElement;
 
 export function mount(root: Element, ...nodes: Child[]) {
   root.replaceChildren();

@@ -29,7 +29,8 @@
     "catalogue:check": "tsx packages/catalogue/src/check.ts",
     "personas": "tsx scripts/persona-report.ts",
     "calibrate": "tsx scripts/calibrate.ts",
-    "fetch-model": "node scripts/fetch-model.mjs"
+    "fetch-model": "node scripts/fetch-model.mjs",
+    "build:preview": "node scripts/build-preview.mjs"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",

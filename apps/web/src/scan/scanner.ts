@@ -173,7 +173,10 @@ export class Scanner {
         this.view.status('overlap', this.frames.length / NEEDED);
         continue;
       }
-      if (this.tilt && (Math.abs(this.tilt.beta) > MAX_TILT_DEG || Math.abs(this.tilt.gamma) > MAX_TILT_DEG)) {
+      if (
+        this.tilt &&
+        (Math.abs(this.tilt.beta) > MAX_TILT_DEG || Math.abs(this.tilt.gamma) > MAX_TILT_DEG)
+      ) {
         this.view.status('phone_tilt', this.frames.length / NEEDED);
         continue;
       }
@@ -220,4 +223,33 @@ export class Scanner {
     this.view.status('done', 1);
     this.view.done(r);
   }
+}
+
+/**
+ * One still photo: landmarks from the detector plus the four card corners tapped by the player
+ * (pixels of that photo). A single frame has no spread to measure, so a conservative 2 mm is used.
+ */
+export function measureStill(
+  lm: Landmark[],
+  w: number,
+  h: number,
+  corners: [Pt, Pt, Pt, Pt],
+): ScanResult | null {
+  const mm = landmarksToMm(lm, w, h, cardHomography(corners));
+  const d = calibrate(handDimensionsFromMm(mm), calibration);
+  if (d.handLength < 120 || d.handLength > 260 || d.palmWidth < 40 || d.palmWidth > 140) return null;
+  const r1 = (x: number) => Number(x.toFixed(1));
+  return {
+    measurements: {
+      handLengthMm: r1(d.handLength),
+      palmWidthMm: r1(d.palmWidth),
+      indexLengthMm: r1(d.indexLength),
+      middleLengthMm: r1(d.middleLength),
+      thumbIndexSpanMm: r1(d.thumbIndexSpan),
+      spreadMm: 2,
+      samples: 3,
+      calibrated: calibration.calibrated,
+    },
+    landmarksMm: mm,
+  };
 }

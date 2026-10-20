@@ -27,7 +27,9 @@ export function bandRow(b: BandSpec): HTMLElement {
     s('line', { class: 'track', x1: pad, x2: W - pad, y1: 12, y2: 12 }),
     ...b.ticks.map((tk) => s('line', { class: 'tick', x1: X(tk), x2: X(tk), y1: 7, y2: 17 })),
     s('rect', { class: 'bandrect', x: x - (w === minW ? minW / 2 : 0), y: 5, width: w, height: 14, rx: 2 }),
-    b.match !== undefined && b.match !== null ? s('circle', { class: 'dot-match', cx: X(b.match), cy: 12, r: 5 }) : null,
+    b.match !== undefined && b.match !== null
+      ? s('circle', { class: 'dot-match', cx: X(b.match), cy: 12, r: 5 })
+      : null,
   );
   const labels = h(
     'div',
@@ -35,11 +37,17 @@ export function bandRow(b: BandSpec): HTMLElement {
     h('span', null, `${num(b.scale[0], b.digits ?? 0)} ${b.unit}`),
     h('span', null, `${num(b.scale[1], b.digits ?? 0)} ${b.unit}`),
   );
-  const value = lo === hi ? `${num(lo, b.digits ?? 0)}` : `${num(lo, b.digits ?? 0)}–${num(hi, b.digits ?? 0)}`;
+  const value =
+    lo === hi ? `${num(lo, b.digits ?? 0)}` : `${num(lo, b.digits ?? 0)}–${num(hi, b.digits ?? 0)}`;
   return h(
     'div',
     { class: 'bandrow' },
-    h('div', { class: 'top' }, h('span', null, b.label), h('b', { class: 'num' }, `${value} ${b.unit}`.trim())),
+    h(
+      'div',
+      { class: 'top' },
+      h('span', null, b.label),
+      h('b', { class: 'num' }, `${value} ${b.unit}`.trim()),
+    ),
     svg,
     labels,
     b.why ? h('p', { class: 'why' }, b.why) : null,

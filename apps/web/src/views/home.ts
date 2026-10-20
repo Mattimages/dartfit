@@ -19,7 +19,15 @@ function example() {
       samples: 18,
       calibrated: false,
     },
-    { tip: 'steel', hold: 'middle', fingers: 3, throwStyle: 'unsure', moisture: 'normal', gripFeel: 3, thickness: 'auto' },
+    {
+      tip: 'steel',
+      hold: 'middle',
+      fingers: 3,
+      throwStyle: 'unsure',
+      moisture: 'normal',
+      gripFeel: 3,
+      thickness: 'auto',
+    },
   );
   return dartDrawing({
     ideal: f.barrel,

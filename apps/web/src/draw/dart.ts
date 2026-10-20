@@ -51,14 +51,24 @@ function arrow(x1: number, y1: number, x2: number, y2: number, cls = 'dim'): SVG
     const w = 0.42;
     return `M${x},${y}L${x - l * Math.cos(dir - w)},${y - l * Math.sin(dir - w)}M${x},${y}L${x - l * Math.cos(dir + w)},${y - l * Math.sin(dir + w)}`;
   };
-  return s('path', { class: cls, d: `M${x1},${y1}L${x2},${y2}${head(x2, y2, a)}${head(x1, y1, a + Math.PI)}` });
+  return s('path', {
+    class: cls,
+    d: `M${x1},${y1}L${x2},${y2}${head(x2, y2, a)}${head(x1, y1, a + Math.PI)}`,
+  });
 }
 
 function line(x1: number, y1: number, x2: number, y2: number, cls: string, style?: string): SVGElement {
   return s('line', { x1, y1, x2, y2, class: cls, style });
 }
 
-function text(x: number, y: number, str: string, cls: string, anchor: 'start' | 'middle' | 'end' = 'middle', style?: string) {
+function text(
+  x: number,
+  y: number,
+  str: string,
+  cls: string,
+  anchor: 'start' | 'middle' | 'end' = 'middle',
+  style?: string,
+) {
   return s('text', { x, y, class: cls, 'text-anchor': anchor, style }, str);
 }
 
@@ -112,7 +122,9 @@ export function dartDrawing(o: DrawingOptions): SVGElement {
     'g',
     { class: 'cog', style: d(1.0) },
     s('circle', { cx, cy, r: cr, fill: 'var(--paper)', stroke: 'var(--ink)', 'stroke-width': 1.2 }),
-    s('path', { d: `M${cx},${cy}L${cx + cr},${cy}A${cr},${cr} 0 0 1 ${cx},${cy + cr}Z M${cx},${cy}L${cx - cr},${cy}A${cr},${cr} 0 0 1 ${cx},${cy - cr}Z` }),
+    s('path', {
+      d: `M${cx},${cy}L${cx + cr},${cy}A${cr},${cr} 0 0 1 ${cx},${cy + cr}Z M${cx},${cy}L${cx - cr},${cy}A${cr},${cr} 0 0 1 ${cx},${cy - cr}Z`,
+    }),
   );
 
   // Dimensions.
@@ -130,7 +142,14 @@ export function dartDrawing(o: DrawingOptions): SVGElement {
     line(xEnd, cy + rMax + 4, xEnd, yLen + 6, 'dim', d(0.2)),
     s('g', { style: d(0.3) }, arrow(x0, yLen, xEnd, yLen)),
     text((x0 + xEnd) / 2, yLen - 6, `${num(b.lengthMm)} mm`, 'dimtext', 'middle', d(0.3)),
-    text((x0 + xEnd) / 2, yLen + 18, t('draw.band', { lo: num(o.lengthBand[0]), hi: num(o.lengthBand[1]) }), 'note', 'middle', d(0.3)),
+    text(
+      (x0 + xEnd) / 2,
+      yLen + 18,
+      t('draw.band', { lo: num(o.lengthBand[0]), hi: num(o.lengthBand[1]) }),
+      'note',
+      'middle',
+      d(0.3),
+    ),
     // diameter, vertical across the thickest point
     s('g', { style: d(0.5) }, arrow(xMaxPos, cy - rMax, xMaxPos, cy + rMax)),
     text(dTextX, cy - rMax - 8, `Ø ${num(b.diameterMm)}`, 'dimtext', dAnchor, d(0.5)),
@@ -156,7 +175,9 @@ export function dartDrawing(o: DrawingOptions): SVGElement {
     s('path', { class: 'band', d: barrelPath(lo, x0, cy, k) }),
     s('path', { class: 'ideal', d: barrelPath(ideal, x0, cy, k), style: `${d(0)};--len:1600` }),
     s('g', null, ...rings),
-    o.match ? s('path', { class: 'match', d: barrelPath(o.match, x0, cy, k), style: `${d(1.2)};--len:1600` }) : null,
+    o.match
+      ? s('path', { class: 'match', d: barrelPath(o.match, x0, cy, k), style: `${d(1.2)};--len:1600` })
+      : null,
     cog,
     dims,
   ];

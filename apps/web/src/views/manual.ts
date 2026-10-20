@@ -8,7 +8,15 @@ import { update } from '../store';
  * scaled from typical hand proportions, so the spread is set wide and confidence stays modest.
  */
 export function manualView(root: HTMLElement) {
-  const input = h('input', { id: 'hl', type: 'number', inputmode: 'numeric', min: 130, max: 240, step: 1, required: true }) as HTMLInputElement;
+  const input = h('input', {
+    id: 'hl',
+    type: 'number',
+    inputmode: 'numeric',
+    min: 130,
+    max: 240,
+    step: 1,
+    required: true,
+  }) as HTMLInputElement;
   const err = h('p', { class: 'error', role: 'alert', hidden: true }, t('manual.range'));
   const form = h(
     'form',
@@ -42,5 +50,13 @@ export function manualView(root: HTMLElement) {
     });
     go('/questions');
   });
-  root.append(h('section', { class: 'stack' }, h('h1', null, t('manual.title')), h('p', { class: 'lead' }, t('manual.lead')), form));
+  root.append(
+    h(
+      'section',
+      { class: 'stack' },
+      h('h1', null, t('manual.title')),
+      h('p', { class: 'lead' }, t('manual.lead')),
+      form,
+    ),
+  );
 }

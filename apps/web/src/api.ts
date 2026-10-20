@@ -156,7 +156,11 @@ export async function getFit(id: string): Promise<FitResult> {
   return json<FitResult>(`/api/fit/${encodeURIComponent(id)}`);
 }
 
-export async function explain(r: FitResult, pick: Pick, lang: Lang): Promise<{ text: string; source: 'ai' | 'template' }> {
+export async function explain(
+  r: FitResult,
+  pick: Pick,
+  lang: Lang,
+): Promise<{ text: string; source: 'ai' | 'template' }> {
   if (DEMO || !r.id || r.id === 'local') {
     const m = r.measurements ?? null;
     const input = buildExplainInput(
@@ -169,12 +173,29 @@ export async function explain(r: FitResult, pick: Pick, lang: Lang): Promise<{ t
     );
     return { text: templateExplanation(input), source: 'template' };
   }
-  return json('/api/explain', { method: 'POST', body: JSON.stringify({ fitId: r.id, variantId: pick.variant.id, lang }) });
+  return json('/api/explain', {
+    method: 'POST',
+    body: JSON.stringify({ fitId: r.id, variantId: pick.variant.id, lang }),
+  });
 }
 
 export interface Me {
-  user: null | { id: string; email: string; lang: Lang; alerts_email: boolean; alerts_push: boolean; feedback_email: boolean; admin?: boolean };
-  fits?: Array<{ id: string; created_at: string; brand: string | null; name: string | null; weight_g: number | null }>;
+  user: null | {
+    id: string;
+    email: string;
+    lang: Lang;
+    alerts_email: boolean;
+    alerts_push: boolean;
+    feedback_email: boolean;
+    admin?: boolean;
+  };
+  fits?: Array<{
+    id: string;
+    created_at: string;
+    brand: string | null;
+    name: string | null;
+    weight_g: number | null;
+  }>;
 }
 
 export const me = (): Promise<Me> => (DEMO ? Promise.resolve({ user: null }) : json<Me>('/api/me'));
