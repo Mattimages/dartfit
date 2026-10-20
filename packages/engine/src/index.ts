@@ -1,0 +1,9 @@
+export * from './types.js';
+export { config, provenance, provenanceOf, numericLeaves, ENGINE_VERSION } from './config.js';
+export { fit, combine, handTier } from './fit.js';
+export { recommend, scoreVariant, proTwin, sensitivity, qualityOf, topShape } from './match.js';
+export type { RecommendOptions, ProTwin, WhatIf } from './match.js';
+export * from './measure.js';
+export * from './vision.js';
+export { allowedNumbers, findUnsupportedNumbers, templateExplanation, buildExplainInput } from './explain.js';
+export type { ExplainInput, Lang } from './explain.js';

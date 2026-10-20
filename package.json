@@ -1,0 +1,47 @@
+{
+  "name": "dartfit",
+  "private": true,
+  "version": "2.0.0",
+  "description": "Measure your throwing hand next to a bank card and get darts fitted to your grip. NL/EN.",
+  "type": "module",
+  "workspaces": [
+    "packages/engine",
+    "packages/catalogue",
+    "apps/api",
+    "apps/web"
+  ],
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "dev": "npm run dev -w @dartfit/web",
+    "dev:api": "npm run dev -w @dartfit/api",
+    "build": "npm run build -w @dartfit/web",
+    "build:demo": "npm run build:demo -w @dartfit/web",
+    "start": "npm run start -w @dartfit/api",
+    "migrate": "npm run migrate -w @dartfit/api",
+    "worker": "npm run worker -w @dartfit/api",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "typecheck": "tsc -p tsconfig.json",
+    "lint": "eslint .",
+    "format": "prettier --write .",
+    "catalogue:check": "tsx packages/catalogue/src/check.ts",
+    "personas": "tsx scripts/persona-report.ts",
+    "calibrate": "tsx scripts/calibrate.ts"
+  },
+  "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "@types/node": "^26.6.5",
+    "@types/supertest": "^7.2.1",
+    "@vitest/coverage-v8": "^5.0.5",
+    "eslint": "^10.13.0",
+    "fast-check": "^4.10.2",
+    "prettier": "^3.9.10",
+    "supertest": "^7.3.1",
+    "tsx": "^4.23.15",
+    "typescript": "^5.9.3",
+    "typescript-eslint": "^8.71.2",
+    "vitest": "^5.0.5"
+  }
+}

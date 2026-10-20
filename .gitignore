@@ -1,0 +1,9 @@
+node_modules/
+dist/
+.env
+*.log
+.data/
+coverage/
+apps/web/public/mediapipe/
+apps/web/public/models/*.task
+.DS_Store

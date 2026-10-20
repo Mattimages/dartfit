@@ -1,0 +1,45 @@
+{
+  "_note": "Search templates are used when no verified product page exists for a country. {q} is the URL-encoded dart name. Affiliate wrapping is applied server-side from environment variables; until those are set, links go out untagged. Check every template against the retailer's partner dashboard before relying on it.",
+  "retailers": [
+    {
+      "id": "azdarts",
+      "name": "A-Z Darts",
+      "countries": ["*"],
+      "kind": "product",
+      "currency": "USD",
+      "affiliateEnv": null
+    },
+    {
+      "id": "bol",
+      "name": "bol.com",
+      "countries": ["NL", "BE"],
+      "kind": "search",
+      "searchTemplate": "https://www.bol.com/nl/nl/s/?searchtext={q}",
+      "affiliateEnv": "BOL_PARTNER_SITE_ID"
+    },
+    {
+      "id": "amazon_de",
+      "name": "Amazon.de",
+      "countries": ["DE", "AT"],
+      "kind": "search",
+      "searchTemplate": "https://www.amazon.de/s?k={q}",
+      "affiliateEnv": "AMAZON_TAG_DE"
+    },
+    {
+      "id": "amazon_uk",
+      "name": "Amazon.co.uk",
+      "countries": ["GB", "IE"],
+      "kind": "search",
+      "searchTemplate": "https://www.amazon.co.uk/s?k={q}",
+      "affiliateEnv": "AMAZON_TAG_UK"
+    },
+    {
+      "id": "amazon_nl",
+      "name": "Amazon.nl",
+      "countries": ["NL"],
+      "kind": "search",
+      "searchTemplate": "https://www.amazon.nl/s?k={q}",
+      "affiliateEnv": "AMAZON_TAG_NL"
+    }
+  ]
+}
