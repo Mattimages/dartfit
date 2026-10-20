@@ -116,7 +116,7 @@ const range = (lang: Lang, [a, b]: [number, number], unit: string) =>
 const T = {
   nl: {
     hold: { front: 'vooraan', middle: 'in het midden', rear: 'achteraan' },
-    balance: { front: 'voorzwaar', centre: 'in balans', rear: 'achterzwaar' },
+    balance: { front: 'met het gewicht naar voren', centre: 'in balans', rear: 'met het gewicht naar achteren' },
     shape: { straight: 'rechte', torpedo: 'torpedo', tapered: 'taps toelopende', bomb: 'bom', scalloped: 'getailleerde' },
     shaft: { short: 'korte', inbetween: 'tussenmaat', medium: 'medium' },
     flight: { slim: 'slanke', standard: 'standaard' },
@@ -146,7 +146,7 @@ export function templateExplanation(i: ExplainInput): string {
   const parts: string[] = [];
   if (lang === 'nl') {
     parts.push(
-      `Je houdt de dart ${hold} vast met ${i.answers.fingers} vingers, dus we zoeken ${range(lang, i.bands.lengthMm, 'mm')} barrel, ${range(lang, i.bands.weightG, 'gram')} en een ${bal} dart.`,
+      `Je houdt de dart ${hold} vast met ${i.answers.fingers} vingers, dus we zoeken een barrel van ${range(lang, i.bands.lengthMm, 'mm')}, ${range(lang, i.bands.weightG, 'gram')}, ${bal}.`,
     );
     if (i.hand) parts.push(`Je hand meet ${i.hand.lengthMm} mm van pols tot middelvingertop.`);
     if (i.ideal) {

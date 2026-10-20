@@ -1,0 +1,44 @@
+/** Flow state for one fitting session. Kept in sessionStorage so a reload doesn't lose it. */
+import type { Answers, Measurements, Pt } from '@dartfit/engine';
+
+export interface Session {
+  measurements?: Measurements;
+  /** Measured hand on the table plane, mm. Only for drawing; never sent anywhere. */
+  landmarksMm?: Pt[];
+  answers?: Answers;
+  /** Name of the catalogue dart the player picked as their current one. */
+  currentName?: string;
+}
+
+const KEY = 'df_session';
+let mem: Session = {};
+
+function read(): Session {
+  try {
+    const raw = sessionStorage.getItem(KEY);
+    if (raw) mem = JSON.parse(raw) as Session;
+  } catch {
+    /* storage unavailable: keep the in-memory copy */
+  }
+  return mem;
+}
+
+export const session = (): Session => read();
+
+export function update(patch: Partial<Session>) {
+  mem = { ...read(), ...patch };
+  try {
+    sessionStorage.setItem(KEY, JSON.stringify(mem));
+  } catch {
+    /* ignore */
+  }
+}
+
+export function clearSession() {
+  mem = {};
+  try {
+    sessionStorage.removeItem(KEY);
+  } catch {
+    /* ignore */
+  }
+}

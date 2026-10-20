@@ -101,7 +101,7 @@ describe('fit', () => {
   it('fills a current dart picked from the catalogue from our own data', async () => {
     const r = await request(app)
       .post('/api/fit')
-      .send({ answers: { ...answers, current: { variantId: 'target-littler-g1-23', weightG: 99 > 40 ? 30 : 0, feel: 'right', gripFeel: 'too_smooth' } } })
+      .send({ answers: { ...answers, current: { variantId: 'target-littler-g1-23', weightG: 30, feel: 'right', gripFeel: 'too_smooth' } } })
       .expect(200);
     const reason = r.body.fit.reasons.find((x: { code: string }) => x.code === 'grip_current');
     expect(reason.params.current).toBe(3);

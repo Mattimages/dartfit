@@ -5,6 +5,7 @@ export * from './barrel.js';
 export { recommend, scoreVariant, proTwin, sensitivity, qualityOf, topShape } from './match.js';
 export type { RecommendOptions, ProTwin, WhatIf } from './match.js';
 export * from './measure.js';
+export { calibration } from './calibration.js';
 export * from './vision.js';
 export { allowedNumbers, findUnsupportedNumbers, templateExplanation, buildExplainInput } from './explain.js';
 export type { ExplainInput, Lang } from './explain.js';

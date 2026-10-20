@@ -19,6 +19,8 @@ export function h(tag: string, attrs: Attrs | null = null, ...children: Child[])
   for (const [k, v] of Object.entries(attrs ?? {})) {
     if (v === null || v === undefined || v === false) continue;
     if (k.startsWith('on') && typeof v === 'function') el.addEventListener(k.slice(2).toLowerCase(), v);
+    // CSSOM, not a style attribute: allowed under a strict Content-Security-Policy.
+    else if (k === 'style') (el as HTMLElement).style.cssText = String(v);
     else if (v === true) el.setAttribute(k, '');
     else el.setAttribute(k, String(v));
   }

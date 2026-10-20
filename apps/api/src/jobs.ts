@@ -167,12 +167,7 @@ async function alertForVariant(d: JobDeps, p: Record<string, unknown>) {
 async function linkCheck(d: JobDeps) {
   const offers = await d.db.query<{ id: string; url: string }>('SELECT id, url FROM offers');
   for (const o of offers) {
-    let status = 0;
-    try {
-      status = await d.fetchStatus(o.url);
-    } catch {
-      status = 0;
-    }
+    const status = await d.fetchStatus(o.url).catch(() => 0);
     const live = status >= 200 && status < 400;
     await d.db.query('UPDATE offers SET live=$2, last_status=$3, last_checked=now() WHERE id=$1', [o.id, live, status]);
   }

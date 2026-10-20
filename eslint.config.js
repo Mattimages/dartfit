@@ -8,11 +8,21 @@ export default tseslint.config(
       '**/dist/**',
       '**/*.d.ts',
       'apps/web/public/mediapipe/**',
+      'apps/web/public/models/**',
+      'apps/web/dist-demo/**',
       'archive/**',
     ],
   },
   js.configs.recommended,
   ...tseslint.configs.recommended,
+  {
+    files: ['apps/web/public/sw.js'],
+    languageOptions: { globals: { self: 'readonly', caches: 'readonly', clients: 'readonly', fetch: 'readonly', URL: 'readonly' } },
+  },
+  {
+    files: ['scripts/**/*.mjs'],
+    languageOptions: { globals: { Buffer: 'readonly', console: 'readonly', process: 'readonly', fetch: 'readonly', URL: 'readonly' } },
+  },
   {
     languageOptions: {
       globals: {

@@ -28,7 +28,8 @@
     "format": "prettier --write .",
     "catalogue:check": "tsx packages/catalogue/src/check.ts",
     "personas": "tsx scripts/persona-report.ts",
-    "calibrate": "tsx scripts/calibrate.ts"
+    "calibrate": "tsx scripts/calibrate.ts",
+    "fetch-model": "node scripts/fetch-model.mjs"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",

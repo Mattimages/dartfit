@@ -188,3 +188,95 @@ describe('detectCard (synthetic image)', () => {
     expect(detectCard(g, 400, { x: 20, y: 15, w: 340, h: 270 })).toBeNull();
   });
 });
+
+import { applyH, cardHomography, handDimensionsFromMm, homography, landmarksToMm, handOnCard, CARD_MM as CARD } from '../src/index.js';
+
+describe('perspective correction', () => {
+  it('maps the four source corners exactly', () => {
+    const src = [
+      { x: 10, y: 20 },
+      { x: 300, y: 35 },
+      { x: 280, y: 210 },
+      { x: 25, y: 190 },
+    ] as const;
+    const dst = [
+      { x: 0, y: 0 },
+      { x: 85.6, y: 0 },
+      { x: 85.6, y: 53.98 },
+      { x: 0, y: 53.98 },
+    ] as const;
+    const H = homography([...src] as never, [...dst] as never);
+    src.forEach((p, i) => {
+      const q = applyH(H, p);
+      expect(q.x).toBeCloseTo(dst[i]!.x, 6);
+      expect(q.y).toBeCloseTo(dst[i]!.y, 6);
+    });
+  });
+
+  it('recovers true distances from a tilted view where a single scale would not', () => {
+    // A synthetic camera: the table plane seen with perspective (a known homography).
+    const view = homography(
+      [
+        { x: 0, y: 0 },
+        { x: 200, y: 0 },
+        { x: 200, y: 200 },
+        { x: 0, y: 200 },
+      ],
+      [
+        { x: 120, y: 80 },
+        { x: 900, y: 110 },
+        { x: 860, y: 1000 },
+        { x: 90, y: 940 },
+      ],
+    );
+    const toImg = (p: { x: number; y: number }) => applyH(view, p);
+    // Card at table position (10,10)–(95.6,63.98); a "hand" segment of exactly 185 mm.
+    const corners = [
+      { x: 10, y: 10 },
+      { x: 10 + CARD.long, y: 10 },
+      { x: 10 + CARD.long, y: 10 + CARD.short },
+      { x: 10, y: 10 + CARD.short },
+    ].map(toImg) as never;
+    const H = cardHomography(corners);
+    const a = applyH(H, toImg({ x: 20, y: 80 }));
+    const b = applyH(H, toImg({ x: 20, y: 265 }));
+    expect(Math.hypot(a.x - b.x, a.y - b.y)).toBeCloseTo(185, 3);
+  });
+
+  it('computes hand dimensions from table-plane landmarks', () => {
+    const W = 1000;
+    const Hh = 1000;
+    const pts = Array.from({ length: 21 }, (_, i) => ({ x: (100 + i * 10) / W, y: (100 + (i % 4) * 30) / Hh, z: 0 }));
+    pts[0] = { x: 0.5, y: 0.9, z: 0 };
+    pts[12] = { x: 0.5, y: 0.2, z: 0 };
+    const H = homography(
+      [
+        { x: 0, y: 0 },
+        { x: 1000, y: 0 },
+        { x: 1000, y: 1000 },
+        { x: 0, y: 1000 },
+      ],
+      [
+        { x: 0, y: 0 },
+        { x: 250, y: 0 },
+        { x: 250, y: 250 },
+        { x: 0, y: 250 },
+      ],
+    );
+    const d = handDimensionsFromMm(landmarksToMm(pts, W, Hh, H));
+    expect(d.handLength).toBeCloseTo(175, 6);
+  });
+
+  it('notices a hand lying on the card', () => {
+    const quad = [
+      { x: 100, y: 100 },
+      { x: 300, y: 100 },
+      { x: 300, y: 220 },
+      { x: 100, y: 220 },
+    ] as never;
+    const off = Array.from({ length: 21 }, () => ({ x: 0.8, y: 0.8, z: 0 }));
+    const on = [...off.slice(0, 20), { x: 0.2, y: 0.15, z: 0 }];
+    expect(handOnCard(off, 1000, 1000, quad)).toBe(false);
+    expect(handOnCard(on, 1000, 1000, quad)).toBe(true);
+  });
+});
