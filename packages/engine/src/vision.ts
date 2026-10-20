@@ -55,8 +55,8 @@ function profiles(g: Uint8ClampedArray, w: number, roi: Rect, xr: [number, numbe
       const i = gy * w + gx;
       const dx = Math.abs(g[i + 1]! - g[i - 1]!);
       const dy = Math.abs(g[i + w]! - g[i - w]!);
-      rows[y] += dy;
-      cols[x] += dx;
+      rows[y] = rows[y]! + dy;
+      cols[x] = cols[x]! + dx;
     }
   }
   return { rows: smooth(rows), cols: smooth(cols) };

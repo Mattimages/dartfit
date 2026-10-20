@@ -31,6 +31,8 @@ export interface ExplainInput {
     compromise: string | null;
   };
   proTwin: { name: string; dart: string; exactDart: boolean } | null;
+  ideal: { lengthMm: number; diameterMm: number; massG: number; cogMm: number; shape: string; tungstenPct: number; adjusted: boolean };
+  setup: { shaft: string; shaftMm: [number, number]; flight: string };
 }
 
 export function buildExplainInput(
@@ -71,6 +73,16 @@ export function buildExplainInput(
     proTwin: twin
       ? { name: twin.pro.name, dart: `${twin.scored.variant.brand} ${twin.scored.variant.model}`, exactDart: twin.pro.exactDart }
       : null,
+    ideal: {
+      lengthMm: Math.round(f.barrel.lengthMm),
+      diameterMm: Number(f.barrel.diameterMm.toFixed(1)),
+      massG: Math.round(f.barrel.massG),
+      cogMm: Math.round(f.barrel.cogMm),
+      shape: f.barrel.shape,
+      tungstenPct: f.physics.tungstenPct,
+      adjusted: f.physics.adjusted,
+    },
+    setup: { shaft: f.setup.shaft, shaftMm: f.setup.shaftMm, flight: f.setup.flight },
   };
 }
 
@@ -105,12 +117,18 @@ const T = {
   nl: {
     hold: { front: 'vooraan', middle: 'in het midden', rear: 'achteraan' },
     balance: { front: 'voorzwaar', centre: 'in balans', rear: 'achterzwaar' },
+    shape: { straight: 'rechte', torpedo: 'torpedo', tapered: 'taps toelopende', bomb: 'bom', scalloped: 'getailleerde' },
+    shaft: { short: 'korte', inbetween: 'tussenmaat', medium: 'medium' },
+    flight: { slim: 'slanke', standard: 'standaard' },
     dim: { weight: 'het gewicht', length: 'de lengte', diameter: 'de dikte', grip: 'de grip', balance: 'de balans', shape: 'de vorm' },
     quality: { excellent: 'uitstekend', good: 'goed', fair: 'redelijk', poor: 'matig' },
   },
   en: {
     hold: { front: 'at the front', middle: 'in the middle', rear: 'at the back' },
     balance: { front: 'front-weighted', centre: 'centre-balanced', rear: 'rear-weighted' },
+    shape: { straight: 'straight', torpedo: 'torpedo', tapered: 'tapered', bomb: 'bomb', scalloped: 'scalloped' },
+    shaft: { short: 'short', inbetween: 'in-between', medium: 'medium' },
+    flight: { slim: 'slim', standard: 'standard' },
     dim: { weight: 'weight', length: 'length', diameter: 'thickness', grip: 'grip', balance: 'balance', shape: 'shape' },
     quality: { excellent: 'excellent', good: 'good', fair: 'fair', poor: 'weak' },
   },
@@ -131,6 +149,12 @@ export function templateExplanation(i: ExplainInput): string {
       `Je houdt de dart ${hold} vast met ${i.answers.fingers} vingers, dus we zoeken ${range(lang, i.bands.lengthMm, 'mm')} barrel, ${range(lang, i.bands.weightG, 'gram')} en een ${bal} dart.`,
     );
     if (i.hand) parts.push(`Je hand meet ${i.hand.lengthMm} mm van pols tot middelvingertop.`);
+    if (i.ideal) {
+      parts.push(
+        `Je ideale barrel is een ${t.shape[i.ideal.shape as keyof typeof t.shape] ?? i.ideal.shape} vorm van ${i.ideal.lengthMm} mm met het zwaartepunt op ${i.ideal.cogMm} mm vanaf de punt.`,
+      );
+      if (i.ideal.tungstenPct >= 95) parts.push(`Zo zwaar en zo slank kan alleen met ${i.ideal.tungstenPct}% tungsten.`);
+    }
     parts.push(
       `De ${i.pick.name} (${fmt(lang, i.pick.weightG)} g, ${fmt(lang, i.pick.lengthMm)} mm) past ${q}${strengths.length ? `, vooral op ${strengths.join(' en ')}` : ''}.`,
     );
@@ -139,11 +163,21 @@ export function templateExplanation(i: ExplainInput): string {
       parts.push(
         `Qua specs zit je het dichtst bij ${i.proTwin.exactDart ? 'de dart' : 'de signature-lijn'} van ${i.proTwin.name}.`,
       );
+    if (i.setup)
+      parts.push(
+        `Begin met ${t.shaft[i.setup.shaft as keyof typeof t.shaft]} shafts (${i.setup.shaftMm[0]}–${i.setup.shaftMm[1]} mm) en ${t.flight[i.setup.flight as keyof typeof t.flight]} flights.`,
+      );
   } else {
     parts.push(
       `You hold the dart ${hold} with ${i.answers.fingers} fingers, so we look for a ${range(lang, i.bands.lengthMm, 'mm')} barrel at ${range(lang, i.bands.weightG, 'g')}, ${bal}.`,
     );
     if (i.hand) parts.push(`Your hand measures ${i.hand.lengthMm} mm from wrist to middle fingertip.`);
+    if (i.ideal) {
+      parts.push(
+        `Your ideal barrel is a ${t.shape[i.ideal.shape as keyof typeof t.shape] ?? i.ideal.shape} ${i.ideal.lengthMm} mm barrel with its centre of gravity ${i.ideal.cogMm} mm from the point.`,
+      );
+      if (i.ideal.tungstenPct >= 95) parts.push(`That weight in that slim a barrel needs ${i.ideal.tungstenPct}% tungsten.`);
+    }
     parts.push(
       `The ${i.pick.name} (${i.pick.weightG} g, ${i.pick.lengthMm} mm) is a ${q} fit${strengths.length ? `, strongest on ${strengths.join(' and ')}` : ''}.`,
     );
@@ -151,6 +185,10 @@ export function templateExplanation(i: ExplainInput): string {
     if (i.proTwin)
       parts.push(
         `On specs you are closest to ${i.proTwin.exactDart ? 'the dart' : 'the signature range'} of ${i.proTwin.name}.`,
+      );
+    if (i.setup)
+      parts.push(
+        `Start with ${t.shaft[i.setup.shaft as keyof typeof t.shaft]} shafts (${i.setup.shaftMm[0]}–${i.setup.shaftMm[1]} mm) and ${t.flight[i.setup.flight as keyof typeof t.flight]} flights.`,
       );
   }
   return parts.join(' ');

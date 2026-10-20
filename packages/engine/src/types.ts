@@ -5,7 +5,7 @@ export type Moisture = 'dry' | 'normal' | 'sweaty';
 export type Thickness = 'slim' | 'standard' | 'chunky' | 'auto';
 export type Feel = 'too_light' | 'right' | 'too_heavy';
 export type Balance = 'front' | 'centre' | 'rear';
-export type Shape = 'straight' | 'torpedo' | 'tapered';
+export type Shape = 'straight' | 'torpedo' | 'tapered' | 'bomb' | 'scalloped';
 export type HandTier = 'small' | 'medium' | 'large';
 export type Dim = 'weight' | 'length' | 'diameter' | 'grip' | 'balance' | 'shape';
 
@@ -24,10 +24,26 @@ export interface Measurements {
   calibrated: boolean;
 }
 
+export type GripFeelCurrent = 'too_smooth' | 'right' | 'too_sharp';
+export type ThicknessFeel = 'too_thin' | 'right' | 'too_thick';
+export type LengthFeel = 'too_short' | 'right' | 'too_long';
+
+/**
+ * The dart the player throws now. Picking it from the catalogue fills every spec; otherwise the
+ * player types the weight (and optionally the length). Each "feel" is optional.
+ */
 export interface CurrentDart {
+  variantId?: string;
   weightG: number;
   lengthMm?: number;
+  diameterMm?: number;
+  gripIntensity?: number;
+  balance?: Balance;
+  /** How the weight feels. */
   feel: Feel;
+  gripFeel?: GripFeelCurrent;
+  thicknessFeel?: ThicknessFeel;
+  lengthFeel?: LengthFeel;
 }
 
 export interface Answers {
@@ -58,6 +74,49 @@ export interface Reason {
   params: Record<string, number | string>;
 }
 
+export interface Profile {
+  front: number;
+  rear: number;
+  endFront: number;
+  endRear: number;
+  waist: number;
+}
+
+/** The theoretical ideal barrel: the shape the engine would machine for this player. */
+export interface IdealBarrel {
+  lengthMm: number;
+  diameterMm: number;
+  massG: number;
+  tungstenPct: number;
+  profile: Profile;
+  cogMm: number;
+  cogFrac: number;
+  shape: Shape;
+  gripZone: [number, number];
+  massError: number;
+}
+
+export interface Physics {
+  /** Alloy the target needs: 90 is standard, 95 when the target is too heavy for its size at 90%. */
+  tungstenPct: number;
+  /** True when the independent estimates described a barrel that cannot be made and were moved. */
+  adjusted: boolean;
+  /** Lightest and heaviest buildable barrel at the target length and thickness, grams. */
+  massRange: [number, number];
+}
+
+export type ShaftLength = 'short' | 'inbetween' | 'medium';
+export type FlightShape = 'slim' | 'standard';
+
+export interface Setup {
+  shaft: ShaftLength;
+  shaftMm: [number, number];
+  flight: FlightShape;
+  pointMm: [number, number];
+  /** True when a longer point is suggested so a front-gripping finger has room. */
+  longPoint: boolean;
+}
+
 export interface Fit {
   engineVersion: string;
   tip: TipType;
@@ -72,6 +131,9 @@ export interface Fit {
   confidence: 'high' | 'medium' | 'low';
   confidenceScore: number;
   reasons: Reason[];
+  physics: Physics;
+  barrel: IdealBarrel;
+  setup: Setup;
 }
 
 export interface Variant {
@@ -89,6 +151,13 @@ export interface Variant {
   tungstenPct: number;
   priceUsd: number | null;
   sourceUrl: string;
+  /** Date the specs were checked against the source page (YYYY-MM-DD). */
+  verifiedAt?: string;
+  /**
+   * Set when the listed weight does not fit the listed size and alloy (barrel physics model).
+   * Such darts stay browsable but are not recommended until the listing is re-checked.
+   */
+  specCheck?: { listedG: number; modelG: number };
 }
 
 export interface Pro {
@@ -135,7 +204,7 @@ export interface Pick extends ScoredVariant {
 export interface Recommendation {
   picks: Pick[];
   considered: number;
-  filteredOut: { tip: number; budget: number };
+  filteredOut: { tip: number; budget: number; specCheck: number };
   /** 'thin' = our catalogue has no close match for this fit yet; the UI says so instead of overselling. */
   coverage: 'good' | 'thin' | 'none';
 }

@@ -19,6 +19,12 @@ try {
       .join(' ')}`,
   );
   console.log(`unknown fields: ${JSON.stringify(missing)}`);
+  const flagged = variants.filter((v) => v.specCheck);
+  console.log(
+    flagged.length
+      ? `listings to re-check (weight does not fit size and alloy):\n${flagged.map((v) => `  ${v.id}: listed ${v.specCheck!.listedG} g, model ${v.specCheck!.modelG} g`).join('\n')}`
+      : 'physics check: every listing fits its size and alloy',
+  );
 } catch (e) {
   console.error((e as Error).message);
   process.exit(1);

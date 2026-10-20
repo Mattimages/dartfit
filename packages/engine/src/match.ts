@@ -144,13 +144,14 @@ export function recommend(
   opts: RecommendOptions = {},
   cfg: EngineConfig = defaultConfig,
 ): Recommendation {
-  const filteredOut = { tip: 0, budget: 0 };
+  const filteredOut = { tip: 0, budget: 0, specCheck: 0 };
   const pool = variants.filter((v) => {
     if (v.tip !== f.tip) return (filteredOut.tip++, false);
     // With a budget set, an unknown price cannot be shown as "within budget".
     if (opts.budgetUsd !== undefined && (v.priceUsd === null || v.priceUsd > opts.budgetUsd))
       return (filteredOut.budget++, false);
     if (opts.available && !opts.available.has(v.id)) return false;
+    if (v.specCheck) return (filteredOut.specCheck++, false);
     return true;
   });
 

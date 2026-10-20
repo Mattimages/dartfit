@@ -17,7 +17,7 @@ import {
   type Fit,
   type Measurements,
 } from '@dartfit/engine';
-import { activeVariants, offersFor, pros, resolveOffer } from './catalogue.js';
+import { activeVariants, offersFor, pros, resolveOffer, specCheckFor } from './catalogue.js';
 import { checkSigned, randomToken, sha256 } from './crypto.js';
 import type { Db } from './db.js';
 import { adminEmails, type Env } from './env.js';
@@ -183,6 +183,21 @@ export function createApp(deps: AppDeps) {
     wrap(async (req, res) => {
       const body = parse(FitRequest, req.body, res);
       if (!body) return;
+      // A current dart picked from the catalogue gets its specs from our data, not the client.
+      const cur = body.answers.current;
+      if (cur?.variantId) {
+        const v = (await activeVariants(db)).find((x) => x.id === cur.variantId);
+        if (v) {
+          body.answers.current = {
+            ...cur,
+            weightG: v.weightG,
+            lengthMm: v.lengthMm,
+            diameterMm: v.diameterMm,
+            ...(v.gripIntensity !== null ? { gripIntensity: v.gripIntensity } : {}),
+            ...(v.balance ? { balance: v.balance } : {}),
+          };
+        } else delete body.answers.current!.variantId;
+      }
       const f = runFit(body.measurements, body.answers);
       const cty = country(req, body.country);
       const result = await buildResult(f, body.answers, body.measurements, cty);
@@ -516,17 +531,19 @@ export function createApp(deps: AppDeps) {
         `INSERT INTO dart_models(id, brand, name, tip, shape, balance) VALUES ($1,$2,$3,$4,$5,$6) ON CONFLICT (id) DO NOTHING`,
         [v.modelId, v.brand, v.model, v.tip, v.shape, v.balance],
       );
+      const check = specCheckFor({ ...v, specCheck: undefined });
       await db.query(
-        `INSERT INTO dart_variants(id, model_id, weight_g, length_mm, diameter_mm, grip, tungsten_pct, price_usd, source_url, verified_at, origin)
-         VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9, current_date, 'admin')`,
-        [v.id, v.modelId, v.weightG, v.lengthMm, v.diameterMm, v.gripIntensity, v.tungstenPct, v.priceUsd, v.sourceUrl],
+        `INSERT INTO dart_variants(id, model_id, weight_g, length_mm, diameter_mm, grip, tungsten_pct, price_usd, source_url, verified_at, origin, spec_check)
+         VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9, current_date, 'admin', $10)`,
+        [v.id, v.modelId, v.weightG, v.lengthMm, v.diameterMm, v.gripIntensity, v.tungstenPct, v.priceUsd, v.sourceUrl, check ? JSON.stringify(check) : null],
       );
       await db.query(
         `INSERT INTO offers(id, variant_id, retailer, country, url, price, currency) VALUES ($1,$2,'source','*',$3,$4,'USD') ON CONFLICT DO NOTHING`,
         [`source:${v.id}`, v.id, v.sourceUrl, v.priceUsd],
       );
-      await enqueue(db, 'new_variant_alerts', { variantId: v.id }, { dedupeKey: `alerts:${v.id}` });
-      res.status(201).json({ ok: true, id: v.id });
+      // A listing the physics model cannot reconcile is stored but never alerted until re-checked.
+      if (!check) await enqueue(db, 'new_variant_alerts', { variantId: v.id }, { dedupeKey: `alerts:${v.id}` });
+      res.status(201).json({ ok: true, id: v.id, specCheck: check });
     }),
   );
 

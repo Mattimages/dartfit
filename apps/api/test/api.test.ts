@@ -91,6 +91,30 @@ describe('fit', () => {
     expect(r.body.recommendation.picks[0].offers[0].retailer).toBe('amazon_de');
   });
 
+  it('returns the ideal barrel, physics and setup', async () => {
+    const r = await request(app).post('/api/fit').send({ measurements, answers }).expect(200);
+    expect(r.body.fit.barrel.gripZone).toHaveLength(2);
+    expect(r.body.fit.physics.tungstenPct).toBe(90);
+    expect(['short', 'inbetween', 'medium']).toContain(r.body.fit.setup.shaft);
+  });
+
+  it('fills a current dart picked from the catalogue from our own data', async () => {
+    const r = await request(app)
+      .post('/api/fit')
+      .send({ answers: { ...answers, current: { variantId: 'target-littler-g1-23', weightG: 99 > 40 ? 30 : 0, feel: 'right', gripFeel: 'too_smooth' } } })
+      .expect(200);
+    const reason = r.body.fit.reasons.find((x: { code: string }) => x.code === 'grip_current');
+    expect(reason.params.current).toBe(3);
+    const w = r.body.fit.reasons.find((x: { code: string }) => x.code === 'weight_current');
+    expect(w.params.current).toBe(23);
+  });
+
+  it('never recommends a listing whose weight does not fit its size', async () => {
+    const r = await request(app).post('/api/fit').send({ answers: { ...answers, fingers: 4, hold: 'rear', throwStyle: 'arc' } }).expect(200);
+    expect(r.body.recommendation.picks.map((p: { variant: { id: string } }) => p.variant.id)).not.toContain('rd-furnace-24');
+    expect(r.body.recommendation.filteredOut.specCheck).toBeGreaterThan(0);
+  });
+
   it('blocks cross-site POSTs', async () => {
     await request(app).post('/api/fit').set('Origin', 'https://evil.example').send({ answers }).expect(403);
   });

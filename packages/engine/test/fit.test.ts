@@ -70,8 +70,13 @@ describe('fit rules', () => {
   });
 
   it('a stated thickness wins over the hand-size default', () => {
-    const f = fit(hand(215), { ...baseAnswers, thickness: 'slim' });
+    const f = fit(hand(185), { ...baseAnswers, thickness: 'slim', current: { weightG: 18, feel: 'right' } });
     expect(f.diameter.mu).toBe(config.diameter.chosen.slim);
+    const big = fit(hand(215), { ...baseAnswers, thickness: 'slim' });
+    const auto = fit(hand(215), baseAnswers);
+    // Physics may thicken a slim target a little when the weight would not fit; it stays slim.
+    expect(big.diameter.mu).toBeLessThan(config.diameter.chosen.slim + 0.25);
+    expect(big.diameter.mu).toBeLessThan(auto.diameter.mu);
   });
 
   it('classifies hand tiers', () => {
@@ -147,5 +152,64 @@ describe('fit properties', () => {
 
   it('is deterministic', () => {
     fc.assert(fc.property(answersArb, (a) => JSON.stringify(fit(hand(185), a)) === JSON.stringify(fit(hand(185), a))));
+  });
+});
+
+describe('v3: current dart, dry hands and setup', () => {
+  it('a current dart that feels too smooth raises the grip target', () => {
+    const base = { ...baseAnswers, current: { weightG: 22, feel: 'right' as const, gripIntensity: 3 } };
+    const right = fit(hand(185), base);
+    const smooth = fit(hand(185), { ...base, current: { ...base.current, gripFeel: 'too_smooth' as const } });
+    expect(smooth.grip.mu).toBeGreaterThan(right.grip.mu + 0.3);
+    expect(smooth.reasons.some((r) => r.code === 'grip_current')).toBe(true);
+  });
+
+  it('a current barrel that feels too thin raises the thickness target', () => {
+    const base = { ...baseAnswers, current: { weightG: 22, feel: 'right' as const, diameterMm: 6.4 } };
+    const right = fit(hand(185), base);
+    const thin = fit(hand(185), { ...base, current: { ...base.current, thicknessFeel: 'too_thin' as const } });
+    expect(thin.diameter.mu).toBeGreaterThan(right.diameter.mu + 0.15);
+  });
+
+  it('a current barrel that feels too short lengthens the target', () => {
+    const base = { ...baseAnswers, current: { weightG: 22, feel: 'right' as const, lengthMm: 44 } };
+    const right = fit(hand(185), base);
+    const short = fit(hand(185), { ...base, current: { ...base.current, lengthFeel: 'too_short' as const } });
+    expect(short.length.mu).toBeGreaterThan(right.length.mu + 1);
+  });
+
+  it('a dart that feels right pulls balance towards its own', () => {
+    const plain = fit(hand(185), baseAnswers);
+    const liked = fit(hand(185), { ...baseAnswers, current: { weightG: 22, feel: 'right', balance: 'front' } });
+    expect(liked.balance.front).toBeGreaterThan(plain.balance.front);
+  });
+
+  it('very dry hands get half a grip step', () => {
+    const n = fit(hand(185), baseAnswers);
+    const d = fit(hand(185), { ...baseAnswers, moisture: 'dry' });
+    expect(d.grip.mu - n.grip.mu).toBeCloseTo(0.5);
+  });
+
+  it('flat throwers get a short shaft, lofted throwers a medium one', () => {
+    expect(fit(hand(185), { ...baseAnswers, throwStyle: 'flat' }).setup.shaft).toBe('short');
+    expect(fit(hand(185), { ...baseAnswers, throwStyle: 'arc' }).setup.shaft).toBe('medium');
+    expect(fit(hand(185), baseAnswers).setup.shaft).toBe('inbetween');
+  });
+
+  it('heavy darts keep a standard flight even for flat throwers', () => {
+    const f = fit(hand(185), { ...baseAnswers, throwStyle: 'flat', current: { weightG: 26, feel: 'right' } });
+    expect(f.setup.flight).toBe('standard');
+    expect(fit(hand(185), { ...baseAnswers, throwStyle: 'flat' }).setup.flight).toBe('slim');
+  });
+
+  it('front grippers are offered a longer point', () => {
+    expect(fit(hand(185), { ...baseAnswers, hold: 'front' }).setup.longPoint).toBe(true);
+    expect(fit(hand(185), baseAnswers).setup.longPoint).toBe(false);
+  });
+
+  it('wider knuckles lengthen the barrel a little', () => {
+    const narrow = fit(hand(185, { palmWidthMm: 70 }), baseAnswers);
+    const wide = fit(hand(185, { palmWidthMm: 86 }), baseAnswers);
+    expect(wide.length.mu).toBeGreaterThan(narrow.length.mu);
   });
 });

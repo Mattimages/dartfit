@@ -1,5 +1,5 @@
 import { loadCatalogue, type Retailer } from '@dartfit/catalogue';
-import type { Pro, Variant } from '@dartfit/engine';
+import { physicsOutliers, type Pro, type Variant } from '@dartfit/engine';
 import type { Db } from './db.js';
 import type { Env } from './env.js';
 
@@ -13,10 +13,22 @@ export async function syncCatalogue(db: Db): Promise<number> {
       [v.modelId, v.brand, v.model, v.tip, v.shape, v.balance],
     );
     await db.query(
-      `INSERT INTO dart_variants(id, model_id, weight_g, length_mm, diameter_mm, grip, tungsten_pct, price_usd, source_url, verified_at, origin)
-       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,'catalogue')
-       ON CONFLICT (id) DO UPDATE SET weight_g=$3, length_mm=$4, diameter_mm=$5, grip=$6, tungsten_pct=$7, price_usd=$8, source_url=$9, verified_at=$10`,
-      [v.id, v.modelId, v.weightG, v.lengthMm, v.diameterMm, v.gripIntensity, v.tungstenPct, v.priceUsd, v.sourceUrl, '2026-10-19'],
+      `INSERT INTO dart_variants(id, model_id, weight_g, length_mm, diameter_mm, grip, tungsten_pct, price_usd, source_url, verified_at, origin, spec_check)
+       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,'catalogue',$11)
+       ON CONFLICT (id) DO UPDATE SET weight_g=$3, length_mm=$4, diameter_mm=$5, grip=$6, tungsten_pct=$7, price_usd=$8, source_url=$9, verified_at=$10, spec_check=$11`,
+      [
+        v.id,
+        v.modelId,
+        v.weightG,
+        v.lengthMm,
+        v.diameterMm,
+        v.gripIntensity,
+        v.tungstenPct,
+        v.priceUsd,
+        v.sourceUrl,
+        v.verifiedAt ?? '2026-10-19',
+        v.specCheck ? JSON.stringify(v.specCheck) : null,
+      ],
     );
     // The source page is also a real product offer (A-Z Darts ships internationally from the US).
     await db.query(
@@ -43,6 +55,8 @@ interface VariantRow {
   tungsten_pct: number;
   price_usd: number | null;
   source_url: string;
+  verified_at: string | Date;
+  spec_check: { listedG: number; modelG: number } | null;
 }
 
 export async function activeVariants(db: Db): Promise<Variant[]> {
@@ -56,16 +70,25 @@ export async function activeVariants(db: Db): Promise<Variant[]> {
     brand: r.brand,
     model: r.name,
     tip: r.tip,
-    weightG: r.weight_g,
-    lengthMm: r.length_mm,
-    diameterMm: r.diameter_mm,
+    // Coerce at the boundary: drivers may return NUMERIC columns as strings.
+    weightG: Number(r.weight_g),
+    lengthMm: Number(r.length_mm),
+    diameterMm: Number(r.diameter_mm),
     shape: r.shape,
     balance: r.balance,
-    gripIntensity: r.grip,
-    tungstenPct: r.tungsten_pct,
-    priceUsd: r.price_usd,
+    gripIntensity: r.grip === null ? null : Number(r.grip),
+    tungstenPct: Number(r.tungsten_pct),
+    priceUsd: r.price_usd === null ? null : Number(r.price_usd),
     sourceUrl: r.source_url,
+    verifiedAt: typeof r.verified_at === 'string' ? r.verified_at.slice(0, 10) : r.verified_at.toISOString().slice(0, 10),
+    ...(r.spec_check ? { specCheck: r.spec_check } : {}),
   }));
+}
+
+/** Physics check for a single new listing (admin form). */
+export function specCheckFor(v: Variant): { listedG: number; modelG: number } | null {
+  const o = physicsOutliers([v])[0];
+  return o ? { listedG: o.listedG, modelG: o.modelG } : null;
 }
 
 export function pros(): Pro[] {
@@ -115,7 +138,7 @@ export async function offersFor(db: Db, variant: Variant, country: string): Prom
     retailerName: retailerName(o.retailer, retailers),
     kind: 'product',
     country: o.country,
-    price: o.price,
+    price: o.price === null ? null : Number(o.price),
     currency: o.currency,
     goUrl: `/go/${encodeURIComponent(o.id)}`,
   }));

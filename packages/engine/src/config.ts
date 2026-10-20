@@ -5,13 +5,14 @@
  *   tuned     — fitted from user feedback (none yet at launch)
  * A unit test fails if a numeric leaf has no provenance entry.
  */
-export const ENGINE_VERSION = '2.0.0';
+export const ENGINE_VERSION = '3.0.0';
 
 export const config = {
   reference: {
     // Landmark-chain lengths (MediaPipe joints, not skin edges). Recalibrate with scripts/calibrate.ts.
     handLength: { mu: 185, sigma: 12 },
     middleLength: { mu: 85, sigma: 7 },
+    palmWidth: { mu: 78, sigma: 6 },
     tierZ: { small: -0.75, large: 0.75 },
   },
   weight: {
@@ -34,6 +35,9 @@ export const config = {
     hold: { front: -1.5, middle: 0, rear: 2 },
     currentSigma: 2,
     missingHandSigma: 1.5,
+    palmPerZ: 1,
+    feelStep: 4,
+    feelSigma: 2.5,
     min: 36,
     max: 60,
     bandMinHalf: 2,
@@ -45,14 +49,19 @@ export const config = {
     autoMu: 6.8,
     autoPerZ: 0.25,
     autoSigma: 0.4,
+    palmPerZ: 0.15,
+    currentSigma: 0.25,
+    feelStep: 0.5,
     min: 5.6,
     max: 8.5,
     bandMinHalf: 0.25,
     bandSigmaFactor: 0.67,
   },
   grip: {
-    moisture: { dry: 0, normal: 0, sweaty: 1 },
+    moisture: { dry: 0.5, normal: 0, sweaty: 1 },
     sigma: 0.75,
+    currentSigma: 0.5,
+    feelStep: 1,
     min: 1,
     max: 5,
     bandMinHalf: 0.5,
@@ -63,11 +72,54 @@ export const config = {
     middle: { front: 0.25, centre: 0.6, rear: 0.15 },
     rear: { front: 0.05, centre: 0.35, rear: 0.6 },
     flatFrontNudge: 0.1,
+    currentNudge: 0.15,
+    cogFrac: { front: 0.45, centre: 0.5, rear: 0.55 },
   },
   shape: {
-    front: { torpedo: 0.5, tapered: 0.35, straight: 0.15 },
-    centre: { straight: 0.6, tapered: 0.25, torpedo: 0.15 },
-    rear: { tapered: 0.5, straight: 0.35, torpedo: 0.15 },
+    front: { torpedo: 0.4, tapered: 0.25, bomb: 0.2, straight: 0.1, scalloped: 0.05 },
+    centre: { straight: 0.5, scalloped: 0.15, tapered: 0.15, bomb: 0.1, torpedo: 0.1 },
+    rear: { tapered: 0.45, straight: 0.3, bomb: 0.1, torpedo: 0.1, scalloped: 0.05 },
+  },
+  physics: {
+    // Alloy density in g/cm³.
+    density: { w80: 15.05, w85: 16.05, w90: 17.05, w925: 17.5, w95: 18.05, w97: 18.55, brass: 8.5 },
+    bore: { frontDiaMm: 2.3, frontDepthMm: 11, rearDiaMm: 3.9, rearDepthMm: 9 },
+    // Share of metal left after grip machining. Calibrated on the catalogue: see calibrateMachining().
+    machiningFactor: 0.876,
+    // Deeper grip machining removes more metal: k × (1 − gripSlope × (grip − 3)).
+    gripSlope: 0.03,
+    shapes: {
+      endRatio: 0.75,
+      straight: { front: 0.06, rear: 0.06 },
+      torpedo: { front: 0.15, rear: 0.45 },
+      tapered: { front: 0.04, rear: 0.55 },
+      bomb: { front: 0.35, rear: 0.4 },
+      scallopWaist: 0.08,
+      lightest: { front: 0.4, rear: 0.55, end: 0.55 },
+      solver: { min: 0.04, max: 0.8, step: 0.02 },
+    },
+    // A target needs 95% tungsten when that makes it buildable at a fit cost this much lower.
+    upgradeGain: 1,
+    standardTungsten: 90,
+    premiumTungsten: 95,
+    grid: { lengthStep: 0.5, diameterStep: 0.05 },
+    // Listed/model weight ratios outside this range are flagged for a listing re-check.
+    specCheck: [0.78, 1.25],
+  },
+  gripZone: {
+    // Fingertip width as a share of knuckle spacing (landmark 5–17 distance / 3).
+    tipShare: 0.72,
+    overlap: 0.9,
+    margin: 3,
+    start: { front: 0.08, middle: 0.5, rear: 0.92 },
+  },
+  setup: {
+    shaft: { flat: 'short', unsure: 'inbetween', arc: 'medium' },
+    shaftMm: { short: [28, 35], inbetween: [35, 41], medium: [41, 48] },
+    flight: { flat: 'slim', unsure: 'standard', arc: 'standard' },
+    lightDartG: 20,
+    heavyDartG: 24,
+    pointMm: { standard: [30, 32], long: [35, 41] },
   },
   confidence: {
     base: 0.35,
@@ -107,6 +159,7 @@ export const provenance: Record<string, Prov> = {
     note: 'Approximate adult mixed-population wrist-to-middle-tip landmark length; replace after calibration.',
   },
   'reference.middleLength': { p: 'heuristic', note: 'Approximate landmark chain MCP→tip; replace after calibration.' },
+  'reference.palmWidth': { p: 'heuristic', note: 'Approximate landmark 5–17 (knuckle) distance; replace after calibration.' },
   'reference.tierZ': { p: 'heuristic', note: 'Roughly the bottom and top 23% of hands.' },
   'weight.steel.mu': {
     p: 'sourced',
@@ -130,6 +183,9 @@ export const provenance: Record<string, Prov> = {
   'length.hold': { p: 'heuristic', note: 'Rear grippers need barrel behind the fingers; front grippers less.' },
   'length.currentSigma': { p: 'heuristic', note: 'Current barrel length is strong evidence.' },
   'length.missingHandSigma': { p: 'heuristic', note: 'Extra uncertainty without a hand scan.' },
+  'length.palmPerZ': { p: 'heuristic', note: 'Wider fingers cover more barrel.' },
+  'length.feelStep': { p: 'heuristic', note: 'Too short / too long moves about 4 mm.' },
+  'length.feelSigma': { p: 'heuristic', note: 'Length feel is softer evidence than a listed length.' },
   'length.min': { p: 'heuristic', note: 'Shortest common barrels.' },
   'length.max': { p: 'heuristic', note: 'Longest common barrels.' },
   'length.band': { p: 'heuristic', note: 'Band ≈ 50% interval, at least ±2 mm.' },
@@ -141,10 +197,18 @@ export const provenance: Record<string, Prov> = {
   'diameter.autoMu': { p: 'heuristic', note: 'Standard barrel thickness when nothing else is known.' },
   'diameter.autoPerZ': { p: 'heuristic', note: 'Bigger hands tolerate thicker barrels.' },
   'diameter.autoSigma': { p: 'heuristic', note: 'Thickness is a loose guess without a stated preference.' },
+  'diameter.palmPerZ': { p: 'heuristic', note: 'Wider knuckles tolerate thicker barrels.' },
+  'diameter.currentSigma': { p: 'heuristic', note: 'Thickness of a dart you know is strong evidence.' },
+  'diameter.feelStep': { p: 'heuristic', note: 'Too thin / too thick moves about 0.5 mm.' },
   'diameter.min': { p: 'heuristic', note: 'Thinnest common barrels.' },
   'diameter.max': { p: 'heuristic', note: 'Thickest common barrels.' },
   'diameter.band': { p: 'heuristic', note: 'Band ≈ 50% interval.' },
-  'grip.moisture': { p: 'heuristic', note: 'Sweaty hands need one step more grip.' },
+  'grip.moisture': {
+    p: 'heuristic',
+    note: 'Sweaty hands need one step more grip; very dry skin also slips on metal, so half a step.',
+  },
+  'grip.currentSigma': { p: 'heuristic', note: 'A grip you already know is strong evidence.' },
+  'grip.feelStep': { p: 'heuristic', note: 'Too smooth / too sharp moves one step on the 1–5 scale.' },
   'grip.sigma': { p: 'heuristic', note: 'People rarely distinguish grip steps closer than this.' },
   'grip.min': { p: 'sourced', note: 'Retail grip-intensity scale runs 1–5 (A-Z Darts listings).' },
   'grip.max': { p: 'sourced', note: 'Retail grip-intensity scale runs 1–5 (A-Z Darts listings).' },
@@ -152,7 +216,33 @@ export const provenance: Record<string, Prov> = {
   'balance.front': { p: 'heuristic', note: 'Front grippers usually prefer front-loaded barrels.' },
   'balance.middle': { p: 'heuristic', note: 'Middle grippers usually prefer centre balance.' },
   'balance.rear': { p: 'heuristic', note: 'Rear grippers usually prefer rear or centre balance.' },
+  'balance.currentNudge': { p: 'heuristic', note: 'A dart that feels right pulls balance towards its own.' },
+  'balance.cogFrac': { p: 'heuristic', note: 'Centre of gravity targets for front, centre and rear balance.' },
   'balance.flatFrontNudge': { p: 'heuristic', note: 'Flat throwers lean slightly towards front weight.' },
+  'physics.density': {
+    p: 'sourced',
+    note: 'ASTM B777 tungsten heavy alloy classes 1–4 (90, 92.5, 95, 97% W), class midpoints; 80/85% extrapolated; brass ≈ 8.5.',
+  },
+  'physics.bore': { p: 'heuristic', note: 'Fixed steel point hole and 2BA thread (4.7 mm major, ≈3.9 mm minor) depths.' },
+  'physics.machiningFactor': {
+    p: 'tuned',
+    note: 'Median listed/solid mass ratio over 34 catalogue straight barrels (20 Oct 2026); interquartile spread ±7%.',
+  },
+  'physics.gripSlope': {
+    p: 'heuristic',
+    note: 'Catalogue calibration suggests up to 0.07 per grip step but gains little; 0.03 is used to avoid overfitting.',
+  },
+  'physics.shapes': { p: 'heuristic', note: 'Taper lengths that reproduce each shop shape class.' },
+  'physics.upgradeGain': { p: 'heuristic', note: 'Recommend 95% tungsten only when it clearly helps.' },
+  'physics.standardTungsten': { p: 'heuristic', note: 'Most barrels are 90% tungsten.' },
+  'physics.premiumTungsten': { p: 'heuristic', note: 'The common premium alloy.' },
+  'physics.specCheck': { p: 'heuristic', note: 'About three times the catalogue spread of the listed/model ratio.' },
+  'physics.grid': { p: 'heuristic', note: 'Resolution of the feasibility search.' },
+  'gripZone': { p: 'heuristic', note: 'Fingertip width and finger placement along the barrel.' },
+  'setup': {
+    p: 'heuristic',
+    note: 'Common fitting advice: harder, flatter throws suit shorter shafts and smaller flights; lofted throws longer shafts and standard flights.',
+  },
   'shape.front': { p: 'heuristic', note: 'Front weight comes from torpedo or front-tapered barrels.' },
   'shape.centre': { p: 'heuristic', note: 'Centre balance usually means a straight barrel.' },
   'shape.rear': { p: 'heuristic', note: 'Rear weight comes from rear-tapered barrels.' },

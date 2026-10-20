@@ -2,7 +2,7 @@ import { readFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { z } from 'zod';
-import type { Pro, Variant } from '@dartfit/engine';
+import { physicsOutliers, type Pro, type Variant } from '@dartfit/engine';
 
 const DATA = join(dirname(fileURLToPath(import.meta.url)), '..', 'data');
 
@@ -19,7 +19,7 @@ export const VariantRow = z.object({
   weight_g: num(12, 40),
   length_mm: num(30, 70),
   diameter_mm: num(5, 10),
-  shape: optional(z.enum(['straight', 'torpedo', 'tapered'])),
+  shape: optional(z.enum(['straight', 'torpedo', 'tapered', 'bomb', 'scalloped'])),
   balance: optional(z.enum(['front', 'centre', 'rear'])),
   grip: optional(num(1, 5)),
   tungsten_pct: num(0, 100),
@@ -112,6 +112,7 @@ export function validateVariants(rows: Record<string, string>[]): { variants: Va
       tungstenPct: d.tungsten_pct,
       priceUsd: d.price_usd,
       sourceUrl: d.source_url,
+      verifiedAt: d.verified_at,
     });
   });
   // Variants of one model must agree on brand and model name.
@@ -149,6 +150,12 @@ export function loadCatalogue() {
     .parse(JSON.parse(readFileSync(join(DATA, 'retailers.json'), 'utf8')).retailers);
   const all = [...issues, ...prosRes.issues];
   if (all.length) throw new Error(`catalogue invalid:\n${all.map((i) => `  row ${i.row} ${i.id ?? ''}: ${i.message}`).join('\n')}`);
-  cache = { variants, pros: prosRes.pros, retailers };
+  // Flag listings the barrel physics model cannot reconcile (kept browsable, not recommended).
+  const flagged = new Map(physicsOutliers(variants).map((o) => [o.id, o]));
+  const checked = variants.map((v) => {
+    const o = flagged.get(v.id);
+    return o ? { ...v, specCheck: { listedG: o.listedG, modelG: o.modelG } } : v;
+  });
+  cache = { variants: checked, pros: prosRes.pros, retailers };
   return cache;
 }

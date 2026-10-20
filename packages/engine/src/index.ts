@@ -1,6 +1,7 @@
 export * from './types.js';
 export { config, provenance, provenanceOf, numericLeaves, ENGINE_VERSION } from './config.js';
-export { fit, combine, handTier } from './fit.js';
+export { fit, combine, handTier, enforcePhysics, gripZone, setupFor } from './fit.js';
+export * from './barrel.js';
 export { recommend, scoreVariant, proTwin, sensitivity, qualityOf, topShape } from './match.js';
 export type { RecommendOptions, ProTwin, WhatIf } from './match.js';
 export * from './measure.js';

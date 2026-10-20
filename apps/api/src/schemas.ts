@@ -21,9 +21,17 @@ export const AnswersSchema = z.object({
   thickness: z.enum(['slim', 'standard', 'chunky', 'auto']),
   current: z
     .object({
+      /** Picked from the catalogue: the server fills the specs from its own data. */
+      variantId: z.string().max(80).optional(),
       weightG: z.number().min(10).max(40),
       lengthMm: z.number().min(30).max(70).optional(),
+      diameterMm: z.number().min(5).max(10).optional(),
+      gripIntensity: z.number().min(1).max(5).optional(),
+      balance: z.enum(['front', 'centre', 'rear']).optional(),
       feel: z.enum(['too_light', 'right', 'too_heavy']),
+      gripFeel: z.enum(['too_smooth', 'right', 'too_sharp']).optional(),
+      thicknessFeel: z.enum(['too_thin', 'right', 'too_thick']).optional(),
+      lengthFeel: z.enum(['too_short', 'right', 'too_long']).optional(),
     })
     .optional(),
   budgetUsd: z.number().min(10).max(1000).optional(),
@@ -85,7 +93,7 @@ export const AdminVariantRequest = z.object({
   weightG: z.number().min(12).max(40),
   lengthMm: z.number().min(30).max(70),
   diameterMm: z.number().min(5).max(10),
-  shape: z.enum(['straight', 'torpedo', 'tapered']).nullable(),
+  shape: z.enum(['straight', 'torpedo', 'tapered', 'bomb', 'scalloped']).nullable(),
   balance: z.enum(['front', 'centre', 'rear']).nullable(),
   gripIntensity: z.number().min(1).max(5).nullable(),
   tungstenPct: z.number().min(0).max(100),
