@@ -288,7 +288,11 @@ export function priceTiers(
   for (const v of variants) {
     if (v.tip !== f.tip || v.specCheck || v.priceUsd === null || !allowed(v)) continue;
     const tier: PriceTier =
-      v.priceUsd <= bounds.budgetMaxUsd ? 'budget' : v.priceUsd <= bounds.standardMaxUsd ? 'standard' : 'premium';
+      v.priceUsd <= bounds.budgetMaxUsd
+        ? 'budget'
+        : v.priceUsd <= bounds.standardMaxUsd
+          ? 'standard'
+          : 'premium';
     const s = scoreVariant(f, v, cfg);
     const cur = out[tier];
     if (!cur || s.cost < cur.cost || (s.cost === cur.cost && v.priceUsd < (cur.variant.priceUsd ?? Infinity)))

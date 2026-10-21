@@ -11,7 +11,8 @@ const deps = {
   env,
   mailer: createMailer(db, env),
   pusher: await webPusher(env),
-  fetchStatus: async (url: string) => (await fetch(url, { method: 'HEAD', redirect: 'follow', signal: AbortSignal.timeout(10_000) })).status,
+  fetchStatus: async (url: string) =>
+    (await fetch(url, { method: 'HEAD', redirect: 'follow', signal: AbortSignal.timeout(10_000) })).status,
 };
 for (;;) {
   await scheduleDaily(db);

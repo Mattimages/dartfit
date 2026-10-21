@@ -61,7 +61,12 @@ const WEB_DIST = join(dirname(fileURLToPath(import.meta.url)), '..', '..', 'web'
 function parse<T>(schema: ZodType<T>, data: unknown, res: Response): T | null {
   const r = schema.safeParse(data);
   if (!r.success) {
-    res.status(400).json({ error: 'invalid_request', issues: r.error.issues.map((i) => `${i.path.join('.')}: ${i.message}`) });
+    res
+      .status(400)
+      .json({
+        error: 'invalid_request',
+        issues: r.error.issues.map((i) => `${i.path.join('.')}: ${i.message}`),
+      });
     return null;
   }
   return r.data;
@@ -241,15 +246,26 @@ export function createApp(deps: AppDeps) {
       const id = String(req.params.id);
       if (!/^[0-9a-f-]{36}$/.test(id)) return res.status(404).json({ error: 'not_found' });
       const row = (
-        await db.query<{ user_id: string | null; measurements: Measurements | null; answers: Answers; country: string; lang: Lang }>(
-          'SELECT user_id, measurements, answers, country, lang FROM fits WHERE id=$1',
-          [id],
-        )
+        await db.query<{
+          user_id: string | null;
+          measurements: Measurements | null;
+          answers: Answers;
+          country: string;
+          lang: Lang;
+        }>('SELECT user_id, measurements, answers, country, lang FROM fits WHERE id=$1', [id])
       )[0];
       // Saved fits are private to their owner; anonymous fits are reachable only by their unguessable id.
-      if (!row || (row.user_id && row.user_id !== req.user?.id)) return res.status(404).json({ error: 'not_found' });
+      if (!row || (row.user_id && row.user_id !== req.user?.id))
+        return res.status(404).json({ error: 'not_found' });
       const f = runFit(row.measurements ?? undefined, row.answers);
-      res.json({ id, saved: !!row.user_id, lang: row.lang, measurements: row.measurements, answers: row.answers, ...(await buildResult(f, row.answers, row.measurements ?? undefined, row.country)) });
+      res.json({
+        id,
+        saved: !!row.user_id,
+        lang: row.lang,
+        measurements: row.measurements,
+        answers: row.answers,
+        ...(await buildResult(f, row.answers, row.measurements ?? undefined, row.country)),
+      });
     }),
   );
 
@@ -261,12 +277,15 @@ export function createApp(deps: AppDeps) {
       const body = parse(ExplainRequest, req.body, res);
       if (!body) return;
       const row = (
-        await db.query<{ user_id: string | null; measurements: Measurements | null; answers: Answers; lang: Lang }>(
-          'SELECT user_id, measurements, answers, lang FROM fits WHERE id=$1',
-          [body.fitId],
-        )
+        await db.query<{
+          user_id: string | null;
+          measurements: Measurements | null;
+          answers: Answers;
+          lang: Lang;
+        }>('SELECT user_id, measurements, answers, lang FROM fits WHERE id=$1', [body.fitId])
       )[0];
-      if (!row || (row.user_id && row.user_id !== req.user?.id)) return res.status(404).json({ error: 'not_found' });
+      if (!row || (row.user_id && row.user_id !== req.user?.id))
+        return res.status(404).json({ error: 'not_found' });
       const lang = body.lang ?? row.lang;
       const variants = await activeVariants(db);
       const f = runFit(row.measurements ?? undefined, row.answers);
@@ -281,7 +300,14 @@ export function createApp(deps: AppDeps) {
       )[0];
       if (cached) return res.json(cached);
       const m = row.measurements;
-      const input = buildExplainInput(lang, f, row.answers, pick, proTwin(f, pros(), variants), m ? { handLengthMm: m.handLengthMm, middleLengthMm: m.middleLengthMm } : null);
+      const input = buildExplainInput(
+        lang,
+        f,
+        row.answers,
+        pick,
+        proTwin(f, pros(), variants),
+        m ? { handLengthMm: m.handLengthMm, middleLengthMm: m.middleLengthMm } : null,
+      );
       const out = await explain(input, deps.explainClient);
       await db.query(
         'INSERT INTO explanations(fit_id, variant_id, lang, text, source) VALUES ($1,$2,$3,$4,$5) ON CONFLICT DO NOTHING',
@@ -299,18 +325,31 @@ export function createApp(deps: AppDeps) {
       const offerId = String(req.params.offerId);
       const target = await resolveOffer(db, env, offerId);
       if (!target) return res.status(404).send('Offer not found');
-      const fitId = typeof req.query.fit === 'string' && /^[0-9a-f-]{36}$/.test(req.query.fit) ? req.query.fit : null;
-      const fitExists = fitId ? (await db.query('SELECT 1 FROM fits WHERE id=$1', [fitId])).length > 0 : false;
+      const fitId =
+        typeof req.query.fit === 'string' && /^[0-9a-f-]{36}$/.test(req.query.fit) ? req.query.fit : null;
+      const fitExists = fitId
+        ? (await db.query('SELECT 1 FROM fits WHERE id=$1', [fitId])).length > 0
+        : false;
       await db.query(
         'INSERT INTO clicks(fit_id, user_id, offer_id, variant_id, retailer, country) VALUES ($1,$2,$3,$4,$5,$6)',
-        [fitExists ? fitId : null, req.user?.id ?? null, offerId, target.variantId, target.retailer, country(req)],
+        [
+          fitExists ? fitId : null,
+          req.user?.id ?? null,
+          offerId,
+          target.variantId,
+          target.retailer,
+          country(req),
+        ],
       );
       if (req.user?.feedback_email) {
         await enqueue(
           db,
           'feedback_email',
           { userId: req.user.id, fitId: fitExists ? fitId : '' },
-          { runAt: new Date(Date.now() + 14 * 864e5), dedupeKey: `feedback:${req.user.id}:${new Date().toISOString().slice(0, 7)}` },
+          {
+            runAt: new Date(Date.now() + 14 * 864e5),
+            dedupeKey: `feedback:${req.user.id}:${new Date().toISOString().slice(0, 7)}`,
+          },
         );
       }
       res.setHeader('Referrer-Policy', 'no-referrer');
@@ -334,7 +373,17 @@ export function createApp(deps: AppDeps) {
         const token = randomToken();
         await db.query(
           `INSERT INTO login_tokens(token_hash, email, payload, expires_at) VALUES ($1,$2,$3, now() + interval '20 minutes')`,
-          [sha256(token), body.email, JSON.stringify({ fitId: body.fitId, lang: body.lang, alertsEmail: body.alertsEmail, feedbackEmail: body.feedbackEmail, consentVersion: body.consentVersion })],
+          [
+            sha256(token),
+            body.email,
+            JSON.stringify({
+              fitId: body.fitId,
+              lang: body.lang,
+              alertsEmail: body.alertsEmail,
+              feedbackEmail: body.feedbackEmail,
+              consentVersion: body.consentVersion,
+            }),
+          ],
         );
         await mailer.send({
           to: body.email,
@@ -352,7 +401,16 @@ export function createApp(deps: AppDeps) {
     wrap(async (req, res) => {
       const token = typeof req.query.token === 'string' ? req.query.token : '';
       const row = (
-        await db.query<{ email: string; payload: { fitId?: string; lang?: Lang; alertsEmail?: boolean; feedbackEmail?: boolean; consentVersion?: string } }>(
+        await db.query<{
+          email: string;
+          payload: {
+            fitId?: string;
+            lang?: Lang;
+            alertsEmail?: boolean;
+            feedbackEmail?: boolean;
+            consentVersion?: string;
+          };
+        }>(
           `UPDATE login_tokens SET used_at=now() WHERE token_hash=$1 AND used_at IS NULL AND expires_at > now() RETURNING email, payload`,
           [sha256(token)],
         )
@@ -362,14 +420,33 @@ export function createApp(deps: AppDeps) {
       let user = (await db.query<{ id: string }>('SELECT id FROM users WHERE email=$1', [row.email]))[0];
       if (!user) {
         user = { id: randomUUID() };
-        await db.query('INSERT INTO users(id, email, lang) VALUES ($1,$2,$3)', [user.id, row.email, p.lang ?? 'nl']);
+        await db.query('INSERT INTO users(id, email, lang) VALUES ($1,$2,$3)', [
+          user.id,
+          row.email,
+          p.lang ?? 'nl',
+        ]);
       }
-      await setOptins(user.id, { alertsEmail: p.alertsEmail, feedbackEmail: p.feedbackEmail }, p.consentVersion ?? 'unknown', true);
+      await setOptins(
+        user.id,
+        { alertsEmail: p.alertsEmail, feedbackEmail: p.feedbackEmail },
+        p.consentVersion ?? 'unknown',
+        true,
+      );
       await db.query('UPDATE users SET last_seen_at=now() WHERE id=$1', [user.id]);
-      if (p.fitId) await db.query('UPDATE fits SET user_id=$1 WHERE id=$2 AND user_id IS NULL', [user.id, p.fitId]);
+      if (p.fitId)
+        await db.query('UPDATE fits SET user_id=$1 WHERE id=$2 AND user_id IS NULL', [user.id, p.fitId]);
       const sid = randomToken();
-      await db.query(`INSERT INTO sessions(id_hash, user_id, expires_at) VALUES ($1,$2, now() + interval '${SESSION_DAYS} days')`, [sha256(sid), user.id]);
-      res.cookie(COOKIE, sid, { httpOnly: true, secure, sameSite: 'lax', maxAge: SESSION_DAYS * 864e5, path: '/' });
+      await db.query(
+        `INSERT INTO sessions(id_hash, user_id, expires_at) VALUES ($1,$2, now() + interval '${SESSION_DAYS} days')`,
+        [sha256(sid), user.id],
+      );
+      res.cookie(COOKIE, sid, {
+        httpOnly: true,
+        secure,
+        sameSite: 'lax',
+        maxAge: SESSION_DAYS * 864e5,
+        path: '/',
+      });
       res.redirect(302, p.fitId ? `/#/fit/${p.fitId}?saved=1` : '/#/me');
     }),
   );
@@ -390,12 +467,21 @@ export function createApp(deps: AppDeps) {
     version: string,
     onlyGrant = false,
   ) {
-    const map = { alertsEmail: 'alerts_email', alertsPush: 'alerts_push', feedbackEmail: 'feedback_email' } as const;
+    const map = {
+      alertsEmail: 'alerts_email',
+      alertsPush: 'alerts_push',
+      feedbackEmail: 'feedback_email',
+    } as const;
     for (const [k, col] of Object.entries(map) as Array<[keyof typeof map, string]>) {
       const v = o[k];
       if (v === undefined || (onlyGrant && !v)) continue;
       await db.query(`UPDATE users SET ${col}=$2 WHERE id=$1`, [userId, v]);
-      await db.query('INSERT INTO consents(user_id, kind, granted, wording_version) VALUES ($1,$2,$3,$4)', [userId, col, v, version]);
+      await db.query('INSERT INTO consents(user_id, kind, granted, wording_version) VALUES ($1,$2,$3,$4)', [
+        userId,
+        col,
+        v,
+        version,
+      ]);
     }
   }
 
@@ -438,7 +524,10 @@ export function createApp(deps: AppDeps) {
     wrap(async (req, res) => {
       const u = requireUser(req, res);
       if (!u) return;
-      const r = await db.query('UPDATE fits SET user_id=$1 WHERE id=$2 AND (user_id IS NULL OR user_id=$1) RETURNING id', [u.id, String(req.params.id)]);
+      const r = await db.query(
+        'UPDATE fits SET user_id=$1 WHERE id=$2 AND (user_id IS NULL OR user_id=$1) RETURNING id',
+        [u.id, String(req.params.id)],
+      );
       if (!r.length) return res.status(404).json({ error: 'not_found' });
       res.json({ ok: true });
     }),
@@ -453,11 +542,21 @@ export function createApp(deps: AppDeps) {
       const q = (sql: string) => db.query(sql, [u.id]);
       res.setHeader('Content-Disposition', 'attachment; filename="dartfit-export.json"');
       res.json({
-        user: (await q('SELECT id, email, lang, alerts_email, alerts_push, feedback_email, created_at FROM users WHERE id=$1'))[0],
-        consents: await q('SELECT kind, granted, wording_version, created_at FROM consents WHERE user_id=$1 ORDER BY id'),
-        fits: await q('SELECT id, created_at, engine_version, measurements, answers, best_variant_id FROM fits WHERE user_id=$1'),
+        user: (
+          await q(
+            'SELECT id, email, lang, alerts_email, alerts_push, feedback_email, created_at FROM users WHERE id=$1',
+          )
+        )[0],
+        consents: await q(
+          'SELECT kind, granted, wording_version, created_at FROM consents WHERE user_id=$1 ORDER BY id',
+        ),
+        fits: await q(
+          'SELECT id, created_at, engine_version, measurements, answers, best_variant_id FROM fits WHERE user_id=$1',
+        ),
         clicks: await q('SELECT offer_id, variant_id, retailer, created_at FROM clicks WHERE user_id=$1'),
-        feedback: await q('SELECT variant_id, bought, weight_g, feel, created_at FROM feedback WHERE user_id=$1'),
+        feedback: await q(
+          'SELECT variant_id, bought, weight_g, feel, created_at FROM feedback WHERE user_id=$1',
+        ),
       });
     }),
   );
@@ -500,7 +599,8 @@ export function createApp(deps: AppDeps) {
     if (!userId) return res.status(400).send('Invalid link');
     const what = q.x === 'feedback' ? { feedbackEmail: false } : { alertsEmail: false, alertsPush: false };
     await setOptins(userId, what, 'unsubscribe-link');
-    const lang = ((await db.query<{ lang: Lang }>('SELECT lang FROM users WHERE id=$1', [userId]))[0]?.lang ?? 'nl') as Lang;
+    const lang = ((await db.query<{ lang: Lang }>('SELECT lang FROM users WHERE id=$1', [userId]))[0]?.lang ??
+      'nl') as Lang;
     res.type('text/plain; charset=utf-8').send(t(lang, 'unsub.done'));
   });
   app.get('/api/unsubscribe', unsubscribe);
@@ -518,7 +618,15 @@ export function createApp(deps: AppDeps) {
       const fitId = body.x && /^[0-9a-f-]{36}$/.test(body.x) ? body.x : null;
       await db.query(
         'INSERT INTO feedback(user_id, fit_id, variant_id, bought, weight_g, feel, engine_version) VALUES ($1,$2,$3,$4,$5,$6,$7)',
-        [userId, fitId, body.variantId ?? null, body.bought, body.weightG ?? null, body.feel ?? null, ENGINE_VERSION],
+        [
+          userId,
+          fitId,
+          body.variantId ?? null,
+          body.bought,
+          body.weightG ?? null,
+          body.feel ?? null,
+          ENGINE_VERSION,
+        ],
       );
       res.json({ ok: true });
     }),
@@ -549,14 +657,26 @@ export function createApp(deps: AppDeps) {
       await db.query(
         `INSERT INTO dart_variants(id, model_id, weight_g, length_mm, diameter_mm, grip, tungsten_pct, price_usd, source_url, verified_at, origin, spec_check)
          VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9, current_date, 'admin', $10)`,
-        [v.id, v.modelId, v.weightG, v.lengthMm, v.diameterMm, v.gripIntensity, v.tungstenPct, v.priceUsd, v.sourceUrl, check ? JSON.stringify(check) : null],
+        [
+          v.id,
+          v.modelId,
+          v.weightG,
+          v.lengthMm,
+          v.diameterMm,
+          v.gripIntensity,
+          v.tungstenPct,
+          v.priceUsd,
+          v.sourceUrl,
+          check ? JSON.stringify(check) : null,
+        ],
       );
       await db.query(
         `INSERT INTO offers(id, variant_id, retailer, country, url, price, currency) VALUES ($1,$2,'source','*',$3,$4,'USD') ON CONFLICT DO NOTHING`,
         [`source:${v.id}`, v.id, v.sourceUrl, v.priceUsd],
       );
       // A listing the physics model cannot reconcile is stored but never alerted until re-checked.
-      if (!check) await enqueue(db, 'new_variant_alerts', { variantId: v.id }, { dedupeKey: `alerts:${v.id}` });
+      if (!check)
+        await enqueue(db, 'new_variant_alerts', { variantId: v.id }, { dedupeKey: `alerts:${v.id}` });
       res.status(201).json({ ok: true, id: v.id, specCheck: check });
     }),
   );
@@ -571,12 +691,16 @@ export function createApp(deps: AppDeps) {
         savedFits: await one('SELECT count(*)::int AS n FROM fits WHERE user_id IS NOT NULL'),
         users: await one('SELECT count(*)::int AS n FROM users'),
         clicks: await one('SELECT count(*)::int AS n FROM clicks'),
-        clicksByRetailer: await db.query('SELECT retailer, count(*)::int AS n FROM clicks GROUP BY retailer ORDER BY n DESC'),
+        clicksByRetailer: await db.query(
+          'SELECT retailer, count(*)::int AS n FROM clicks GROUP BY retailer ORDER BY n DESC',
+        ),
         feelByWeight: await db.query(
           `SELECT weight_g::float8 AS weight_g, feel, count(*)::int AS n FROM feedback WHERE weight_g IS NOT NULL GROUP BY weight_g, feel ORDER BY weight_g, feel`,
         ),
         deadOffers: await one('SELECT count(*)::int AS n FROM offers WHERE NOT live'),
-        failedJobs: await db.query(`SELECT kind, last_error, created_at FROM jobs WHERE status='failed' ORDER BY id DESC LIMIT 20`),
+        failedJobs: await db.query(
+          `SELECT kind, last_error, created_at FROM jobs WHERE status='failed' ORDER BY id DESC LIMIT 20`,
+        ),
       });
     }),
   );
@@ -588,7 +712,8 @@ export function createApp(deps: AppDeps) {
         index: 'index.html',
         setHeaders(res, path) {
           if (/\/assets\//.test(path)) res.setHeader('Cache-Control', 'public, max-age=31536000, immutable');
-          if (path.endsWith('sw.js') || path.endsWith('index.html')) res.setHeader('Cache-Control', 'no-cache');
+          if (path.endsWith('sw.js') || path.endsWith('index.html'))
+            res.setHeader('Cache-Control', 'no-cache');
         },
       }),
     );

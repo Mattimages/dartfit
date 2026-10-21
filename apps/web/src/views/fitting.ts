@@ -6,7 +6,7 @@
  * Then the winner. Reduced motion: everything appears at once.
  */
 import { scoreVariant } from '@dartfit/engine';
-import { h, reducedMotion } from '../h';
+import { h, reducedMotion, s } from '../h';
 import { num, t } from '../i18n';
 import { go } from '../router';
 import { session } from '../store';
@@ -42,6 +42,33 @@ async function roll(el: HTMLElement, to: number, digits: number, ms: number, fro
   el.textContent = num(to, digits);
 }
 
+/**
+ * The flight path to scale: release point to the bull (1.73 m high, 1.92 m away), from the launch
+ * angle and speed the engine computed. Board on the right, floor line at the bottom.
+ */
+function throwArc(releaseM: number, angleDeg: number, v: number, fast: boolean): SVGElement {
+  const W = 320;
+  const Hh = 110;
+  const D = 1.92;
+  const X = (x: number) => 12 + (x / D) * (W - 36);
+  const Y = (y: number) => Hh - 8 - ((y - 1.2) / 0.75) * (Hh - 20);
+  const a = (angleDeg * Math.PI) / 180;
+  const pts: string[] = [];
+  for (let i = 0; i <= 40; i++) {
+    const x = (D * i) / 40;
+    const y = releaseM + x * Math.tan(a) - (9.81 * x * x) / (2 * v * v * Math.cos(a) ** 2);
+    pts.push(`${X(x).toFixed(1)},${Y(y).toFixed(1)}`);
+  }
+  return s(
+    'svg',
+    { class: `arc${fast ? '' : ' draw-in'}`, viewBox: `0 0 ${W} ${Hh}`, 'aria-hidden': 'true' },
+    s('line', { class: 'arc-board', x1: W - 22, x2: W - 22, y1: Y(1.95), y2: Y(1.5) }),
+    s('circle', { class: 'arc-bull', cx: W - 22, cy: Y(1.73), r: 3.5 }),
+    s('line', { class: 'arc-eye', x1: 4, x2: 20, y1: Y(releaseM), y2: Y(releaseM) }),
+    s('path', { class: 'arc-path', d: `M${pts.join('L')}`, style: '--len:420' }),
+  );
+}
+
 export async function fittingView(root: HTMLElement) {
   const s0 = session();
   if (!s0.answers) return go('/questions');
@@ -70,6 +97,26 @@ export async function fittingView(root: HTMLElement) {
   const ln = reading(t('fit.r.barrel'), 'mm');
   const dm = reading(t('fit.r.diameter'), 'mm');
   const artBox = h('div');
+  // ── Panel 1b: the throw (only with a height) ─────────────────────
+  const ang = reading(t('fit.r.angle'), '°');
+  const spd = reading(t('fit.r.speed'), 'm/s');
+  const rel = reading(t('fit.r.release'), 'm');
+  const arcBox = h('div', { class: 'arc-box' });
+  const pThrow = s0.answers.heightCm
+    ? h(
+        'div',
+        { class: 'panel wait', 'aria-hidden': 'true' },
+        h(
+          'div',
+          { class: 'panel-head' },
+          h('span', null, t('fit.pThrow')),
+          h('span', { class: 'state' }, ''),
+        ),
+        arcBox,
+        h('div', { class: 'readings' }, ang.el, spd.el, rel.el),
+      )
+    : null;
+
   const p2 = h(
     'div',
     { class: 'panel wait', 'aria-hidden': 'true' },
@@ -112,7 +159,7 @@ export async function fittingView(root: HTMLElement) {
   );
   const err = h('p', { class: 'error', role: 'alert', hidden: true }, t('q.error'));
   const title = h('h1', { class: 'visually-hidden' }, t('fit.title'));
-  root.append(h('section', { class: 'console' }, title, p1, p2, p3, found, err));
+  root.append(h('section', { class: 'console' }, title, p1, pThrow, p2, p3, found, err));
 
   let result;
   try {
@@ -129,15 +176,36 @@ export async function fittingView(root: HTMLElement) {
     if (st) st.textContent = text;
   };
 
+  // Without a scan but with a height, the engine estimated the hand: show that number.
+  const est = (k: string) => {
+    const v = f.reasons.find((x) => x.code === 'hand_from_height')?.params[k];
+    return typeof v === 'number' ? v : undefined;
+  };
+
   // 1 ── hand
   const handMs = fast ? 0 : 700;
   await Promise.all([
-    roll(hl.value, m?.handLengthMm ?? 185, 0, handMs),
+    roll(hl.value, m?.handLengthMm ?? est('handLengthMm') ?? 185, 0, handMs),
     roll(pw.value, m?.palmWidthMm ?? 78, 0, handMs),
     roll(il.value, m?.indexLengthMm ?? 78, 0, handMs),
   ]);
-  state(p1, m ? '✓' : t('fit.avg'));
+  state(p1, m ? '✓' : est('handLengthMm') ? t('fit.est') : t('fit.avg'));
   if (!fast) await wait(250);
+
+  // 1b ── the throw, from height and forearm
+  const tr = f.trajectory;
+  if (pThrow && tr) {
+    state(pThrow, '');
+    arcBox.append(throwArc(tr.releaseHeightM, tr.angleDeg, tr.releaseSpeedMs, fast));
+    const ms = fast ? 0 : 900;
+    await Promise.all([
+      roll(ang.value, tr.angleDeg, 1, ms, 25, 4),
+      roll(spd.value, tr.releaseSpeedMs, 1, ms, 4, 0.5),
+      roll(rel.value, tr.releaseHeightM, 2, ms, 1.4, 0.1),
+    ]);
+    state(pThrow, '✓');
+    if (!fast) await wait(250);
+  }
 
   // 2 ── ideal dart
   state(p2, '');

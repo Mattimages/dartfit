@@ -1,6 +1,6 @@
 # DartFit — notes for working in this repo
 
-Mobile site: measure the throwing hand next to a bank card, fit darts to it, link to shops. NL first, steel tip.
+Mobile site: measure the throwing hand next to a bank card, fit darts to it, link to affiliate shops. EU-wide (30 countries), NL/EN/DE, steel tip.
 
 ## Rules
 
@@ -11,6 +11,8 @@ Mobile site: measure the throwing hand next to a bank card, fit darts to it, lin
 - Strict CSP: no inline style attributes (set `el.style.cssText` via the `h()` helper), no inline scripts, fonts and models self-hosted.
 - Only affiliate shops are linked (retailers with `affiliateEnv`; in production the ID must be set). No affiliate link → the dart is not shown. A-Z Darts is a spec source only.
 - Results show the best fit per price class (budget ≤ €50, standard ≤ €100, premium), see `priceTiers` and `packages/engine/src/money.ts`.
+- Height and forearm (optional) enter via `packages/engine/src/body.ts`: hand estimate without a scan, scan cross-check, and launch-angle physics that sets throw style when the player says "not sure".
+- Country (shops) and language are separate; see `apps/web/src/region.ts`. German lives in `i18n.de.ts` and falls back to English.
 - Copy lives in `apps/web/src/i18n.ts`, NL and EN side by side. Write plain Dutch; no "je/u" mixing (use je).
 
 ## Engine v3 in one paragraph

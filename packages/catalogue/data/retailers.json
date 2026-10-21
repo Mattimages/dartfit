@@ -1,45 +1,414 @@
 {
-  "_note": "Search templates are used when no verified product page exists for a country. {q} is the URL-encoded dart name. Affiliate wrapping is applied server-side from environment variables; until those are set, links go out untagged. Check every template against the retailer's partner dashboard before relying on it.",
+  "_note": "Shops per country. Only retailers with an affiliate programme are ever linked (affiliateEnv); in production the env var must be set. Lower priority shows first. Every template and rotation ID must be checked in the network dashboard before launch.",
+  "countries": [
+    "AT",
+    "BE",
+    "BG",
+    "HR",
+    "CY",
+    "CZ",
+    "DK",
+    "EE",
+    "FI",
+    "FR",
+    "DE",
+    "GR",
+    "HU",
+    "IE",
+    "IT",
+    "LV",
+    "LT",
+    "LU",
+    "MT",
+    "NL",
+    "PL",
+    "PT",
+    "RO",
+    "SK",
+    "SI",
+    "ES",
+    "SE",
+    "CH",
+    "NO",
+    "GB"
+  ],
   "retailers": [
     {
       "id": "azdarts",
       "name": "A-Z Darts",
-      "countries": ["*"],
+      "countries": [
+        "*"
+      ],
       "kind": "product",
       "currency": "USD",
-      "affiliateEnv": null
+      "affiliateEnv": null,
+      "affiliateType": null,
+      "note": "Spec source only: no affiliate programme, never linked as a shop."
+    },
+    {
+      "id": "dartscorner_eu",
+      "name": "Darts Corner",
+      "countries": [
+        "AT",
+        "BE",
+        "BG",
+        "HR",
+        "CY",
+        "CZ",
+        "DK",
+        "EE",
+        "FI",
+        "FR",
+        "DE",
+        "GR",
+        "HU",
+        "IE",
+        "IT",
+        "LV",
+        "LT",
+        "LU",
+        "MT",
+        "NL",
+        "PL",
+        "PT",
+        "RO",
+        "SK",
+        "SI",
+        "ES",
+        "SE",
+        "CH",
+        "NO"
+      ],
+      "kind": "search",
+      "searchTemplate": "https://dartscorner.de/search?q={q}",
+      "affiliateEnv": "DARTSCORNER_DEEPLINK",
+      "affiliateType": "deeplink",
+      "priority": 1,
+      "note": "Darts specialist (UK HQ, EU storefront in EUR). Affiliate via Adtraction (adtraction.com/advertisers/1817443681). Paste the Adtraction deeplink template with {url} into DARTSCORNER_DEEPLINK."
+    },
+    {
+      "id": "dartscorner_uk",
+      "name": "Darts Corner",
+      "countries": [
+        "GB"
+      ],
+      "kind": "search",
+      "searchTemplate": "https://www.dartscorner.co.uk/search?q={q}",
+      "affiliateEnv": "DARTSCORNER_UK_DEEPLINK",
+      "affiliateType": "deeplink",
+      "priority": 1,
+      "note": "UK storefront. Adtraction."
+    },
+    {
+      "id": "dartsturm",
+      "name": "Dartsturm",
+      "countries": [
+        "DE",
+        "AT"
+      ],
+      "kind": "search",
+      "searchTemplate": "https://www.dartsturm.de/search?search={q}",
+      "affiliateEnv": "DARTSTURM_DEEPLINK",
+      "affiliateType": "deeplink",
+      "priority": 1,
+      "note": "German darts specialist. Affiliate via Shopper.com (5–10%). Search URL assumes Shopware 6; verify."
     },
     {
       "id": "bol",
       "name": "bol.com",
-      "countries": ["NL", "BE"],
+      "countries": [
+        "NL",
+        "BE"
+      ],
       "kind": "search",
       "searchTemplate": "https://www.bol.com/nl/nl/s/?searchtext={q}",
-      "affiliateEnv": "BOL_PARTNER_SITE_ID"
-    },
-    {
-      "id": "amazon_de",
-      "name": "Amazon.de",
-      "countries": ["DE", "AT"],
-      "kind": "search",
-      "searchTemplate": "https://www.amazon.de/s?k={q}",
-      "affiliateEnv": "AMAZON_TAG_DE"
+      "affiliateEnv": "BOL_PARTNER_SITE_ID",
+      "affiliateType": "bol",
+      "priority": 2,
+      "note": "bol.com Partner Programme."
     },
     {
       "id": "amazon_uk",
       "name": "Amazon.co.uk",
-      "countries": ["GB", "IE"],
+      "countries": [
+        "GB",
+        "IE"
+      ],
       "kind": "search",
       "searchTemplate": "https://www.amazon.co.uk/s?k={q}",
-      "affiliateEnv": "AMAZON_TAG_UK"
+      "affiliateEnv": "AMAZON_TAG_UK",
+      "affiliateType": "amazon",
+      "priority": 3,
+      "note": "Amazon Associates (one programme per marketplace)."
+    },
+    {
+      "id": "amazon_de",
+      "name": "Amazon.de",
+      "countries": [
+        "DE",
+        "AT",
+        "CH",
+        "LU",
+        "CZ",
+        "SK",
+        "HU",
+        "SI",
+        "HR",
+        "RO",
+        "BG",
+        "GR",
+        "CY",
+        "MT",
+        "EE",
+        "LV",
+        "LT",
+        "DK",
+        "FI",
+        "NO"
+      ],
+      "kind": "search",
+      "searchTemplate": "https://www.amazon.de/s?k={q}",
+      "affiliateEnv": "AMAZON_TAG_DE",
+      "affiliateType": "amazon",
+      "priority": 3,
+      "note": "Amazon Associates (one programme per marketplace)."
+    },
+    {
+      "id": "amazon_fr",
+      "name": "Amazon.fr",
+      "countries": [
+        "FR",
+        "LU"
+      ],
+      "kind": "search",
+      "searchTemplate": "https://www.amazon.fr/s?k={q}",
+      "affiliateEnv": "AMAZON_TAG_FR",
+      "affiliateType": "amazon",
+      "priority": 3,
+      "note": "Amazon Associates (one programme per marketplace)."
+    },
+    {
+      "id": "amazon_it",
+      "name": "Amazon.it",
+      "countries": [
+        "IT",
+        "MT"
+      ],
+      "kind": "search",
+      "searchTemplate": "https://www.amazon.it/s?k={q}",
+      "affiliateEnv": "AMAZON_TAG_IT",
+      "affiliateType": "amazon",
+      "priority": 3,
+      "note": "Amazon Associates (one programme per marketplace)."
+    },
+    {
+      "id": "amazon_es",
+      "name": "Amazon.es",
+      "countries": [
+        "ES",
+        "PT"
+      ],
+      "kind": "search",
+      "searchTemplate": "https://www.amazon.es/s?k={q}",
+      "affiliateEnv": "AMAZON_TAG_ES",
+      "affiliateType": "amazon",
+      "priority": 3,
+      "note": "Amazon Associates (one programme per marketplace)."
     },
     {
       "id": "amazon_nl",
       "name": "Amazon.nl",
-      "countries": ["NL"],
+      "countries": [
+        "NL"
+      ],
       "kind": "search",
       "searchTemplate": "https://www.amazon.nl/s?k={q}",
-      "affiliateEnv": "AMAZON_TAG_NL"
+      "affiliateEnv": "AMAZON_TAG_NL",
+      "affiliateType": "amazon",
+      "priority": 3,
+      "note": "Amazon Associates (one programme per marketplace)."
+    },
+    {
+      "id": "amazon_be",
+      "name": "Amazon.com.be",
+      "countries": [
+        "BE"
+      ],
+      "kind": "search",
+      "searchTemplate": "https://www.amazon.com.be/s?k={q}",
+      "affiliateEnv": "AMAZON_TAG_BE",
+      "affiliateType": "amazon",
+      "priority": 3,
+      "note": "Amazon Associates (one programme per marketplace)."
+    },
+    {
+      "id": "amazon_se",
+      "name": "Amazon.se",
+      "countries": [
+        "SE",
+        "FI",
+        "DK",
+        "NO"
+      ],
+      "kind": "search",
+      "searchTemplate": "https://www.amazon.se/s?k={q}",
+      "affiliateEnv": "AMAZON_TAG_SE",
+      "affiliateType": "amazon",
+      "priority": 3,
+      "note": "Amazon Associates (one programme per marketplace)."
+    },
+    {
+      "id": "amazon_pl",
+      "name": "Amazon.pl",
+      "countries": [
+        "PL"
+      ],
+      "kind": "search",
+      "searchTemplate": "https://www.amazon.pl/s?k={q}",
+      "affiliateEnv": "AMAZON_TAG_PL",
+      "affiliateType": "amazon",
+      "priority": 3,
+      "note": "Amazon Associates (one programme per marketplace)."
+    },
+    {
+      "id": "ebay_uk",
+      "name": "eBay.co.uk",
+      "countries": [
+        "GB"
+      ],
+      "kind": "search",
+      "searchTemplate": "https://www.ebay.co.uk/sch/i.html?_nkw={q}",
+      "affiliateEnv": "EBAY_CAMPAIGN_ID",
+      "affiliateType": "ebay",
+      "ebayRotation": "710-53481-19255-0",
+      "priority": 4,
+      "note": "eBay Partner Network. Rotation ID from memory: check it in the EPN link generator before launch."
+    },
+    {
+      "id": "ebay_de",
+      "name": "eBay.de",
+      "countries": [
+        "DE"
+      ],
+      "kind": "search",
+      "searchTemplate": "https://www.ebay.de/sch/i.html?_nkw={q}",
+      "affiliateEnv": "EBAY_CAMPAIGN_ID",
+      "affiliateType": "ebay",
+      "ebayRotation": "707-53477-19255-0",
+      "priority": 4,
+      "note": "eBay Partner Network. Rotation ID from memory: check it in the EPN link generator before launch."
+    },
+    {
+      "id": "ebay_at",
+      "name": "eBay.at",
+      "countries": [
+        "AT"
+      ],
+      "kind": "search",
+      "searchTemplate": "https://www.ebay.at/sch/i.html?_nkw={q}",
+      "affiliateEnv": "EBAY_CAMPAIGN_ID",
+      "affiliateType": "ebay",
+      "ebayRotation": "5221-53469-19255-0",
+      "priority": 4,
+      "note": "eBay Partner Network. Rotation ID from memory: check it in the EPN link generator before launch."
+    },
+    {
+      "id": "ebay_ch",
+      "name": "eBay.ch",
+      "countries": [
+        "CH"
+      ],
+      "kind": "search",
+      "searchTemplate": "https://www.ebay.ch/sch/i.html?_nkw={q}",
+      "affiliateEnv": "EBAY_CAMPAIGN_ID",
+      "affiliateType": "ebay",
+      "ebayRotation": "5222-53480-19255-0",
+      "priority": 4,
+      "note": "eBay Partner Network. Rotation ID from memory: check it in the EPN link generator before launch."
+    },
+    {
+      "id": "ebay_fr",
+      "name": "eBay.fr",
+      "countries": [
+        "FR"
+      ],
+      "kind": "search",
+      "searchTemplate": "https://www.ebay.fr/sch/i.html?_nkw={q}",
+      "affiliateEnv": "EBAY_CAMPAIGN_ID",
+      "affiliateType": "ebay",
+      "ebayRotation": "709-53476-19255-0",
+      "priority": 4,
+      "note": "eBay Partner Network. Rotation ID from memory: check it in the EPN link generator before launch."
+    },
+    {
+      "id": "ebay_it",
+      "name": "eBay.it",
+      "countries": [
+        "IT"
+      ],
+      "kind": "search",
+      "searchTemplate": "https://www.ebay.it/sch/i.html?_nkw={q}",
+      "affiliateEnv": "EBAY_CAMPAIGN_ID",
+      "affiliateType": "ebay",
+      "ebayRotation": "724-53478-19255-0",
+      "priority": 4,
+      "note": "eBay Partner Network. Rotation ID from memory: check it in the EPN link generator before launch."
+    },
+    {
+      "id": "ebay_es",
+      "name": "eBay.es",
+      "countries": [
+        "ES"
+      ],
+      "kind": "search",
+      "searchTemplate": "https://www.ebay.es/sch/i.html?_nkw={q}",
+      "affiliateEnv": "EBAY_CAMPAIGN_ID",
+      "affiliateType": "ebay",
+      "ebayRotation": "1185-53479-19255-0",
+      "priority": 4,
+      "note": "eBay Partner Network. Rotation ID from memory: check it in the EPN link generator before launch."
+    },
+    {
+      "id": "ebay_nl",
+      "name": "eBay.nl",
+      "countries": [
+        "NL"
+      ],
+      "kind": "search",
+      "searchTemplate": "https://www.ebay.nl/sch/i.html?_nkw={q}",
+      "affiliateEnv": "EBAY_CAMPAIGN_ID",
+      "affiliateType": "ebay",
+      "ebayRotation": "1346-53482-19255-0",
+      "priority": 4,
+      "note": "eBay Partner Network. Rotation ID from memory: check it in the EPN link generator before launch."
+    },
+    {
+      "id": "ebay_be",
+      "name": "eBay.be",
+      "countries": [
+        "BE"
+      ],
+      "kind": "search",
+      "searchTemplate": "https://www.benl.ebay.be/sch/i.html?_nkw={q}",
+      "affiliateEnv": "EBAY_CAMPAIGN_ID",
+      "affiliateType": "ebay",
+      "ebayRotation": "1553-53471-19255-0",
+      "priority": 4,
+      "note": "eBay Partner Network. Rotation ID from memory: check it in the EPN link generator before launch."
+    },
+    {
+      "id": "ebay_ie",
+      "name": "eBay.ie",
+      "countries": [
+        "IE"
+      ],
+      "kind": "search",
+      "searchTemplate": "https://www.ebay.ie/sch/i.html?_nkw={q}",
+      "affiliateEnv": "EBAY_CAMPAIGN_ID",
+      "affiliateType": "ebay",
+      "ebayRotation": "5282-53468-19255-0",
+      "priority": 4,
+      "note": "eBay Partner Network. Rotation ID from memory: check it in the EPN link generator before launch."
     }
   ]
 }

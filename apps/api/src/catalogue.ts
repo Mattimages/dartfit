@@ -80,7 +80,10 @@ export async function activeVariants(db: Db): Promise<Variant[]> {
     tungstenPct: Number(r.tungsten_pct),
     priceUsd: r.price_usd === null ? null : Number(r.price_usd),
     sourceUrl: r.source_url,
-    verifiedAt: typeof r.verified_at === 'string' ? r.verified_at.slice(0, 10) : r.verified_at.toISOString().slice(0, 10),
+    verifiedAt:
+      typeof r.verified_at === 'string'
+        ? r.verified_at.slice(0, 10)
+        : r.verified_at.toISOString().slice(0, 10),
     ...(r.spec_check ? { specCheck: r.spec_check } : {}),
   }));
 }
@@ -109,6 +112,9 @@ export interface Offer {
 
 const retailerName = (id: string, list: Retailer[]) => list.find((r) => r.id === id)?.name ?? id;
 
+/** At most this many shop buttons per dart: specialists first, then marketplaces. */
+export const MAX_SHOPS = 3;
+
 /**
  * Only shops we earn from are linked: a retailer needs an affiliate programme (affiliateEnv), and in
  * production its affiliate ID must be configured. Anything else is never shown as a shop link.
@@ -128,6 +134,8 @@ export async function offersFor(db: Db, env: Env, variant: Variant, country: str
   const ready = new Set(retailers.filter((r) => affiliateReady(env, r)).map((r) => r.id));
   const local: Offer[] = retailers
     .filter((r) => r.kind === 'search' && r.countries.includes(country) && ready.has(r.id))
+    .sort((a, b) => (a.priority ?? 9) - (b.priority ?? 9))
+    .slice(0, MAX_SHOPS)
     .map((r) => ({
       id: `search:${r.id}:${variant.id}`,
       retailer: r.id,
@@ -138,21 +146,29 @@ export async function offersFor(db: Db, env: Env, variant: Variant, country: str
       currency: null,
       goUrl: `/go/${encodeURIComponent(`search:${r.id}:${variant.id}`)}`,
     }));
-  const rows = await db.query<{ id: string; retailer: string; country: string; price: number | null; currency: string | null }>(
+  const rows = await db.query<{
+    id: string;
+    retailer: string;
+    country: string;
+    price: number | null;
+    currency: string | null;
+  }>(
     `SELECT id, retailer, country, price, currency FROM offers WHERE variant_id=$1 AND live AND (country=$2 OR country='*')
      ORDER BY (country=$2) DESC, price NULLS LAST`,
     [variant.id, country],
   );
-  const product: Offer[] = rows.filter((o) => ready.has(o.retailer)).map((o) => ({
-    id: o.id,
-    retailer: o.retailer,
-    retailerName: retailerName(o.retailer, retailers),
-    kind: 'product',
-    country: o.country,
-    price: o.price === null ? null : Number(o.price),
-    currency: o.currency,
-    goUrl: `/go/${encodeURIComponent(o.id)}`,
-  }));
+  const product: Offer[] = rows
+    .filter((o) => ready.has(o.retailer))
+    .map((o) => ({
+      id: o.id,
+      retailer: o.retailer,
+      retailerName: retailerName(o.retailer, retailers),
+      kind: 'product',
+      country: o.country,
+      price: o.price === null ? null : Number(o.price),
+      currency: o.currency,
+      goUrl: `/go/${encodeURIComponent(o.id)}`,
+    }));
   return [...local, ...product];
 }
 
@@ -177,10 +193,12 @@ export async function resolveOffer(
     const q = encodeURIComponent(`${v.brand} ${v.name} ${v.weight_g}g`);
     return { url: affiliate(env, r.id, r.searchTemplate.replace('{q}', q)), variantId, retailer: r.id };
   }
-  const o = (await db.query<{ url: string; variant_id: string; retailer: string }>(
-    'SELECT url, variant_id, retailer FROM offers WHERE id=$1',
-    [offerId],
-  ))[0];
+  const o = (
+    await db.query<{ url: string; variant_id: string; retailer: string }>(
+      'SELECT url, variant_id, retailer FROM offers WHERE id=$1',
+      [offerId],
+    )
+  )[0];
   const r = retailers.find((x) => x.id === o?.retailer);
   if (!o || !r || !affiliateReady(env, r)) return null;
   return { url: affiliate(env, o.retailer, o.url), variantId: o.variant_id, retailer: o.retailer };
@@ -191,23 +209,33 @@ export async function resolveOffer(
  * Check the bol.com format against the partner dashboard's own link builder before launch.
  */
 export function affiliate(env: Env, retailer: string, url: string): string {
-  const tag = (u: string, t?: string) => {
-    if (!t) return u;
-    const x = new URL(u);
-    x.searchParams.set('tag', t);
-    return x.toString();
-  };
-  switch (retailer) {
+  const r = loadCatalogue().retailers.find((x) => x.id === retailer);
+  const id = r?.affiliateEnv
+    ? (env as unknown as Record<string, string | undefined>)[r.affiliateEnv]
+    : undefined;
+  if (!r || !id) return url;
+  switch (r.affiliateType) {
     case 'bol':
-      return env.BOL_PARTNER_SITE_ID
-        ? `https://partner.bol.com/click/click?p=2&t=url&s=${encodeURIComponent(env.BOL_PARTNER_SITE_ID)}&f=TXL&url=${encodeURIComponent(url)}&name=dartfit`
-        : url;
-    case 'amazon_nl':
-      return tag(url, env.AMAZON_TAG_NL);
-    case 'amazon_de':
-      return tag(url, env.AMAZON_TAG_DE);
-    case 'amazon_uk':
-      return tag(url, env.AMAZON_TAG_UK);
+      return `https://partner.bol.com/click/click?p=2&t=url&s=${encodeURIComponent(id)}&f=TXL&url=${encodeURIComponent(url)}&name=dartfit`;
+    case 'amazon': {
+      const x = new URL(url);
+      x.searchParams.set('tag', id);
+      return x.toString();
+    }
+    case 'ebay': {
+      // eBay Partner Network link parameters; the rotation ID identifies the eBay site.
+      const x = new URL(url);
+      x.searchParams.set('mkcid', '1');
+      x.searchParams.set('mkrid', r.ebayRotation ?? '');
+      x.searchParams.set('campid', id);
+      x.searchParams.set('toolid', '10001');
+      x.searchParams.set('customid', 'dartfit');
+      x.searchParams.set('mkevt', '1');
+      return x.toString();
+    }
+    case 'deeplink':
+      // A network deeplink template from the partner dashboard, with {url} where the target goes.
+      return id.includes('{url}') ? id.replace('{url}', encodeURIComponent(url)) : url;
     default:
       return url;
   }

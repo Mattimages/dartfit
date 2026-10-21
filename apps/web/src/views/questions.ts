@@ -199,9 +199,43 @@ export function questionsView(root: HTMLElement) {
     ),
   );
 
+  // ── Body: height (and optionally forearm). Feeds hand size without a scan and the throw geometry.
+  const heightIn = h('input', {
+    type: 'number',
+    id: 'height',
+    inputmode: 'numeric',
+    min: 130,
+    max: 220,
+    step: 1,
+    placeholder: '178',
+    value: a.heightCm ?? '',
+  }) as HTMLInputElement;
+  const forearmIn = h('input', {
+    type: 'number',
+    id: 'forearm',
+    inputmode: 'decimal',
+    min: 18,
+    max: 36,
+    step: 0.5,
+    placeholder: '26',
+    value: a.forearmCm ?? '',
+  }) as HTMLInputElement;
+  const body = h(
+    'fieldset',
+    { class: 'field' },
+    h('legend', null, t('q.body')),
+    h('p', { class: 'hint' }, t('q.body.why')),
+    h('label', { class: 'visually-hidden', for: 'height' }, t('q.body.height')),
+    h('div', { class: 'mm-input' }, heightIn, h('span', { 'aria-hidden': 'true' }, 'cm')),
+    h('label', { class: 'label', for: 'forearm', style: 'margin-top:1.25rem' }, t('q.body.forearm')),
+    h('p', { class: 'hint' }, t('q.body.forearm.hint')),
+    h('div', { class: 'mm-input small-input' }, forearmIn, h('span', { 'aria-hidden': 'true' }, 'cm')),
+  );
+
   /** One question per screen. `auto` steps move on by themselves when tapped. */
   const steps: Array<{ el: HTMLElement; auto: boolean }> = [
     { el: tiles('tip', t('q.tip'), opts('q.tip', ['steel', 'soft']), a.tip, 2), auto: true },
+    { el: body, auto: false },
     { el: tiles('hold', t('q.hold'), opts('q.hold', ['front', 'middle', 'rear']), a.hold), auto: true },
     {
       el: tiles(
@@ -307,6 +341,17 @@ export function questionsView(root: HTMLElement) {
       gripFeel: Number(val('gripFeel')) as Answers['gripFeel'],
       thickness: val('thickness') as Answers['thickness'],
     };
+    const hgt = heightIn.value ? Number(heightIn.value) : undefined;
+    const fa = forearmIn.value ? Number(forearmIn.value.replace(',', '.')) : undefined;
+    if ((hgt !== undefined && !(hgt >= 130 && hgt <= 220)) || (fa !== undefined && !(fa >= 18 && fa <= 36))) {
+      show(1, false);
+      err.textContent = t('q.body.range');
+      err.hidden = false;
+      heightIn.focus();
+      return;
+    }
+    if (hgt) answers.heightCm = hgt;
+    if (fa) answers.forearmCm = fa;
     if (val('hasCurrent') === 'yes') {
       const feel = (val('feel') || 'right') as CurrentDart['feel'];
       if (picked) {

@@ -35,6 +35,8 @@ export const AnswersSchema = z.object({
     })
     .optional(),
   budgetUsd: z.number().min(10).max(1000).optional(),
+  heightCm: z.number().min(130).max(220).optional(),
+  forearmCm: z.number().min(18).max(36).optional(),
 });
 
 export const FitRequest = z.object({
@@ -85,8 +87,14 @@ export const FeedbackRequest = z.object({
 });
 
 export const AdminVariantRequest = z.object({
-  id: z.string().regex(/^[a-z0-9-]+$/).max(80),
-  modelId: z.string().regex(/^[a-z0-9-]+$/).max(80),
+  id: z
+    .string()
+    .regex(/^[a-z0-9-]+$/)
+    .max(80),
+  modelId: z
+    .string()
+    .regex(/^[a-z0-9-]+$/)
+    .max(80),
   brand: z.string().min(2).max(60),
   model: z.string().min(2).max(120),
   tip: z.enum(['steel', 'soft']),

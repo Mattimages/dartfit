@@ -52,9 +52,13 @@ export async function migrate(db: Db): Promise<string[]> {
   await db.exec(
     'CREATE TABLE IF NOT EXISTS schema_migrations (name text PRIMARY KEY, applied_at timestamptz NOT NULL DEFAULT now())',
   );
-  const done = new Set((await db.query<{ name: string }>('SELECT name FROM schema_migrations')).map((r) => r.name));
+  const done = new Set(
+    (await db.query<{ name: string }>('SELECT name FROM schema_migrations')).map((r) => r.name),
+  );
   const applied: string[] = [];
-  for (const file of readdirSync(MIGRATIONS).filter((f) => f.endsWith('.sql')).sort()) {
+  for (const file of readdirSync(MIGRATIONS)
+    .filter((f) => f.endsWith('.sql'))
+    .sort()) {
     if (done.has(file)) continue;
     await db.exec(readFileSync(join(MIGRATIONS, file), 'utf8'));
     await db.query('INSERT INTO schema_migrations(name) VALUES ($1) ON CONFLICT DO NOTHING', [file]);

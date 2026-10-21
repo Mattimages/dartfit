@@ -13,11 +13,15 @@ if (applied.length) console.log(`migrations applied: ${applied.join(', ')}`);
 console.log(`catalogue synced: ${await syncCatalogue(db)} variants`);
 
 const mailer = createMailer(db, env);
-const explainClient = env.ANTHROPIC_API_KEY ? await anthropicClient(env.ANTHROPIC_API_KEY, env.EXPLAIN_MODEL) : null;
+const explainClient = env.ANTHROPIC_API_KEY
+  ? await anthropicClient(env.ANTHROPIC_API_KEY, env.EXPLAIN_MODEL)
+  : null;
 if (!explainClient) console.log('ANTHROPIC_API_KEY not set: explanations use the grounded template.');
 
 const app = createApp({ db, env, mailer, explainClient });
-const server = app.listen(env.PORT, () => console.log(`DartFit on ${env.PUBLIC_URL} (port ${env.PORT}, db ${db.kind})`));
+const server = app.listen(env.PORT, () =>
+  console.log(`DartFit on ${env.PUBLIC_URL} (port ${env.PORT}, db ${db.kind})`),
+);
 
 // In-process worker: fine for one instance. Run `npm run worker -w apps/api` separately when scaling out.
 if (env.RUN_WORKER) {
@@ -27,7 +31,8 @@ if (env.RUN_WORKER) {
     env,
     mailer,
     pusher,
-    fetchStatus: async (url: string) => (await fetch(url, { method: 'HEAD', redirect: 'follow', signal: AbortSignal.timeout(10_000) })).status,
+    fetchStatus: async (url: string) =>
+      (await fetch(url, { method: 'HEAD', redirect: 'follow', signal: AbortSignal.timeout(10_000) })).status,
   };
   const tick = async () => {
     try {

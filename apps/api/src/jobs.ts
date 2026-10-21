@@ -1,4 +1,11 @@
-import { fit as runFit, recommend, scoreVariant, type Answers, type Fit, type Measurements } from '@dartfit/engine';
+import {
+  fit as runFit,
+  recommend,
+  scoreVariant,
+  type Answers,
+  type Fit,
+  type Measurements,
+} from '@dartfit/engine';
 import { activeVariants } from './catalogue.js';
 import { signedParams } from './crypto.js';
 import type { Db } from './db.js';
@@ -17,7 +24,10 @@ export async function webPusher(env: Env): Promise<Pusher | null> {
   return {
     async send(sub, payload) {
       try {
-        await wp.sendNotification({ endpoint: sub.endpoint, keys: { p256dh: sub.p256dh, auth: sub.auth } }, JSON.stringify(payload));
+        await wp.sendNotification(
+          { endpoint: sub.endpoint, keys: { p256dh: sub.p256dh, auth: sub.auth } },
+          JSON.stringify(payload),
+        );
         return 'ok';
       } catch (e) {
         const code = (e as { statusCode?: number }).statusCode;
@@ -38,7 +48,12 @@ export interface JobDeps {
   now?: () => Date;
 }
 
-export async function enqueue(db: Db, kind: string, payload: object = {}, opts: { runAt?: Date; dedupeKey?: string } = {}) {
+export async function enqueue(
+  db: Db,
+  kind: string,
+  payload: object = {},
+  opts: { runAt?: Date; dedupeKey?: string } = {},
+) {
   await db.query(
     `INSERT INTO jobs(kind, payload, run_at, dedupe_key) VALUES ($1,$2,$3,$4) ON CONFLICT (dedupe_key) DO NOTHING`,
     [kind, JSON.stringify(payload), (opts.runAt ?? new Date()).toISOString(), opts.dedupeKey ?? null],
@@ -157,7 +172,8 @@ async function alertForVariant(d: JobDeps, p: Record<string, unknown>) {
       );
       for (const sub of subs) {
         const r = await d.pusher.send(sub, { title: t(row.lang, 'alert.subject', { name }), url });
-        if (r === 'gone') await d.db.query('DELETE FROM push_subscriptions WHERE endpoint=$1', [sub.endpoint]);
+        if (r === 'gone')
+          await d.db.query('DELETE FROM push_subscriptions WHERE endpoint=$1', [sub.endpoint]);
       }
     }
   }
@@ -169,17 +185,23 @@ async function linkCheck(d: JobDeps) {
   for (const o of offers) {
     const status = await d.fetchStatus(o.url).catch(() => 0);
     const live = status >= 200 && status < 400;
-    await d.db.query('UPDATE offers SET live=$2, last_status=$3, last_checked=now() WHERE id=$1', [o.id, live, status]);
+    await d.db.query('UPDATE offers SET live=$2, last_status=$3, last_checked=now() WHERE id=$1', [
+      o.id,
+      live,
+      status,
+    ]);
   }
 }
 
 /** Two weeks after a click-out: ask opted-in users what they bought and how it feels. */
 async function feedbackEmail(d: JobDeps, p: Record<string, unknown>) {
   const userId = String(p.userId);
-  const u = (await d.db.query<{ email: string; lang: Lang; feedback_email: boolean }>(
-    'SELECT email, lang, feedback_email FROM users WHERE id=$1',
-    [userId],
-  ))[0];
+  const u = (
+    await d.db.query<{ email: string; lang: Lang; feedback_email: boolean }>(
+      'SELECT email, lang, feedback_email FROM users WHERE id=$1',
+      [userId],
+    )
+  )[0];
   if (!u?.feedback_email) return;
   const fitId = String(p.fitId ?? '');
   const link = `${d.env.PUBLIC_URL}/#/feedback?${signedParams(d.env.SESSION_SECRET, 'feedback', userId, fitId)}`;

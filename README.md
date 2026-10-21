@@ -1,6 +1,6 @@
 # DartFit
 
-Measure your throwing hand next to a bank card and get darts fitted to your grip. Dutch first, English included. Steel tip.
+Measure your throwing hand next to a bank card and get darts fitted to your grip and build. EU-wide: 30 countries (EU, UK, CH, NO), Dutch, English and German. Steel tip.
 
 The phone measures the hand on the device (MediaPipe landmarks plus a card homography). Only the measurements go to the server. The engine combines them with a few questions about how you throw, works out the ideal barrel (weight, length, diameter, profile, grip zone, balance), checks that the barrel can be built from real tungsten, and ranks real darts from the catalogue against it. Each pick links to a shop.
 
@@ -20,7 +20,7 @@ The phone measures the hand on the device (MediaPipe landmarks plus a card homog
 npm install
 npm run dev:api      # API on :3000 with an embedded database
 npm run dev          # site on :5173, proxies /api and /go to the API
-npm test             # 144 tests
+npm test             # 161 tests
 npm run lint && npm run typecheck
 ```
 
@@ -38,6 +38,6 @@ The camera needs https. The site sets a strict CSP (no inline styles or scripts,
 
 - **Calibration (gate G1).** Tape-measure at least 10 hands, scan each, put the pairs in a CSV and run `npm run calibrate -- file.csv`. It reports the error per dimension and, with `--write`, updates `packages/engine/src/calibration.ts`. Until then the site says measurements are uncalibrated.
 - **Expert review (gate G2).** Have a fitter or shop owner go through `npm run personas` and the method page.
-- **Affiliate programmes.** Sign up for the bol.com Partner Programme and Amazon Associates (amazon.nl) and set `BOL_PARTNER_SITE_ID` / `AMAZON_TAG_NL`. Only shops with an affiliate programme are ever linked; in production a shop only appears once its ID is set, and a dart with no affiliate link is not shown.
+- **Affiliate programmes.** Shops per country live in `packages/catalogue/data/retailers.json`: darts specialists first (Darts Corner via Adtraction, Dartsturm via Shopper.com), then bol.com, Amazon (9 EU marketplaces) and eBay Partner Network. Sign up and fill the IDs in `.env` (see `.env.example`). Only shops with an affiliate programme are ever linked; in production a shop only appears once its ID is set. Check every search template and eBay rotation ID in the network dashboard before launch.
 - **Catalogue.** `npm run catalogue:check` validates the CSV and lists darts whose stated weight does not fit their size and alloy (these are excluded from recommendations until re-checked). The API's link-check job flags dead shop links.
 - **Legal.** Have the privacy text and the affiliate disclosure reviewed; set `COMPANY_LINE` with the KvK number.

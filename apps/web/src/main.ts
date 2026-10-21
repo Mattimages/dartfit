@@ -1,7 +1,8 @@
 import '@fontsource-variable/archivo/wdth.css';
 import './styles.css';
 import { h, mount } from './h';
-import { getLang, setLang, t } from './i18n';
+import { getLang, LANGS, setLang, t, type Lang } from './i18n';
+import { COUNTRIES, getCountry, setCountry } from './region';
 import { route, start, render } from './router';
 import { DEMO, refreshCatalogue } from './api';
 import { homeView } from './views/home';
@@ -51,20 +52,38 @@ export function mark(): SVGElement {
 function layout() {
   const app = document.getElementById('app');
   if (!app) return;
+  // Country (which shops) and language, in one small panel.
+  const countrySel = h(
+    'select',
+    { id: 'region-country', 'aria-label': t('region.country') },
+    ...COUNTRIES.map((c) => h('option', { value: c.code, selected: c.code === getCountry() }, c.name)),
+  ) as HTMLSelectElement;
+  const langSel = h(
+    'select',
+    { id: 'region-lang', 'aria-label': t('region.lang') },
+    ...LANGS.map((l) => h('option', { value: l.id, selected: l.id === getLang() }, l.name)),
+  ) as HTMLSelectElement;
+  const apply = () => {
+    setCountry(countrySel.value);
+    setLang(langSel.value as Lang);
+    layout();
+    void render();
+  };
+  countrySel.addEventListener('change', apply);
+  langSel.addEventListener('change', apply);
   const langBtn = h(
-    'button',
-    {
-      class: 'btn link',
-      type: 'button',
-      lang: getLang() === 'nl' ? 'en' : 'nl',
-      'aria-label': t('nav.lang.long'),
-      onclick: () => {
-        setLang(getLang() === 'nl' ? 'en' : 'nl');
-        layout();
-        void render();
-      },
-    },
-    t('nav.lang'),
+    'details',
+    { class: 'region' },
+    h('summary', { 'aria-label': t('region.label') }, `${getCountry()} · ${getLang().toUpperCase()}`),
+    h(
+      'div',
+      { class: 'region-panel' },
+      h('label', { for: 'region-country' }, t('region.country')),
+      countrySel,
+      h('label', { for: 'region-lang' }, t('region.lang')),
+      langSel,
+      h('p', { class: 'small' }, t('region.note')),
+    ),
   );
   mount(
     app,

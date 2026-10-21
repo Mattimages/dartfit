@@ -1,5 +1,6 @@
 import { formatDate, formatNum } from './format';
-export type Lang = 'nl' | 'en';
+import { de } from './i18n.de';
+export type Lang = 'nl' | 'en' | 'de';
 
 const nl = {
   'nav.method': 'Hoe het werkt',
@@ -391,6 +392,25 @@ const nl = {
   'r.tier.premium': 'Premium',
   'r.tier.none': 'geen match',
   'r.guide': 'richtprijs',
+  'why.hand_from_height': 'Geen scan: bij {heightCm} cm hoort een hand van ongeveer {handLengthMm} mm.',
+  'why.hand_height_mismatch':
+    'Je scan ({handLengthMm} mm) wijkt af van wat bij {heightCm} cm past (~{expectedMm} mm). Meet even na.',
+  'why.weight_body': 'Je lengte vraagt een worp van {angle}° (gemiddeld {refAngle}°): {effect} g.',
+  'q.body': 'Hoe lang ben je?',
+  'q.body.height': 'Lengte in cm',
+  'q.body.forearm': 'Onderarm in cm (optioneel)',
+  'q.body.forearm.hint': 'Elleboogplooi tot polsplooi, aan de binnenkant.',
+  'q.body.why': 'Je lengte bepaalt hoe vlak je kunt gooien.',
+  'q.body.range': 'Lengte tussen 130 en 220 cm, onderarm tussen 18 en 36 cm.',
+  'fit.r.angle': 'worphoek',
+  'fit.r.speed': 'snelheid',
+  'fit.r.release': 'loslaten',
+  'region.label': 'Land en taal',
+  'region.country': 'Land',
+  'region.lang': 'Taal',
+  'region.note': 'Je land bepaalt in welke winkels we zoeken.',
+  'fit.pThrow': 'Jouw worp',
+  'fit.est': 'geschat uit lengte',
 };
 
 type Key = keyof typeof nl;
@@ -782,18 +802,47 @@ const en: Record<Key, string> = {
   'r.tier.premium': 'Premium',
   'r.tier.none': 'no match',
   'r.guide': 'guide price',
+  'why.hand_from_height': 'No scan: a {heightCm} cm player has a hand of about {handLengthMm} mm.',
+  'why.hand_height_mismatch':
+    'Your scan ({handLengthMm} mm) is unusual for {heightCm} cm (~{expectedMm} mm). Worth re-measuring.',
+  'why.weight_body': 'Your height needs a {angle}° launch (typical {refAngle}°): {effect} g.',
+  'q.body': 'How tall are you?',
+  'q.body.height': 'Height in cm',
+  'q.body.forearm': 'Forearm in cm (optional)',
+  'q.body.forearm.hint': 'Elbow crease to wrist crease, on the inside.',
+  'q.body.why': 'Your height decides how flat you can throw.',
+  'q.body.range': 'Height between 130 and 220 cm, forearm between 18 and 36 cm.',
+  'fit.r.angle': 'launch',
+  'fit.r.speed': 'speed',
+  'fit.r.release': 'release',
+  'region.label': 'Country and language',
+  'region.country': 'Country',
+  'region.lang': 'Language',
+  'region.note': 'Your country decides which shops we search.',
+  'fit.pThrow': 'Your throw',
+  'fit.est': 'estimated from height',
 };
 
-const tables = { nl, en };
+const tables: Record<Lang, Partial<Record<Key, string>>> = { nl, en, de };
+
+/** Languages offered in the picker, with their own names. */
+export const LANGS: Array<{ id: Lang; name: string }> = [
+  { id: 'nl', name: 'Nederlands' },
+  { id: 'en', name: 'English' },
+  { id: 'de', name: 'Deutsch' },
+];
+
+const isLang = (x: string | null): x is Lang => x === 'nl' || x === 'en' || x === 'de';
 
 let lang: Lang = (() => {
   try {
     const saved = localStorage.getItem('df_lang');
-    if (saved === 'nl' || saved === 'en') return saved;
+    if (isLang(saved)) return saved;
   } catch {
     /* storage unavailable */
   }
-  return navigator.language.toLowerCase().startsWith('nl') ? 'nl' : 'en';
+  const nav = navigator.language.toLowerCase();
+  return nav.startsWith('nl') ? 'nl' : nav.startsWith('de') ? 'de' : 'en';
 })();
 
 export const getLang = () => lang;
@@ -809,7 +858,7 @@ export function setLang(l: Lang) {
 document.documentElement.lang = lang;
 
 export function t(key: Key, vars: Record<string, string | number> = {}): string {
-  const s = tables[lang][key] ?? nl[key] ?? key;
+  const s = tables[lang][key] ?? en[key] ?? nl[key] ?? key;
   return s.replace(/\{(\w+)\}/g, (_, k: string) => String(vars[k] ?? ''));
 }
 

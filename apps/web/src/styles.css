@@ -1662,3 +1662,85 @@ code {
   color: var(--ink-2);
   font-size: 0.875rem;
 }
+
+/* ── Country & language ───────────────────────────────────────────── */
+.region {
+  position: relative;
+}
+.region summary {
+  list-style: none;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  min-height: 36px;
+  padding: 0 var(--s3);
+  border-radius: 999px;
+  background: var(--stage);
+  font-weight: 700;
+  font-size: 0.82rem;
+  font-variant-numeric: tabular-nums;
+}
+.region summary::-webkit-details-marker {
+  display: none;
+}
+.region-panel {
+  position: absolute;
+  right: 0;
+  top: calc(100% + 6px);
+  z-index: 20;
+  width: min(18rem, calc(100vw - 2rem));
+  display: grid;
+  gap: var(--s2);
+  padding: var(--s4);
+  border-radius: 18px;
+  background: var(--ground);
+  border: 1.5px solid var(--line);
+  box-shadow: 0 12px 32px rgb(15 27 45 / 0.14);
+}
+.region-panel label {
+  font-weight: 650;
+  font-size: 0.9rem;
+}
+.region-panel select {
+  font: inherit;
+  min-height: 44px;
+  border-radius: 12px;
+  border: 1.5px solid var(--line);
+  background: var(--ground);
+  color: var(--ink);
+  padding: 0 var(--s3);
+}
+.mm-input.small-input input {
+  font-size: 1.5rem;
+  min-height: 3.6rem;
+}
+.arc-box .arc {
+  width: 100%;
+  height: auto;
+}
+.arc-path {
+  fill: none;
+  stroke: var(--red);
+  stroke-width: 2.5;
+  stroke-linecap: round;
+}
+.arc-board {
+  stroke: var(--ink);
+  stroke-width: 4;
+  stroke-linecap: round;
+}
+.arc-bull {
+  fill: var(--green);
+}
+.arc-eye {
+  stroke: var(--ink-2);
+  stroke-width: 1.5;
+  stroke-dasharray: 3 3;
+}
+@media (prefers-reduced-motion: no-preference) {
+  .arc.draw-in .arc-path {
+    stroke-dasharray: var(--len);
+    stroke-dashoffset: var(--len);
+    animation: draw 0.9s ease-out forwards;
+  }
+}

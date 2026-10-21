@@ -88,7 +88,11 @@ describe('fit', () => {
   it('uses the country header for local offers', async () => {
     const r = await request(app).post('/api/fit').set('cf-ipcountry', 'DE').send({ answers }).expect(200);
     expect(r.body.country).toBe('DE');
-    expect(r.body.recommendation.picks[0].offers[0].retailer).toBe('amazon_de');
+    const shops = r.body.recommendation.picks[0].offers.map((o: { retailer: string }) => o.retailer);
+    // Darts specialists first, then the big marketplaces; never more than three.
+    expect(shops[0]).toBe('dartscorner_eu');
+    expect(shops).toContain('amazon_de');
+    expect(shops.length).toBeLessThanOrEqual(3);
   });
 
   it('returns the ideal barrel, physics and setup', async () => {
@@ -165,7 +169,9 @@ describe('click-outs', () => {
     const r = await request(app).post('/api/fit').set('cf-ipcountry', 'NL').send({ answers }).expect(200);
     expect(r.body.recommendation.picks.length).toBeGreaterThan(0);
     for (const p of r.body.recommendation.picks)
-      expect(p.offers.every((o: { retailer: string }) => ['bol', 'amazon_nl'].includes(o.retailer))).toBe(true);
+      expect(
+        p.offers.every((o: { retailer: string }) => ['dartscorner_eu', 'bol', 'amazon_nl', 'ebay_nl'].includes(o.retailer)),
+      ).toBe(true);
   });
 
   it('404s an unknown offer', async () => {

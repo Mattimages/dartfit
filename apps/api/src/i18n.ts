@@ -22,7 +22,8 @@ const strings: Record<Lang, Record<string, string>> = {
     'login.body':
       'Use this link within 20 minutes to sign in and keep your fit:\n{url}\n\nDidn’t ask for this? You can ignore this email.',
     'alert.subject': 'A new dart that fits you: {name}',
-    'alert.body': 'A new dart is a {quality} match for your saved fit: {name}.\n\nSee it next to your current top 3:\n{url}',
+    'alert.body':
+      'A new dart is a {quality} match for your saved fit: {name}.\n\nSee it next to your current top 3:\n{url}',
     'feedback.subject': 'Which dart did you pick?',
     'feedback.body':
       'Two weeks ago you looked at darts on DartFit. Did you buy one, and how does the weight feel? Two clicks, and fits get better for everyone:\n{url}',

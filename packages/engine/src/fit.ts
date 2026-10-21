@@ -1,5 +1,6 @@
 import { config as defaultConfig, ENGINE_VERSION, type EngineConfig } from './config.js';
 import { massRange, solveIdeal } from './barrel.js';
+import { effectiveThrowStyle, handFromHeight, measurementsFromHeight, trajectory } from './body.js';
 import type {
   Answers,
   Balance,
@@ -141,9 +142,33 @@ export function fit(
   cfg: EngineConfig = defaultConfig,
 ): Fit {
   const reasons: Reason[] = [];
-  const m = measurements;
   const cur = answers.current;
   const ref = cfg.reference;
+  const BD = cfg.body;
+
+  // ── Body: height and forearm ───────────────────────────────────────
+  // No scan but a height: estimate the hand from it (wide spread, so it weighs little).
+  let m = measurements;
+  const H = answers.heightCm;
+  if (!m && H) {
+    m = measurementsFromHeight(H, cfg);
+    reasons.push({
+      code: 'hand_from_height',
+      dim: 'confidence',
+      params: { heightCm: H, handLengthMm: Math.round(m.handLengthMm) },
+    });
+  } else if (m && H && !m.estimatedFrom) {
+    const exp = handFromHeight(H, cfg);
+    if (Math.abs(m.handLengthMm - exp.mu) > BD.mismatchSigmas * exp.sigma) {
+      reasons.push({
+        code: 'hand_height_mismatch',
+        dim: 'confidence',
+        params: { heightCm: H, handLengthMm: Math.round(m.handLengthMm), expectedMm: Math.round(exp.mu) },
+      });
+    }
+  }
+  const traj = trajectory(answers, m, cfg);
+  const style = effectiveThrowStyle(answers, traj, cfg);
   const handZ = m ? (m.handLengthMm - ref.handLength.mu) / ref.handLength.sigma : null;
   const fingerZ = m ? (m.middleLengthMm - ref.middleLength.mu) / ref.middleLength.sigma : null;
   const palmZ = m ? (m.palmWidthMm - ref.palmWidth.mu) / ref.palmWidth.sigma : null;
@@ -175,6 +200,18 @@ export function fit(
       effect: throwShift,
       params: { style: answers.throwStyle },
     });
+  } else if (traj) {
+    // "Not sure" how it flies: the geometry of this body decides, continuously and gently.
+    const shift = r2(traj.flatness * W.throwShift.flat);
+    if (Math.abs(shift) >= 0.1) {
+      w.mu += shift;
+      reasons.push({
+        code: 'weight_body',
+        dim: 'weight',
+        effect: shift,
+        params: { heightCm: traj.heightCm, angle: traj.angleDeg, refAngle: traj.referenceAngleDeg },
+      });
+    }
   }
 
   if (handZ !== null && m) {
@@ -355,7 +392,7 @@ export function fit(
     const total = bal.front + bal.centre + bal.rear;
     (Object.keys(bal) as Balance[]).forEach((k) => (bal[k] = bal[k] / total));
   };
-  if (answers.throwStyle === 'flat') {
+  if (style === 'flat') {
     bal.front += B.flatFrontNudge;
     normalise();
   }
@@ -399,22 +436,25 @@ export function fit(
   };
 
   // ── Setup ──────────────────────────────────────────────────────────
-  const setup = setupFor(answers, w.mu, cfg);
+  const setup = setupFor({ ...answers, throwStyle: style }, w.mu, cfg);
 
   // ── Confidence ─────────────────────────────────────────────────────
   const C = cfg.confidence;
+  const measured = m !== undefined && !m.estimatedFrom;
   let score: number = C.base;
-  if (m) score += C.handMeasured;
-  if (m && m.spreadMm <= C.lowSpreadMm) score += C.lowSpread;
-  if (m?.calibrated) score += C.calibrated;
+  if (measured) score += C.handMeasured;
+  if (measured && m && m.spreadMm <= C.lowSpreadMm) score += C.lowSpread;
+  if (measured && m?.calibrated) score += C.calibrated;
   if (cur) score += C.currentDart;
+  if (H) score += C.heightKnown;
+  if (reasons.some((x) => x.code === 'hand_height_mismatch')) score -= C.heightKnown * 2;
   score = Math.min(1, score);
   const confidence = score >= C.high ? 'high' : score >= C.medium ? 'medium' : 'low';
   reasons.push({
     code: 'confidence',
     dim: 'confidence',
     params: {
-      measured: m ? 'yes' : 'no',
+      measured: measured ? 'yes' : m ? 'estimated' : 'no',
       current: cur ? 'yes' : 'no',
       spreadMm: m ? Number(m.spreadMm.toFixed(1)) : 'n/a',
     },
@@ -437,5 +477,7 @@ export function fit(
     physics,
     barrel,
     setup,
+    trajectory: traj,
+    throwStyle: style,
   };
 }

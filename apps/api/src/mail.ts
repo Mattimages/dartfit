@@ -43,7 +43,10 @@ export function createMailer(db: Db, env: Env): Mailer {
         subject: m.subject,
         text,
         ...(m.unsubscribeUrl
-          ? { list: { unsubscribe: { url: m.unsubscribeUrl, comment: 'Unsubscribe' } }, headers: { 'List-Unsubscribe-Post': 'List-Unsubscribe=One-Click' } }
+          ? {
+              list: { unsubscribe: { url: m.unsubscribeUrl, comment: 'Unsubscribe' } },
+              headers: { 'List-Unsubscribe-Post': 'List-Unsubscribe=One-Click' },
+            }
           : {}),
       });
       await db.query('UPDATE outbox SET sent=true WHERE id=$1', [row!.id]);

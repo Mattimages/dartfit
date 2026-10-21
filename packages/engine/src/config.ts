@@ -5,7 +5,7 @@
  *   tuned     — fitted from user feedback (none yet at launch)
  * A unit test fails if a numeric leaf has no provenance entry.
  */
-export const ENGINE_VERSION = '3.0.0';
+export const ENGINE_VERSION = '3.1.0';
 
 export const config = {
   reference: {
@@ -121,8 +121,27 @@ export const config = {
     heavyDartG: 24,
     pointMm: { standard: [30, 32], long: [35, 41] },
   },
+  body: {
+    // Anthropometry.
+    handPerHeight: 0.1075,
+    handFromHeightSigma: 8,
+    mismatchSigmas: 3,
+    forearmPerHeight: 0.146,
+    eyeBelowTopCm: 12,
+    // Throw geometry (metres, m/s², rad/s).
+    bullHeightM: 1.73,
+    ocheM: 2.37,
+    reachM: 0.45,
+    gravity: 9.81,
+    elbowOmega: 18.2,
+    reference: { heightCm: 178 },
+    angleSpanDeg: 7,
+    styleThreshold: 0.35,
+    limits: { heightCm: [130, 220], forearmCm: [18, 36] },
+  },
   confidence: {
     base: 0.35,
+    heightKnown: 0.05,
     handMeasured: 0.25,
     lowSpread: 0.15,
     lowSpreadMm: 2,
@@ -167,6 +186,60 @@ export const provenance: Record<string, Prov> = {
     note: 'Approximate landmark 5–17 (knuckle) distance; replace after calibration.',
   },
   'reference.tierZ': { p: 'heuristic', note: 'Roughly the bottom and top 23% of hands.' },
+  'body.handPerHeight': {
+    p: 'sourced',
+    note: 'Hand length / stature: men 18.48/170.24 cm = 0.1086, women 16.86/159.01 cm = 0.1060 (bioRxiv 10.1101/2025.06.03.657765, n=195); midpoint.',
+  },
+  'body.handFromHeightSigma': {
+    p: 'sourced',
+    note: 'Same study: hand-length SD ≈ 1.0 cm, stature SEE from hand 4.4 cm vs stature SD 5.8 cm → r ≈ 0.65 → residual ≈ 7.6 mm.',
+  },
+  'body.mismatchSigmas': {
+    p: 'heuristic',
+    note: 'A scan more than 3 spreads from the height estimate is worth re-measuring.',
+  },
+  'body.forearmPerHeight': {
+    p: 'heuristic',
+    note: 'Classic segment proportion (forearm ≈ 0.146 × stature, Drillis & Contini); used only when no forearm is entered.',
+  },
+  'body.eyeBelowTopCm': {
+    p: 'heuristic',
+    note: 'Darts are released near eye level; adult eye height ≈ stature − 12 cm.',
+  },
+  'body.bullHeightM': {
+    p: 'sourced',
+    note: 'Bullseye centre 1.73 m above the floor (WDF/PDC rules; Smeets et al. 2002).',
+  },
+  'body.ocheM': {
+    p: 'sourced',
+    note: 'Throw line 2.37 m from the board face (WDF/PDC rules; Smeets et al. 2002).',
+  },
+  'body.reachM': {
+    p: 'heuristic',
+    note: 'Lean plus arm extension puts the release point about 0.45 m in front of the oche.',
+  },
+  'body.gravity': { p: 'sourced', note: 'Standard gravity.' },
+  'body.elbowOmega': {
+    p: 'sourced',
+    note: 'Hand speed at release 5.8–6.7 m/s (Smeets et al. 2002, Exp Brain Res; model 6.5 m/s) over the reference lever (forearm + half hand ≈ 0.36 m) → 18.2 rad/s. Gives a 15.5° launch for the reference build, inside the 13–18° measured in professionals (arXiv 2604.01130).',
+  },
+  'body.reference': {
+    p: 'heuristic',
+    note: 'Reference adult player 1.78 m; flatness is relative to this build.',
+  },
+  'body.angleSpanDeg': {
+    p: 'heuristic',
+    note: '±7° launch angle from the reference counts as clearly flat / clearly arced.',
+  },
+  'body.styleThreshold': {
+    p: 'heuristic',
+    note: 'Geometry only decides the style when it leans clearly one way.',
+  },
+  'body.limits': { p: 'heuristic', note: 'Accepted input ranges for adults.' },
+  'confidence.heightKnown': {
+    p: 'heuristic',
+    note: 'Height adds a little: hand-size estimate and release geometry.',
+  },
   'weight.steel.mu': {
     p: 'sourced',
     note: 'PDC world top 4 (11 Oct 2026) throw 21–23 g: Littler 23, Humphries 22, Van Veen 21, Price 23.',

@@ -23,7 +23,8 @@ import {
   type WhatIf,
 } from '@dartfit/engine';
 import { catalogue } from 'virtual:dartfit-catalogue';
-import { getLang, type Lang } from './i18n';
+import { apiLang, getCountry } from './region';
+import type { Lang } from './i18n';
 
 export const DEMO = import.meta.env.MODE === 'demo';
 
@@ -69,36 +70,32 @@ async function json<T>(path: string, init?: RequestInit): Promise<T> {
 // ── Demo: the engine in the browser ────────────────────────────────────
 const LOCAL_KEY = 'df_local_result';
 
-/** Demo: the affiliate shops only (bol.com and Amazon.nl searches); never a non-affiliate shop. */
+/** Demo: the affiliate shops for the chosen country (specialists first, at most three). */
 function demoOffers(v: Variant): Offer[] {
   const q = encodeURIComponent(`${v.brand} ${v.model} ${v.weightG}g`);
-  return [
-    {
-      id: `search:bol:${v.id}`,
-      retailer: 'bol',
-      retailerName: 'bol.com',
-      kind: 'search',
-      country: 'NL',
+  const cty = getCountry();
+  return catalogue.shops
+    .filter((s) => s.countries.includes(cty))
+    .sort((a, b) => (a.priority ?? 9) - (b.priority ?? 9))
+    .slice(0, 3)
+    .map((s) => ({
+      id: `search:${s.id}:${v.id}`,
+      retailer: s.id,
+      retailerName: s.name,
+      kind: 'search' as const,
+      country: cty,
       price: null,
       currency: null,
-      goUrl: `https://www.bol.com/nl/nl/s/?searchtext=${q}`,
-    },
-    {
-      id: `search:amazon_nl:${v.id}`,
-      retailer: 'amazon_nl',
-      retailerName: 'Amazon.nl',
-      kind: 'search',
-      country: 'NL',
-      price: null,
-      currency: null,
-      goUrl: `https://www.amazon.nl/s?k=${q}`,
-    },
-  ];
+      goUrl: s.searchTemplate.replace('{q}', q),
+    }));
 }
 
-/** The affiliate shop link for any dart (bol.com search). In the live site it goes via /go so the click is logged and tagged. */
-export const shopLink = (v: Variant): string =>
-  DEMO ? demoOffers(v)[0]!.goUrl : `/go/${encodeURIComponent(`search:bol:${v.id}`)}`;
+/** The first affiliate shop link for any dart in the chosen country. In the live site it goes via /go (logged and tagged). */
+export function shopLink(v: Variant): string | null {
+  const first = demoOffers(v)[0];
+  if (!first) return null;
+  return DEMO ? first.goUrl : `/go/${encodeURIComponent(first.id)}`;
+}
 
 function resolveCurrent(answers: Answers): Answers {
   const cur = answers.current;
@@ -135,7 +132,7 @@ function localFit(m: Measurements | undefined, answers: Answers): FitResult {
     ) as FitResult['tiers'],
     proTwin: proTwin(f, catalogue.pros, catalogue.variants),
     whatIf: sensitivity(m, a, catalogue.variants, { budgetUsd: a.budgetUsd }).slice(0, 4),
-    country: 'NL',
+    country: getCountry(),
     measurements: m ?? null,
     answers: a,
     demo: true,
@@ -153,7 +150,7 @@ export async function createFit(m: Measurements | undefined, answers: Answers): 
   if (DEMO) return localFit(m, answers);
   return json<FitResult>('/api/fit', {
     method: 'POST',
-    body: JSON.stringify({ measurements: m, answers, lang: getLang() }),
+    body: JSON.stringify({ measurements: m, answers, lang: apiLang(), country: getCountry() }),
   });
 }
 
@@ -181,7 +178,7 @@ export async function explain(
   if (DEMO || !r.id || r.id === 'local') {
     const m = r.measurements ?? null;
     const input = buildExplainInput(
-      lang,
+      lang === 'nl' ? 'nl' : 'en',
       r.fit,
       r.answers as Answers,
       pick,
@@ -192,7 +189,7 @@ export async function explain(
   }
   return json('/api/explain', {
     method: 'POST',
-    body: JSON.stringify({ fitId: r.id, variantId: pick.variant.id, lang }),
+    body: JSON.stringify({ fitId: r.id, variantId: pick.variant.id, lang: lang === 'nl' ? 'nl' : 'en' }),
   });
 }
 
@@ -223,7 +220,7 @@ export const requestLogin = (body: {
   alertsEmail: boolean;
   feedbackEmail: boolean;
   confirmsAge16: boolean;
-}) => json('/api/auth/request', { method: 'POST', body: JSON.stringify({ ...body, lang: getLang() }) });
+}) => json('/api/auth/request', { method: 'POST', body: JSON.stringify({ ...body, lang: apiLang() }) });
 
 export const setOptins = (o: { alertsEmail?: boolean; feedbackEmail?: boolean; alertsPush?: boolean }) =>
   json('/api/me/optins', { method: 'POST', body: JSON.stringify(o) });

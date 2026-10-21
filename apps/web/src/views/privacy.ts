@@ -73,7 +73,7 @@ const COPY = {
 } as const;
 
 export function privacyView(root: HTMLElement) {
-  const c = COPY[getLang()];
+  const c = COPY[getLang() === 'nl' ? 'nl' : 'en'];
   root.append(
     h(
       'section',

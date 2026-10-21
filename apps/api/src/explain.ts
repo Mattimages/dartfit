@@ -36,7 +36,7 @@ export function systemPrompt(lang: 'nl' | 'en'): string {
     'Write 3 or 4 short sentences of plain prose: no lists, no headings, no emoji.',
     'Use ONLY the facts in the JSON. Every number you write must appear in the JSON; do not convert units, add percentages, or estimate anything.',
     'Say why the recommended dart suits this player, naming at most two strengths and the biggest compromise if there is one.',
-    'If proTwin is present, say the player is closest on specs to that player\'s dart (or signature range when exactDart is false). Never claim the player throws like the pro.',
+    "If proTwin is present, say the player is closest on specs to that player's dart (or signature range when exactDart is false). Never claim the player throws like the pro.",
     'Never say "perfect", "scientific" or "guaranteed". Confidence is given in the JSON; if it is low, say the result is a starting point to try.',
   ].join('\n');
 }

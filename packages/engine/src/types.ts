@@ -22,6 +22,8 @@ export interface Measurements {
   samples: number;
   /** True when a tape-measure calibration has been applied (see scripts/calibrate.ts). */
   calibrated: boolean;
+  /** Set when these numbers were estimated (from height) rather than measured. */
+  estimatedFrom?: 'height';
 }
 
 export type GripFeelCurrent = 'too_smooth' | 'right' | 'too_sharp';
@@ -57,6 +59,10 @@ export interface Answers {
   thickness: Thickness;
   current?: CurrentDart;
   budgetUsd?: number;
+  /** Body height in cm (optional): hand-size estimate without a scan, and release height. */
+  heightCm?: number;
+  /** Forearm length in cm, elbow crease to wrist crease (optional): the throwing lever. */
+  forearmCm?: number;
 }
 
 /** A target value with uncertainty. `band` is the range we tell the user to try. */
@@ -134,6 +140,24 @@ export interface Fit {
   physics: Physics;
   barrel: IdealBarrel;
   setup: Setup;
+  /** The throw's geometry from body size, when the height is known. */
+  trajectory: Trajectory | null;
+  /** Throw style used for weight and setup: the answer, or what the geometry suggests. */
+  throwStyle: ThrowStyle;
+}
+
+export interface Trajectory {
+  heightCm: number;
+  forearmCm: number;
+  forearmEstimated: boolean;
+  releaseHeightM: number;
+  releaseSpeedMs: number;
+  /** Launch angle (degrees above horizontal) that reaches the bull. */
+  angleDeg: number;
+  /** Launch angle for the reference build, for comparison. */
+  referenceAngleDeg: number;
+  /** −1 = needs a clear arc … 0 = typical … +1 = can throw flat. */
+  flatness: number;
 }
 
 export interface Variant {
