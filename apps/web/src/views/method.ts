@@ -110,7 +110,7 @@ export function methodView(root: HTMLElement) {
       { class: 'stack' },
       h('h1', null, c.title),
       h('p', { class: 'lead' }, c.lead),
-      ...c.sections.flatMap(([title, body]) => [h('h3', null, title), h('p', null, body)]),
+      ...c.sections.flatMap(([title, body]) => [h('h2', { class: 'h-sub' }, title), h('p', null, body)]),
     ),
     h(
       'section',
@@ -119,7 +119,7 @@ export function methodView(root: HTMLElement) {
       h('p', { class: 'small' }, `${c.version} ${ENGINE_VERSION}`),
       h(
         'div',
-        { class: 'table-wrap' },
+        { class: 'table-wrap', tabindex: 0, role: 'region', 'aria-label': c.table },
         h(
           'table',
           null,

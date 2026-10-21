@@ -1,4 +1,5 @@
 import { h } from '../h';
+import { handArt } from '../draw/art';
 import { t } from '../i18n';
 import { go } from '../router';
 import { update } from '../store';
@@ -18,13 +19,14 @@ export function manualView(root: HTMLElement) {
     required: true,
   }) as HTMLInputElement;
   const err = h('p', { class: 'error', role: 'alert', hidden: true }, t('manual.range'));
+  input.placeholder = '185';
   const form = h(
     'form',
     { class: 'stack', novalidate: true },
-    h('label', { class: 'label', for: 'hl' }, t('manual.length')),
-    input,
+    h('label', { class: 'visually-hidden', for: 'hl' }, t('manual.length')),
+    h('div', { class: 'mm-input' }, input, h('span', { 'aria-hidden': 'true' }, 'mm')),
     err,
-    h('button', { class: 'btn', type: 'submit' }, t('manual.go')),
+    h('button', { class: 'btn block', type: 'submit' }, t('manual.go')),
   );
   form.addEventListener('submit', (e) => {
     e.preventDefault();
@@ -56,6 +58,7 @@ export function manualView(root: HTMLElement) {
       { class: 'stack' },
       h('h1', null, t('manual.title')),
       h('p', { class: 'lead' }, t('manual.lead')),
+      h('div', { class: 'measure-art' }, handArt({ measure: t('manual.what') })),
       form,
     ),
   );

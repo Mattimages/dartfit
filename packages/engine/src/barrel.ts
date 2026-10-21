@@ -107,7 +107,11 @@ export function barrelMetrics(
 }
 
 /** Reference profile for each listed shape class. Used to draw catalogue darts and to bound mass. */
-export function shapeProfile(shape: Shape | null, balance: Balance | null, cfg: EngineConfig = defaultConfig): Profile {
+export function shapeProfile(
+  shape: Shape | null,
+  balance: Balance | null,
+  cfg: EngineConfig = defaultConfig,
+): Profile {
   const S = cfg.physics.shapes;
   const base = { endFront: S.endRatio, endRear: S.endRatio, waist: 0 };
   switch (shape) {
@@ -115,7 +119,9 @@ export function shapeProfile(shape: Shape | null, balance: Balance | null, cfg: 
       return { ...base, ...S.torpedo };
     case 'tapered':
       // Retailers use "tapered" for both directions; the listed balance tells which end is heavy.
-      return balance === 'rear' ? { ...base, front: S.tapered.rear, rear: S.tapered.front } : { ...base, ...S.tapered };
+      return balance === 'rear'
+        ? { ...base, front: S.tapered.rear, rear: S.tapered.front }
+        : { ...base, ...S.tapered };
     case 'bomb':
       return { ...base, ...S.bomb };
     case 'scalloped':
@@ -127,11 +133,30 @@ export function shapeProfile(shape: Shape | null, balance: Balance | null, cfg: 
 }
 
 /** Heaviest and lightest barrel of this length and thickness that still looks like a dart. */
-export function massRange(lengthMm: number, diameterMm: number, tungstenPct: number, cfg: EngineConfig = defaultConfig): [number, number] {
+export function massRange(
+  lengthMm: number,
+  diameterMm: number,
+  tungstenPct: number,
+  cfg: EngineConfig = defaultConfig,
+): [number, number] {
   const S = cfg.physics.shapes;
-  const heavy = barrelMetrics({ lengthMm, diameterMm, profile: { ...S.straight, endFront: S.endRatio, endRear: S.endRatio, waist: 0 } }, tungstenPct, cfg);
+  const heavy = barrelMetrics(
+    { lengthMm, diameterMm, profile: { ...S.straight, endFront: S.endRatio, endRear: S.endRatio, waist: 0 } },
+    tungstenPct,
+    cfg,
+  );
   const light = barrelMetrics(
-    { lengthMm, diameterMm, profile: { front: S.lightest.front, rear: S.lightest.rear, endFront: S.lightest.end, endRear: S.lightest.end, waist: 0 } },
+    {
+      lengthMm,
+      diameterMm,
+      profile: {
+        front: S.lightest.front,
+        rear: S.lightest.rear,
+        endFront: S.lightest.end,
+        endRear: S.lightest.end,
+        waist: 0,
+      },
+    },
     tungstenPct,
     cfg,
   );
@@ -164,7 +189,11 @@ export function solveIdeal(
     for (let r = S.solver.min; r <= S.solver.max + 1e-9; r += S.solver.step) {
       if (f + r > 0.97) continue;
       const p: Profile = { front: f, rear: r, endFront: S.endRatio, endRear: S.endRatio, waist: 0 };
-      const m = barrelMetrics({ lengthMm: target.lengthMm, diameterMm: target.diameterMm, profile: p }, target.tungstenPct, cfg);
+      const m = barrelMetrics(
+        { lengthMm: target.lengthMm, diameterMm: target.diameterMm, profile: p },
+        target.tungstenPct,
+        cfg,
+      );
       const err = (m.massG - target.massG) / target.massG;
       // Mass must be right (it is what the player feels most); then the centre of gravity;
       // then prefer the simplest shape (short tapers) among equals.
@@ -212,7 +241,10 @@ export function calibrateMachining(
 ): { k: number; gripSlope: number; n: number; spread: number } {
   const straight = variants.filter((v) => v.shape === 'straight' && v.tungstenPct >= 80);
   const stats = (slope: number) => {
-    const unit = { ...cfg, physics: { ...cfg.physics, machiningFactor: 1, gripSlope: slope } } as unknown as EngineConfig;
+    const unit = {
+      ...cfg,
+      physics: { ...cfg.physics, machiningFactor: 1, gripSlope: slope },
+    } as unknown as EngineConfig;
     const ratios = straight
       .map((v) => {
         const solid = barrelMetrics(
@@ -241,12 +273,20 @@ export function calibrateMachining(
  * Listings whose weight cannot be right for their size and alloy. Returns the ratio listed/model
  * for every flagged variant. Thresholds come from config.physics.specCheck.
  */
-export function physicsOutliers(variants: Variant[], cfg: EngineConfig = defaultConfig): Array<{ id: string; listedG: number; modelG: number; ratio: number }> {
+export function physicsOutliers(
+  variants: Variant[],
+  cfg: EngineConfig = defaultConfig,
+): Array<{ id: string; listedG: number; modelG: number; ratio: number }> {
   const [lo, hi] = cfg.physics.specCheck;
   return variants
     .map((v) => {
       const modelG = variantBarrel(v, cfg).massG;
-      return { id: v.id, listedG: v.weightG, modelG: Number(modelG.toFixed(1)), ratio: Number((v.weightG / modelG).toFixed(3)) };
+      return {
+        id: v.id,
+        listedG: v.weightG,
+        modelG: Number(modelG.toFixed(1)),
+        ratio: Number((v.weightG / modelG).toFixed(3)),
+      };
     })
     .filter((r) => r.ratio < lo || r.ratio > hi);
 }

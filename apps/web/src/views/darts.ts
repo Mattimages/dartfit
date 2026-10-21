@@ -1,43 +1,73 @@
 import { h } from '../h';
-import { num, t } from '../i18n';
+import { num, t, type Key } from '../i18n';
 import { variants } from '../api';
-import { balanceName, dartName, material, shapeName } from './words';
+import { approxEur } from '../money';
+import { variantArt } from '../score';
+import { dartName } from './words';
 
 export function dartsView(root: HTMLElement) {
   const all = [...variants()].sort((a, b) => dartName(a).localeCompare(dartName(b)) || a.weightG - b.weightG);
-  const models = new Set(all.map((v) => v.modelId)).size;
   const q = h('input', {
     type: 'search',
     id: 'q',
     placeholder: t('darts.search'),
     autocomplete: 'off',
   }) as HTMLInputElement;
-  const body = h('tbody');
+  const list = h('ul', { class: 'grid2' });
+  const count = h('p', { class: 'small', 'aria-live': 'polite' });
+  const ranges: Array<[string, number, number]> = [
+    ['all', 0, 99],
+    ['light', 0, 20.5],
+    ['mid', 20.5, 23.5],
+    ['heavy', 23.5, 99],
+  ];
+  let range = 'all';
+  const chips = h(
+    'div',
+    { class: 'chips', role: 'group', 'aria-label': t('darts.filter') },
+    ...ranges.map(([key]) => {
+      const b = h(
+        'button',
+        { class: 'chip', type: 'button', 'aria-pressed': String(key === 'all') },
+        t(`darts.w.${key}` as Key),
+      );
+      b.addEventListener('click', () => {
+        range = key;
+        chips.querySelectorAll('button').forEach((x) => x.setAttribute('aria-pressed', String(x === b)));
+        render();
+      });
+      return b;
+    }),
+  );
   const render = () => {
     const s = q.value.trim().toLowerCase();
-    body.replaceChildren(
-      ...all
-        .filter((v) => !s || `${v.brand} ${v.model}`.toLowerCase().includes(s))
-        .map((v) =>
-          h(
-            'tr',
-            null,
-            h(
-              'td',
-              null,
-              h('a', { href: v.sourceUrl, target: '_blank', rel: 'noopener' }, dartName(v)),
-              v.specCheck ? h('div', { class: 'flag small' }, t('darts.check')) : null,
-            ),
-            h('td', { class: 'r' }, `${num(v.weightG)} g`),
-            h('td', { class: 'r' }, num(v.lengthMm)),
-            h('td', { class: 'r' }, num(v.diameterMm, 2)),
-            h('td', { class: 'r' }, v.gripIntensity === null ? '–' : num(v.gripIntensity)),
-            h('td', null, `${balanceName(v.balance)} · ${shapeName(v.shape)}`),
-            h('td', null, material(v)),
-            h('td', null, v.verifiedAt ?? ''),
-          ),
-        ),
+    const [, lo, hi] = ranges.find((r) => r[0] === range) ?? ranges[0]!;
+    const shown = all.filter(
+      (v) => (!s || `${v.brand} ${v.model}`.toLowerCase().includes(s)) && v.weightG >= lo && v.weightG < hi,
     );
+    count.textContent = t('darts.count', { n: shown.length });
+    list.replaceChildren(
+      ...shown.map((v) =>
+        h(
+          'li',
+          { class: 'card' },
+          h(
+            'a',
+            { href: v.sourceUrl, target: '_blank', rel: 'noopener' },
+            variantArt(v),
+            h('h2', null, dartName(v)),
+          ),
+          h(
+            'p',
+            { class: 'small num' },
+            `${num(v.weightG)} g · ${num(v.lengthMm)} mm · Ø ${num(v.diameterMm, 1)}`,
+          ),
+          v.priceUsd ? h('p', { class: 'small' }, `≈ €${approxEur(v.priceUsd)}`) : null,
+          v.specCheck ? h('p', { class: 'flag small' }, t('darts.check')) : null,
+        ),
+      ),
+    );
+    if (!shown.length) list.append(h('li', { class: 'small' }, t('darts.empty')));
   };
   q.addEventListener('input', render);
   root.append(
@@ -45,34 +75,11 @@ export function dartsView(root: HTMLElement) {
       'section',
       { class: 'stack' },
       h('h1', null, t('darts.title')),
-      h('p', { class: 'lead' }, t('darts.lead', { n: all.length, m: models })),
       h('label', { class: 'visually-hidden', for: 'q' }, t('darts.search')),
       q,
-      h(
-        'div',
-        { class: 'table-wrap' },
-        h(
-          'table',
-          null,
-          h(
-            'thead',
-            null,
-            h(
-              'tr',
-              null,
-              h('th', null, t('darts.col.dart')),
-              h('th', { class: 'r' }, t('darts.col.weight')),
-              h('th', { class: 'r' }, `${t('darts.col.length')} mm`),
-              h('th', { class: 'r' }, `${t('darts.col.diameter')} mm`),
-              h('th', { class: 'r' }, t('darts.col.grip')),
-              h('th', null, t('darts.col.balance')),
-              h('th', null, t('darts.col.alloy')),
-              h('th', null, t('darts.col.checked')),
-            ),
-          ),
-          body,
-        ),
-      ),
+      chips,
+      count,
+      list,
     ),
   );
   render();

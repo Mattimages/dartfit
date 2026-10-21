@@ -96,7 +96,8 @@ export function enforcePhysics(
   const prem = search(P.premiumTungsten);
   const usePrem = prem.cost + P.upgradeGain < std.cost;
   const pick = usePrem ? prem : std;
-  if (!Number.isFinite(pick.cost)) return { w: w.mu, l: l.mu, d: d.mu, cost: Infinity, tungstenPct: P.standardTungsten, adjusted: false };
+  if (!Number.isFinite(pick.cost))
+    return { w: w.mu, l: l.mu, d: d.mu, cost: Infinity, tungstenPct: P.standardTungsten, adjusted: false };
   return { ...pick, tungstenPct: usePrem ? P.premiumTungsten : P.standardTungsten, adjusted: pick.cost > 0 };
 }
 
@@ -168,7 +169,12 @@ export function fit(
   const throwShift = W.throwShift[answers.throwStyle];
   if (throwShift !== 0) {
     w.mu += throwShift;
-    reasons.push({ code: 'weight_throw', dim: 'weight', effect: throwShift, params: { style: answers.throwStyle } });
+    reasons.push({
+      code: 'weight_throw',
+      dim: 'weight',
+      effect: throwShift,
+      params: { style: answers.throwStyle },
+    });
   }
 
   if (handZ !== null && m) {
@@ -176,7 +182,12 @@ export function fit(
     w.mu += shift;
     w.sigma = Math.hypot(w.sigma, W.handPerZ * zSigma(m, ref.handLength.sigma));
     if (Math.abs(shift) >= 0.1) {
-      reasons.push({ code: 'weight_hand', dim: 'weight', effect: r2(shift), params: { handLengthMm: Math.round(m.handLengthMm) } });
+      reasons.push({
+        code: 'weight_hand',
+        dim: 'weight',
+        effect: r2(shift),
+        params: { handLengthMm: Math.round(m.handLengthMm) },
+      });
     }
   } else if (!cur) {
     w.sigma = Math.hypot(w.sigma, W.missingHandSigma);
@@ -210,7 +221,8 @@ export function fit(
     l.sigma = Math.hypot(l.sigma, L.missingHandSigma);
   }
   if (cur?.lengthMm) {
-    const step = cur.lengthFeel === 'too_short' ? L.feelStep : cur.lengthFeel === 'too_long' ? -L.feelStep : 0;
+    const step =
+      cur.lengthFeel === 'too_short' ? L.feelStep : cur.lengthFeel === 'too_long' ? -L.feelStep : 0;
     const sigma = cur.lengthFeel && cur.lengthFeel !== 'right' ? L.feelSigma : L.currentSigma;
     const before = l.mu;
     l = combine(l, { mu: cur.lengthMm + step, sigma });
@@ -243,7 +255,8 @@ export function fit(
     reasons.push({ code: 'diameter_default', dim: 'diameter', params: {} });
   }
   if (cur?.diameterMm) {
-    const step = cur.thicknessFeel === 'too_thin' ? D.feelStep : cur.thicknessFeel === 'too_thick' ? -D.feelStep : 0;
+    const step =
+      cur.thicknessFeel === 'too_thin' ? D.feelStep : cur.thicknessFeel === 'too_thick' ? -D.feelStep : 0;
     const before = d.mu;
     d = combine(d, { mu: cur.diameterMm + step, sigma: D.currentSigma * (step ? 1.4 : 1) });
     reasons.push({
@@ -256,11 +269,17 @@ export function fit(
   d.mu = clamp(d.mu, D.min, D.max);
 
   // ── Physics: the three must describe a barrel that can exist ───────
-  const phys = enforcePhysics(w, l, d, {
-    length: [L.min, L.max],
-    diameter: [D.min, D.max],
-    weight: [wLimits.min, wLimits.max],
-  }, cfg);
+  const phys = enforcePhysics(
+    w,
+    l,
+    d,
+    {
+      length: [L.min, L.max],
+      diameter: [D.min, D.max],
+      weight: [wLimits.min, wLimits.max],
+    },
+    cfg,
+  );
   if (phys.adjusted) {
     reasons.push({
       code: 'physics_adjusted',
@@ -304,7 +323,12 @@ export function fit(
   let g: Normal = { mu: answers.gripFeel + moistShift, sigma: G.sigma };
   reasons.push({ code: 'grip_feel', dim: 'grip', params: { feel: answers.gripFeel } });
   if (moistShift !== 0) {
-    reasons.push({ code: 'grip_moisture', dim: 'grip', effect: moistShift, params: { moisture: answers.moisture } });
+    reasons.push({
+      code: 'grip_moisture',
+      dim: 'grip',
+      effect: moistShift,
+      params: { moisture: answers.moisture },
+    });
   }
   if (cur?.gripIntensity) {
     const step = cur.gripFeel === 'too_smooth' ? G.feelStep : cur.gripFeel === 'too_sharp' ? -G.feelStep : 0;
@@ -347,7 +371,11 @@ export function fit(
     reasons.push({ code: 'balance_current', dim: 'balance', params: { balance: cur.balance } });
   }
   const preferredBalance = (Object.keys(bal) as Balance[]).reduce((a, b) => (bal[b] > bal[a] ? b : a));
-  reasons.push({ code: 'balance_hold', dim: 'balance', params: { hold: answers.hold, balance: preferredBalance } });
+  reasons.push({
+    code: 'balance_hold',
+    dim: 'balance',
+    params: { hold: answers.hold, balance: preferredBalance },
+  });
 
   const shape: Record<Shape, number> = { straight: 0, torpedo: 0, tapered: 0, bomb: 0, scalloped: 0 };
   (Object.keys(bal) as Balance[]).forEach((b) => {

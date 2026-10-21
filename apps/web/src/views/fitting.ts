@@ -1,157 +1,201 @@
 /**
- * The fitting procedure, shown step by step. Each line is a real reason from the engine; as the
- * lines for a dimension appear, that dimension's band moves from the full range players use to the
- * band the engine computed. Then the ideal barrel is drawn.
+ * The calculation, shown live. Three panels light up in turn, each driven by real numbers:
+ *  1. your hand: the measured landmarks and dimensions;
+ *  2. your ideal dart: weight, length and thickness settling on the engine's ideal barrel;
+ *  3. every dart in the catalogue scored against it, with a running top three.
+ * Then the winner. Reduced motion: everything appears at once.
  */
-import type { Reason } from '@dartfit/engine';
-import { h, reducedMotion, s } from '../h';
+import { scoreVariant } from '@dartfit/engine';
+import { h, reducedMotion } from '../h';
 import { num, t } from '../i18n';
 import { go } from '../router';
 import { session } from '../store';
-import { createFit } from '../api';
-import { dartDrawing } from '../draw/dart';
-import { reasonText, shapeName } from './words';
+import { createFit, variants } from '../api';
+import { dartArt, handArt, templateHand } from '../draw/art';
+import { matchPct, variantArt } from '../score';
+import { dartName } from './words';
 
-type Dim = 'weight' | 'length' | 'diameter' | 'grip';
-const SCALES: Record<
-  Dim,
-  {
-    range: [number, number];
-    unit: string;
-    digits: number;
-    label: 'r.weight' | 'r.length' | 'r.diameter' | 'r.grip';
-  }
-> = {
-  weight: { range: [16, 28], unit: 'g', digits: 0, label: 'r.weight' },
-  length: { range: [36, 60], unit: 'mm', digits: 0, label: 'r.length' },
-  diameter: { range: [5.6, 8.5], unit: 'mm', digits: 1, label: 'r.diameter' },
-  grip: { range: [1, 5], unit: '', digits: 0, label: 'r.grip' },
-};
+const wait = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
-function liveBand(dim: Dim) {
-  const sc = SCALES[dim];
-  const W = 600;
-  const X = (v: number) => 6 + ((v - sc.range[0]) / (sc.range[1] - sc.range[0])) * (W - 12);
-  const rect = s('rect', {
-    class: 'bandrect',
-    x: X(sc.range[0]),
-    y: 5,
-    width: X(sc.range[1]) - X(sc.range[0]),
-    height: 14,
-    rx: 2,
-  });
-  const value = h('b', { class: 'num' }, '…');
+function reading(label: string, unit: string) {
+  const value = h('span', null, '–');
   const el = h(
     'div',
-    { class: 'bandrow' },
-    h('div', { class: 'top' }, h('span', null, t(sc.label)), value),
-    s(
-      'svg',
-      { viewBox: `0 0 ${W} 34`, preserveAspectRatio: 'none', 'aria-hidden': 'true' },
-      s('line', { class: 'track', x1: 6, x2: W - 6, y1: 12, y2: 12 }),
-      rect,
-    ),
+    { class: 'reading' },
+    h('b', null, value, h('small', null, unit)),
+    h('span', null, label),
   );
-  const set = ([lo, hi]: [number, number], showValue: boolean) => {
-    const w = Math.max(6, X(hi) - X(lo));
-    rect.setAttribute('x', String(X(lo) - (w === 6 ? 3 : 0)));
-    rect.setAttribute('width', String(w));
-    if (showValue)
-      value.textContent =
-        `${lo === hi ? num(lo, sc.digits) : `${num(lo, sc.digits)}–${num(hi, sc.digits)}`} ${sc.unit}`.trim();
-  };
-  return { el, set };
+  return { el, value };
 }
 
-const lerp = (a: [number, number], b: [number, number], p: number): [number, number] => [
-  a[0] + (b[0] - a[0]) * p,
-  a[1] + (b[1] - a[1]) * p,
-];
+/** Count a number up (or roll it around a band) and settle on the final value. */
+async function roll(el: HTMLElement, to: number, digits: number, ms: number, from = 0, jitter = 0) {
+  const t0 = performance.now();
+  for (;;) {
+    const p = Math.min(1, (performance.now() - t0) / ms);
+    const e = 1 - (1 - p) ** 3;
+    const noise = jitter * (1 - p) * (Math.random() * 2 - 1);
+    el.textContent = num(from + (to - from) * e + noise, digits);
+    if (p >= 1) break;
+    await new Promise((r) => requestAnimationFrame(r));
+  }
+  el.textContent = num(to, digits);
+}
 
 export async function fittingView(root: HTMLElement) {
   const s0 = session();
   if (!s0.answers) return go('/questions');
-  const bands = {
-    weight: liveBand('weight'),
-    length: liveBand('length'),
-    diameter: liveBand('diameter'),
-    grip: liveBand('grip'),
-  };
-  const list = h('ol', { class: 'evidence', 'aria-live': 'polite' });
-  const sheet = h('figure', { class: 'sheet', hidden: true });
-  const next = h('a', { class: 'btn', hidden: true }, t('fitting.done'));
-  const err = h('p', { class: 'error', role: 'alert', hidden: true }, t('q.error'));
-  root.append(
+  const fast = reducedMotion();
+  const m = s0.measurements;
+
+  // ── Panel 1: the hand ─────────────────────────────────────────────
+  const hl = reading(t('fit.r.length'), 'mm');
+  const pw = reading(t('fit.r.width'), 'mm');
+  const il = reading(t('fit.r.index'), 'mm');
+  const handPts = s0.landmarksMm ?? templateHand(m?.handLengthMm ?? 185);
+  const p1 = h(
+    'div',
+    { class: 'panel' },
+    h('div', { class: 'panel-head' }, h('span', null, t('fit.p1')), h('span', { class: 'state' }, '')),
     h(
-      'section',
-      { class: 'stack' },
-      h('h1', null, t('fitting.title')),
-      h('p', { class: 'lead' }, t('fitting.lead')),
-      h('div', { class: 'bands' }, bands.weight.el, bands.length.el, bands.diameter.el, bands.grip.el),
-      list,
-      sheet,
-      err,
-      h('div', { class: 'actions' }, next),
+      'div',
+      { class: 'row' },
+      handArt({ points: handPts, lengthMm: m?.handLengthMm, dots: true, className: 'scan' }),
+      h('div', { class: 'readings' }, hl.el, pw.el, il.el),
     ),
   );
 
+  // ── Panel 2: the ideal dart ───────────────────────────────────────
+  const wg = reading(t('fit.r.weight'), 'g');
+  const ln = reading(t('fit.r.barrel'), 'mm');
+  const dm = reading(t('fit.r.diameter'), 'mm');
+  const artBox = h('div');
+  const p2 = h(
+    'div',
+    { class: 'panel wait', 'aria-hidden': 'true' },
+    h('div', { class: 'panel-head' }, h('span', null, t('fit.p2')), h('span', { class: 'state' }, '')),
+    artBox,
+    h('div', { class: 'readings' }, wg.el, ln.el, dm.el),
+  );
+
+  // ── Panel 3: every dart, scored ───────────────────────────────────
+  const count = h('span', { class: 'count' }, '0');
+  const nowName = h('span');
+  const nowPct = h('span');
+  const barFill = h('span');
+  const leaders = h('ol', { class: 'leaders', 'aria-label': t('fit.top') });
+  const p3 = h(
+    'div',
+    { class: 'panel wait', 'aria-hidden': 'true' },
+    h('div', { class: 'panel-head' }, h('span', null, t('fit.p3')), h('span', { class: 'state' }, '')),
+    h(
+      'div',
+      { class: 'ticker' },
+      count,
+      h('div', { class: 'bar' }, barFill),
+      h('div', { class: 'now' }, nowName, nowPct),
+    ),
+    leaders,
+  );
+
+  const pct = h('span', { class: 'pct' });
+  const bestName = h('h2');
+  const bestArt = h('div');
+  const go1 = h('a', { class: 'btn block' }, t('fit.show'));
+  const found = h(
+    'div',
+    { class: 'found', hidden: true, 'aria-live': 'polite' },
+    pct,
+    bestName,
+    bestArt,
+    go1,
+  );
+  const err = h('p', { class: 'error', role: 'alert', hidden: true }, t('q.error'));
+  const title = h('h1', { class: 'visually-hidden' }, t('fit.title'));
+  root.append(h('section', { class: 'console' }, title, p1, p2, p3, found, err));
+
   let result;
   try {
-    result = await createFit(s0.measurements, s0.answers);
+    result = await createFit(m, s0.answers);
   } catch {
     err.hidden = false;
     return;
   }
   const f = result.fit;
-  const finals: Record<Dim, [number, number]> = {
-    weight: f.weight.band,
-    length: f.length.band,
-    diameter: f.diameter.band,
-    grip: f.grip.band,
+  const state = (p: HTMLElement, text: string) => {
+    p.classList.remove('wait');
+    p.removeAttribute('aria-hidden');
+    const st = p.querySelector('.state');
+    if (st) st.textContent = text;
   };
-  const steps: Array<{ r: Reason; text: string }> = f.reasons.flatMap((r) => {
-    const text = reasonText(r);
-    return text ? [{ r, text }] : [];
-  });
-  const perDim = (d: Dim) =>
-    steps.filter((x) => x.r.dim === d || (x.r.code.startsWith('physics') && d !== 'grip')).length;
-  const seen: Record<Dim, number> = { weight: 0, length: 0, diameter: 0, grip: 0 };
-  const items = steps.map((x) => h('li', { hidden: true }, x.text));
-  list.append(...items);
 
-  const fast = reducedMotion();
-  for (let i = 0; i < steps.length; i++) {
-    const { r } = steps[i]!;
-    items[i]!.hidden = false;
-    items[i]!.classList.add('done');
-    const dims: Dim[] = r.code.startsWith('physics')
-      ? ['weight', 'length', 'diameter']
-      : r.dim in finals
-        ? [r.dim as Dim]
-        : [];
-    for (const d of dims) {
-      seen[d]++;
-      const p = seen[d] / Math.max(1, perDim(d));
-      bands[d].set(lerp(SCALES[d].range, finals[d], p), p >= 1);
-    }
-    if (!fast) await new Promise((res) => setTimeout(res, 420));
-  }
-  (Object.keys(finals) as Dim[]).forEach((d) => bands[d].set(finals[d], true));
+  // 1 ── hand
+  const handMs = fast ? 0 : 700;
+  await Promise.all([
+    roll(hl.value, m?.handLengthMm ?? 185, 0, handMs),
+    roll(pw.value, m?.palmWidthMm ?? 78, 0, handMs),
+    roll(il.value, m?.indexLengthMm ?? 78, 0, handMs),
+  ]);
+  state(p1, m ? '✓' : t('fit.avg'));
+  if (!fast) await wait(250);
 
-  const best = result.recommendation.picks[0];
-  sheet.append(
-    dartDrawing({
-      ideal: f.barrel,
-      lengthBand: f.length.band,
-      diameterBand: f.diameter.band,
-      animate: !fast,
-      caption: `${num(f.barrel.massG, 0)} g · ${f.physics.tungstenPct}% tungsten · ${shapeName(f.barrel.shape)}`,
-    }),
+  // 2 ── ideal dart
+  state(p2, '');
+  artBox.append(dartArt({ ...f.barrel, grip: Math.round(f.grip.mu), soft: f.tip === 'soft', tone: 0 }));
+  const idealMs = fast ? 0 : 1000;
+  await Promise.all([
+    roll(wg.value, f.barrel.massG, 1, idealMs, 16, 3),
+    roll(ln.value, f.barrel.lengthMm, 1, idealMs, 36, 6),
+    roll(dm.value, f.barrel.diameterMm, 2, idealMs, 5.6, 0.6),
+  ]);
+  state(p2, '✓');
+  if (!fast) await wait(250);
+
+  // 3 ── every dart in the catalogue, against the ideal
+  state(p3, '');
+  const budget = s0.answers.budgetUsd;
+  const pool = variants().filter(
+    (v) => v.tip === f.tip && !v.specCheck && (!budget || (v.priceUsd !== null && v.priceUsd <= budget)),
   );
-  sheet.hidden = false;
-  const target = `/fit/${result.id ?? 'local'}`;
-  next.setAttribute('href', `#${target}`);
-  next.hidden = false;
-  void best;
-  next.focus();
+  const scored: Array<{ name: string; pct: number }> = [];
+  const perDart = fast ? 0 : Math.max(18, Math.min(40, 1800 / Math.max(1, pool.length)));
+  for (let i = 0; i < pool.length; i++) {
+    const v = pool[i]!;
+    const p = matchPct(scoreVariant(f, v).cost);
+    scored.push({ name: `${dartName(v)} ${num(v.weightG)} g`, pct: p });
+    if (!fast || i === pool.length - 1) {
+      count.textContent = `${i + 1}/${pool.length}`;
+      barFill.style.cssText = `width:${((i + 1) / pool.length) * 100}%`;
+      nowName.textContent = `${dartName(v)} ${num(v.weightG)} g`;
+      nowPct.textContent = `${p}%`;
+      const top = [...scored].sort((a, b) => b.pct - a.pct).slice(0, 3);
+      leaders.replaceChildren(
+        ...top.map((x) => h('li', null, h('span', null, x.name), h('b', null, `${x.pct}%`))),
+      );
+    }
+    if (perDart) await wait(perDart);
+  }
+  state(p3, '✓');
+
+  // ── The winner ────────────────────────────────────────────────────
+  const best = result.recommendation.picks[0];
+  const target = `#/fit/${result.id ?? 'local'}`;
+  go1.setAttribute('href', target);
+  if (best) {
+    pct.textContent = `${matchPct(best.cost)}%`;
+    pct.classList.add(`q-${best.quality}`);
+    bestName.textContent = dartName(best.variant);
+    bestArt.replaceChildren(variantArt(best.variant));
+  } else {
+    bestName.textContent = t('fit.none');
+  }
+  title.textContent = t('fit.found');
+  found.hidden = false;
+  if (fast) {
+    go1.focus();
+    return;
+  }
+  found.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  await wait(1600);
+  if (location.hash === '#/fitting') go(target.slice(1));
 }

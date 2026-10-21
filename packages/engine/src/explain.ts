@@ -15,7 +15,12 @@ export interface ExplainInput {
     currentFeel?: string;
   };
   hand: { lengthMm: number; middleFingerMm: number } | null;
-  bands: { weightG: [number, number]; lengthMm: [number, number]; diameterMm: [number, number]; grip: [number, number] };
+  bands: {
+    weightG: [number, number];
+    lengthMm: [number, number];
+    diameterMm: [number, number];
+    grip: [number, number];
+  };
   preferredBalance: string;
   confidence: string;
   pick: {
@@ -31,7 +36,15 @@ export interface ExplainInput {
     compromise: string | null;
   };
   proTwin: { name: string; dart: string; exactDart: boolean } | null;
-  ideal: { lengthMm: number; diameterMm: number; massG: number; cogMm: number; shape: string; tungstenPct: number; adjusted: boolean };
+  ideal: {
+    lengthMm: number;
+    diameterMm: number;
+    massG: number;
+    cogMm: number;
+    shape: string;
+    tungstenPct: number;
+    adjusted: boolean;
+  };
   setup: { shaft: string; shaftMm: [number, number]; flight: string };
 }
 
@@ -52,10 +65,19 @@ export function buildExplainInput(
       throwStyle: answers.throwStyle,
       moisture: answers.moisture,
       gripFeel: answers.gripFeel,
-      ...(answers.current ? { currentWeightG: answers.current.weightG, currentFeel: answers.current.feel } : {}),
+      ...(answers.current
+        ? { currentWeightG: answers.current.weightG, currentFeel: answers.current.feel }
+        : {}),
     },
-    hand: hand ? { lengthMm: Math.round(hand.handLengthMm), middleFingerMm: Math.round(hand.middleLengthMm) } : null,
-    bands: { weightG: f.weight.band, lengthMm: f.length.band, diameterMm: f.diameter.band, grip: f.grip.band },
+    hand: hand
+      ? { lengthMm: Math.round(hand.handLengthMm), middleFingerMm: Math.round(hand.middleLengthMm) }
+      : null,
+    bands: {
+      weightG: f.weight.band,
+      lengthMm: f.length.band,
+      diameterMm: f.diameter.band,
+      grip: f.grip.band,
+    },
     preferredBalance: f.preferredBalance,
     confidence: f.confidence,
     pick: {
@@ -71,7 +93,11 @@ export function buildExplainInput(
       compromise: pick.why.find((w) => w.kind === 'compromise')?.dim ?? null,
     },
     proTwin: twin
-      ? { name: twin.pro.name, dart: `${twin.scored.variant.brand} ${twin.scored.variant.model}`, exactDart: twin.pro.exactDart }
+      ? {
+          name: twin.pro.name,
+          dart: `${twin.scored.variant.brand} ${twin.scored.variant.model}`,
+          exactDart: twin.pro.exactDart,
+        }
       : null,
     ideal: {
       lengthMm: Math.round(f.barrel.lengthMm),
@@ -116,20 +142,50 @@ const range = (lang: Lang, [a, b]: [number, number], unit: string) =>
 const T = {
   nl: {
     hold: { front: 'vooraan', middle: 'in het midden', rear: 'achteraan' },
-    balance: { front: 'met het gewicht naar voren', centre: 'in balans', rear: 'met het gewicht naar achteren' },
-    shape: { straight: 'rechte', torpedo: 'torpedo', tapered: 'taps toelopende', bomb: 'bom', scalloped: 'getailleerde' },
+    balance: {
+      front: 'met het gewicht naar voren',
+      centre: 'in balans',
+      rear: 'met het gewicht naar achteren',
+    },
+    shape: {
+      straight: 'rechte',
+      torpedo: 'torpedo',
+      tapered: 'taps toelopende',
+      bomb: 'bom',
+      scalloped: 'getailleerde',
+    },
     shaft: { short: 'korte', inbetween: 'tussenmaat', medium: 'medium' },
     flight: { slim: 'slanke', standard: 'standaard' },
-    dim: { weight: 'het gewicht', length: 'de lengte', diameter: 'de dikte', grip: 'de grip', balance: 'de balans', shape: 'de vorm' },
+    dim: {
+      weight: 'het gewicht',
+      length: 'de lengte',
+      diameter: 'de dikte',
+      grip: 'de grip',
+      balance: 'de balans',
+      shape: 'de vorm',
+    },
     quality: { excellent: 'uitstekend', good: 'goed', fair: 'redelijk', poor: 'matig' },
   },
   en: {
     hold: { front: 'at the front', middle: 'in the middle', rear: 'at the back' },
     balance: { front: 'front-weighted', centre: 'centre-balanced', rear: 'rear-weighted' },
-    shape: { straight: 'straight', torpedo: 'torpedo', tapered: 'tapered', bomb: 'bomb', scalloped: 'scalloped' },
+    shape: {
+      straight: 'straight',
+      torpedo: 'torpedo',
+      tapered: 'tapered',
+      bomb: 'bomb',
+      scalloped: 'scalloped',
+    },
     shaft: { short: 'short', inbetween: 'in-between', medium: 'medium' },
     flight: { slim: 'slim', standard: 'standard' },
-    dim: { weight: 'weight', length: 'length', diameter: 'thickness', grip: 'grip', balance: 'balance', shape: 'shape' },
+    dim: {
+      weight: 'weight',
+      length: 'length',
+      diameter: 'thickness',
+      grip: 'grip',
+      balance: 'balance',
+      shape: 'shape',
+    },
     quality: { excellent: 'excellent', good: 'good', fair: 'fair', poor: 'weak' },
   },
 } as const;
@@ -153,7 +209,8 @@ export function templateExplanation(i: ExplainInput): string {
       parts.push(
         `Je ideale barrel is een ${t.shape[i.ideal.shape as keyof typeof t.shape] ?? i.ideal.shape} vorm van ${i.ideal.lengthMm} mm met het zwaartepunt op ${i.ideal.cogMm} mm vanaf de punt.`,
       );
-      if (i.ideal.tungstenPct >= 95) parts.push(`Zo zwaar en zo slank kan alleen met ${i.ideal.tungstenPct}% tungsten.`);
+      if (i.ideal.tungstenPct >= 95)
+        parts.push(`Zo zwaar en zo slank kan alleen met ${i.ideal.tungstenPct}% tungsten.`);
     }
     parts.push(
       `De ${i.pick.name} (${fmt(lang, i.pick.weightG)} g, ${fmt(lang, i.pick.lengthMm)} mm) past ${q}${strengths.length ? `, vooral op ${strengths.join(' en ')}` : ''}.`,
@@ -176,10 +233,11 @@ export function templateExplanation(i: ExplainInput): string {
       parts.push(
         `Your ideal barrel is a ${t.shape[i.ideal.shape as keyof typeof t.shape] ?? i.ideal.shape} ${i.ideal.lengthMm} mm barrel with its centre of gravity ${i.ideal.cogMm} mm from the point.`,
       );
-      if (i.ideal.tungstenPct >= 95) parts.push(`That weight in that slim a barrel needs ${i.ideal.tungstenPct}% tungsten.`);
+      if (i.ideal.tungstenPct >= 95)
+        parts.push(`That weight in that slim a barrel needs ${i.ideal.tungstenPct}% tungsten.`);
     }
     parts.push(
-      `The ${i.pick.name} (${i.pick.weightG} g, ${i.pick.lengthMm} mm) is a ${q} fit${strengths.length ? `, strongest on ${strengths.join(' and ')}` : ''}.`,
+      `The ${i.pick.name} (${i.pick.weightG} g, ${i.pick.lengthMm} mm) is ${/^[aeiou]/i.test(q) ? 'an' : 'a'} ${q} fit${strengths.length ? `, strongest on ${strengths.join(' and ')}` : ''}.`,
     );
     if (i.pick.compromise) parts.push(`The biggest compromise is ${dimName(i.pick.compromise)}.`);
     if (i.proTwin)

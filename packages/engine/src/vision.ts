@@ -67,7 +67,8 @@ function peakPair(p: Float64Array, minGap: number): { a: number; b: number; s: n
   let best: { a: number; b: number; s: number } | null = null;
   // Local maxima only, to keep this O(k²) with small k.
   const peaks: number[] = [];
-  for (let i = 1; i < p.length - 1; i++) if (p[i]! >= p[i - 1]! && p[i]! >= p[i + 1]! && p[i]! > 0) peaks.push(i);
+  for (let i = 1; i < p.length - 1; i++)
+    if (p[i]! >= p[i - 1]! && p[i]! >= p[i + 1]! && p[i]! > 0) peaks.push(i);
   peaks.sort((x, y) => p[y]! - p[x]!);
   const top = peaks.slice(0, 12);
   for (let i = 0; i < top.length; i++) {

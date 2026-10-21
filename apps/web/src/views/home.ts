@@ -1,13 +1,12 @@
 import { fit } from '@dartfit/engine';
-import { h } from '../h';
-import { num, t } from '../i18n';
-import { dartDrawing } from '../draw/dart';
+import { h, s } from '../h';
+import { t } from '../i18n';
 import { variants } from '../api';
 import { clearSession } from '../store';
-import { shapeName } from './words';
+import { dartArt, handArt, pictogram } from '../draw/art';
 
-/** A worked example for the hero: the ideal barrel for an average hand and grip. */
-function example() {
+/** The ideal dart for an average hand, drawn as the hero image. */
+function exampleDart() {
   const f = fit(
     {
       handLengthMm: 185,
@@ -29,44 +28,48 @@ function example() {
       thickness: 'auto',
     },
   );
-  return dartDrawing({
-    ideal: f.barrel,
-    lengthBand: f.length.band,
-    diameterBand: f.diameter.band,
-    animate: true,
-    caption: `${num(f.barrel.massG, 0)} g · ${f.physics.tungstenPct}% tungsten · ${shapeName(f.barrel.shape)}`,
-  });
+  return dartArt({ ...f.barrel, grip: 3, tone: 0 });
 }
 
+const target = () =>
+  s(
+    'svg',
+    { viewBox: '0 0 52 52', 'aria-hidden': 'true' },
+    s('circle', { cx: 26, cy: 26, r: 24, class: 'ico-path' }),
+    s('circle', { cx: 26, cy: 26, r: 15, class: 'ico-line' }),
+    s('circle', { cx: 26, cy: 26, r: 5, class: 'ico-accent' }),
+  );
+
 export function homeView(root: HTMLElement) {
-  const n = variants().length;
+  const all = variants();
+  const brands = new Set(all.map((v) => v.brand)).size;
   root.append(
     h(
       'section',
-      { class: 'hero stack' },
-      h('h1', null, t('home.title')),
+      { class: 'hero' },
+      h('h1', null, h('span', null, t('home.t1')), h('span', null, t('home.t2'))),
       h('p', { class: 'lead' }, t('home.lead')),
-      h('figure', { class: 'sheet' }, example(), h('figcaption', null, t('home.example'))),
+      h('div', { class: 'hero-art' }, handArt({ dots: true, className: 'scan' }), exampleDart()),
       h(
         'div',
-        { class: 'actions' },
-        h('a', { class: 'btn', href: '#/scan', onclick: () => clearSession() }, t('home.start')),
-        h('a', { class: 'btn ghost', href: '#/questions', onclick: () => clearSession() }, t('home.skip')),
+        { class: 'hero-cta' },
+        h('a', { class: 'btn block', href: '#/scan', onclick: () => clearSession() }, t('home.start')),
+        h('a', { class: 'btn link', href: '#/questions', onclick: () => clearSession() }, t('home.skip')),
       ),
-      h('p', { class: 'small' }, t('home.privacy')),
     ),
     h(
       'section',
-      { class: 'stack' },
-      h('h2', null, t('home.how.title')),
-      h(
-        'ol',
-        { class: 'steps' },
-        h('li', null, t('home.how1')),
-        h('li', null, t('home.how2')),
-        h('li', null, t('home.how4')),
-        h('li', null, t('home.how3', { n })),
-      ),
+      { class: 'stats', 'aria-label': t('home.stats') },
+      h('div', null, h('b', null, String(all.length)), h('span', null, t('home.stat.darts'))),
+      h('div', null, h('b', null, String(brands)), h('span', null, t('home.stat.brands'))),
+      h('div', null, h('b', null, '21'), h('span', null, t('home.stat.points'))),
+    ),
+    h(
+      'ol',
+      { class: 'how', 'aria-label': t('home.how') },
+      h('li', null, handArt({ lengthMm: 185 }), t('home.how1')),
+      h('li', null, pictogram('hold', 'middle'), t('home.how2')),
+      h('li', null, target(), t('home.how3')),
     ),
   );
 }

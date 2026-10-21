@@ -53,7 +53,9 @@ export function checkHandFrame(lm: Landmark[] | undefined): Gate | null {
     return { x: pb.x - pa.x, y: pb.y - pa.y };
   };
   const angle = (a: Pt, b: Pt) =>
-    (Math.acos(Math.max(-1, Math.min(1, (a.x * b.x + a.y * b.y) / (Math.hypot(a.x, a.y) * Math.hypot(b.x, b.y))))) *
+    (Math.acos(
+      Math.max(-1, Math.min(1, (a.x * b.x + a.y * b.y) / (Math.hypot(a.x, a.y) * Math.hypot(b.x, b.y)))),
+    ) *
       180) /
     Math.PI;
   if (angle(v(5, 8), v(17, 20)) < 18) return 'fingers_closed';
@@ -64,7 +66,9 @@ export function checkHandFrame(lm: Landmark[] | undefined): Gate | null {
   if (straight(5) < 0.9 || straight(9) < 0.9) return 'fingers_bent';
   // Relative depth: on a flat hand the fingertips sit at roughly the wrist's depth.
   const span = dist(lm[0] as Pt, lm[12] as Pt);
-  const zRange = Math.max(...[4, 8, 12, 16, 20].map((i) => Math.abs((lm[i] as Landmark).z - (lm[0] as Landmark).z)));
+  const zRange = Math.max(
+    ...[4, 8, 12, 16, 20].map((i) => Math.abs((lm[i] as Landmark).z - (lm[0] as Landmark).z)),
+  );
   if (span > 0 && zRange / span > 0.35) return 'hand_tilted';
   return null;
 }

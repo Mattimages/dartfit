@@ -5,25 +5,43 @@ import { go } from '../router';
 import { session, update } from '../store';
 import { variants } from '../api';
 import { dartName } from './words';
+import { BUDGETS_EUR, eurToUsd, usdToEur } from '../money';
+import { pictogram } from '../draw/art';
 
-type Opt = { value: string; label: string };
+interface Opt {
+  value: string;
+  label: string;
+  /** Large text instead of a pictogram, e.g. "3" or "€60". */
+  big?: string;
+}
 
-/** A segmented single-choice control backed by real radio inputs. */
-function seg(name: string, legend: string, opts: Opt[], value: string, hint?: string): HTMLElement {
+/** One question: a fieldset of picture tiles backed by real radio inputs. */
+function tiles(
+  name: string,
+  legend: string,
+  opts: Opt[],
+  value: string,
+  cols = opts.length,
+  pics = true,
+): HTMLElement {
   return h(
     'fieldset',
     { class: 'field' },
     h('legend', null, legend),
-    hint ? h('p', { class: 'hint' }, hint) : null,
     h(
       'div',
-      { class: 'seg', style: `--n:${opts.length}` },
+      { class: pics ? 'tiles' : 'tiles short', style: `--cols:${cols}` },
       ...opts.map((o) =>
         h(
           'label',
-          null,
+          { class: 'tile' },
           h('input', { type: 'radio', name, value: o.value, checked: o.value === value }),
-          o.label,
+          o.big
+            ? h('span', { class: 'big', 'aria-hidden': 'true' }, o.big)
+            : pics
+              ? pictogram(name, o.value)
+              : null,
+          o.label ? h('span', null, o.label) : h('span', { class: 'visually-hidden' }, o.big ?? o.value),
         ),
       ),
     ),
@@ -55,10 +73,10 @@ export function questionsView(root: HTMLElement) {
     type: 'search',
     id: 'dart-search',
     autocomplete: 'off',
-    placeholder: t('darts.search'),
+    placeholder: t('q.current.search'),
   }) as HTMLInputElement;
-  const results = h('ul', { class: 'whatif', role: 'listbox', 'aria-label': t('q.current.pick') });
-  const pickedLine = h('p', { class: 'small' });
+  const results = h('ul', { class: 'picker', role: 'listbox', 'aria-label': t('q.current.search') });
+  const pickedLine = h('p', { class: 'kicker' });
   const clearPick = h('button', { class: 'btn link', type: 'button' }, t('q.current.clear'));
   const weight = h('input', {
     type: 'number',
@@ -67,71 +85,28 @@ export function questionsView(root: HTMLElement) {
     min: 12,
     max: 40,
     step: 0.5,
+    placeholder: t('q.current.weight'),
     value: a.current?.weightG ?? '',
   }) as HTMLInputElement;
-  const length = h('input', {
-    type: 'number',
-    id: 'cl',
-    inputmode: 'decimal',
-    min: 30,
-    max: 70,
-    step: 0.5,
-    value: a.current?.lengthMm ?? '',
-  }) as HTMLInputElement;
 
-  const feelBox = h('div', { class: 'stack' });
-  const renderFeels = () => {
-    const c = a.current;
-    feelBox.replaceChildren(
-      ...[
-        seg(
-          'feel',
-          t('q.current.feel'),
-          opts('q.feel', ['too_light', 'right', 'too_heavy']),
-          c?.feel ?? 'right',
-        ),
-        picked
-          ? seg(
-              'currentGrip',
-              t('q.current.grip'),
-              opts('q.gripfeel', ['too_smooth', 'right', 'too_sharp']),
-              c?.gripFeel ?? 'right',
-            )
-          : null,
-        picked
-          ? seg(
-              'thicknessFeel',
-              t('q.current.thickness'),
-              opts('q.thickfeel', ['too_thin', 'right', 'too_thick']),
-              c?.thicknessFeel ?? 'right',
-            )
-          : null,
-        picked || length.value
-          ? seg(
-              'lengthFeel',
-              t('q.current.lengthfeel'),
-              opts('q.lenfeel', ['too_short', 'right', 'too_long']),
-              c?.lengthFeel ?? 'right',
-            )
-          : null,
-      ].filter((x): x is HTMLElement => x !== null),
-    );
-  };
-
+  const feelBox = tiles(
+    'feel',
+    t('q.current.feel'),
+    opts('q.feel', ['too_light', 'right', 'too_heavy']),
+    a.current?.feel ?? 'right',
+    3,
+    false,
+  );
   const manualBox = h(
     'div',
-    { class: 'stack' },
-    h('p', { class: 'hint' }, t('q.current.pick.none')),
-    h('label', { class: 'label', for: 'cw' }, t('q.current.weight')),
+    null,
+    h('label', { class: 'visually-hidden', for: 'cw' }, t('q.current.weight')),
     weight,
-    h('label', { class: 'label', for: 'cl' }, t('q.current.length')),
-    length,
   );
   const pickBox = h(
     'div',
-    { class: 'stack' },
-    h('label', { class: 'label', for: 'dart-search' }, t('q.current.pick')),
-    h('p', { class: 'hint' }, t('q.current.pick.hint')),
+    { class: 'sub' },
+    h('label', { class: 'visually-hidden', for: 'dart-search' }, t('q.current.search')),
     search,
     results,
   );
@@ -141,11 +116,7 @@ export function questionsView(root: HTMLElement) {
     pickedBox.hidden = !picked;
     pickBox.hidden = !!picked;
     manualBox.hidden = !!picked;
-    if (picked)
-      pickedLine.textContent = t('q.current.picked', {
-        name: `${dartName(picked)} ${num(picked.weightG)} g`,
-      });
-    renderFeels();
+    if (picked) pickedLine.textContent = `${dartName(picked)} · ${num(picked.weightG)} g`;
   };
 
   const renderResults = () => {
@@ -154,13 +125,9 @@ export function questionsView(root: HTMLElement) {
     if (q.length < 2) return;
     const hits = variants()
       .filter((v) => `${v.brand} ${v.model} ${v.weightG}g`.toLowerCase().includes(q))
-      .slice(0, 8);
+      .slice(0, 6);
     for (const v of hits) {
-      const b = h(
-        'button',
-        { class: 'btn ghost block', type: 'button', role: 'option' },
-        `${dartName(v)} · ${num(v.weightG)} g`,
-      );
+      const b = h('button', { type: 'button', role: 'option' }, `${dartName(v)} · ${num(v.weightG)} g`);
       b.addEventListener('click', () => {
         picked = v;
         a.current = {
@@ -182,18 +149,10 @@ export function questionsView(root: HTMLElement) {
     showPicked();
     search.focus();
   });
-  length.addEventListener('change', renderFeels);
 
   const hasCurrent = !!a.current;
-  const currentBox = h(
-    'div',
-    { class: 'stack', hidden: !hasCurrent },
-    pickedBox,
-    pickBox,
-    manualBox,
-    feelBox,
-  );
-  const currentToggle = seg(
+  const currentBox = h('div', { class: 'sub', hidden: !hasCurrent }, pickedBox, pickBox, manualBox, feelBox);
+  const currentToggle = tiles(
     'hasCurrent',
     t('q.current'),
     [
@@ -201,76 +160,139 @@ export function questionsView(root: HTMLElement) {
       { value: 'yes', label: t('q.current.yes') },
     ],
     hasCurrent ? 'yes' : 'no',
-    t('q.current.lead'),
+    2,
+    false,
   );
   currentToggle.addEventListener('change', (e) => {
     currentBox.hidden = (e.target as HTMLInputElement).value !== 'yes';
   });
 
-  const budget = h('input', {
-    type: 'number',
-    id: 'budget',
-    inputmode: 'numeric',
-    min: 10,
-    max: 1000,
-    step: 5,
-    value: a.budgetUsd ?? '',
-  }) as HTMLInputElement;
-  const err = h('p', { class: 'error', role: 'alert', hidden: true });
+  // ── Budget, in euros (catalogue prices are dollars; converted at a fixed reference rate) ──
+  const budgetNow = a.budgetUsd ? Math.round(usdToEur(a.budgetUsd) / 10) * 10 : null;
+  const budget = tiles(
+    'budgetEur',
+    t('q.budget'),
+    BUDGETS_EUR.map((b) =>
+      b === null
+        ? { value: 'any', label: t('q.budget.any'), big: '∞' }
+        : { value: String(b), label: t('q.budget.upto'), big: `€${b}` },
+    ),
+    budgetNow && (BUDGETS_EUR as readonly (number | null)[]).includes(budgetNow) ? String(budgetNow) : 'any',
+    2,
+  );
 
-  const m = s.measurements;
+  const grip = h(
+    'div',
+    null,
+    tiles(
+      'gripFeel',
+      t('q.grip'),
+      ['1', '2', '3', '4', '5'].map((v) => ({ value: v, label: '', big: v })),
+      String(a.gripFeel),
+      5,
+      false,
+    ),
+    h(
+      'div',
+      { class: 'scale-ends', 'aria-hidden': 'true' },
+      h('span', null, pictogram('gripFeel', '1'), t('q.grip.1')),
+      h('span', null, pictogram('gripFeel', '5'), t('q.grip.5')),
+    ),
+  );
+
+  /** One question per screen. `auto` steps move on by themselves when tapped. */
+  const steps: Array<{ el: HTMLElement; auto: boolean }> = [
+    { el: tiles('tip', t('q.tip'), opts('q.tip', ['steel', 'soft']), a.tip, 2), auto: true },
+    { el: tiles('hold', t('q.hold'), opts('q.hold', ['front', 'middle', 'rear']), a.hold), auto: true },
+    {
+      el: tiles(
+        'fingers',
+        t('q.fingers'),
+        ['2', '3', '4'].map((v) => ({ value: v, label: t('q.fingers.unit', { n: v }) })),
+        String(a.fingers),
+      ),
+      auto: true,
+    },
+    {
+      el: tiles('throwStyle', t('q.throw'), opts('q.throw', ['flat', 'arc', 'unsure']), a.throwStyle),
+      auto: true,
+    },
+    {
+      el: tiles('moisture', t('q.moisture'), opts('q.moisture', ['dry', 'normal', 'sweaty']), a.moisture),
+      auto: true,
+    },
+    { el: grip, auto: true },
+    {
+      el: tiles(
+        'thickness',
+        t('q.thickness'),
+        opts('q.thickness', ['slim', 'standard', 'chunky', 'auto']),
+        a.thickness,
+        2,
+      ),
+      auto: true,
+    },
+    { el: h('div', null, currentToggle, currentBox), auto: false },
+    { el: budget, auto: false },
+  ];
+
+  const progress = h(
+    'div',
+    { class: 'progress', style: `--n:${steps.length}`, 'aria-hidden': 'true' },
+    ...steps.map(() => h('i')),
+  );
+  const progressText = h('p', { class: 'visually-hidden', 'aria-live': 'polite' });
+  const backBtn = h('button', { class: 'btn link', type: 'button' }, t('q.back'));
+  const nextBtn = h('button', { class: 'btn', type: 'button' }, t('q.next'));
+  const submitBtn = h('button', { class: 'btn', type: 'submit' }, t('q.submit'));
+  const stage = h('div', { class: 'stage' }, ...steps.map((st) => h('div', { class: 'step' }, st.el)));
+  const stepEls = [...stage.children] as HTMLElement[];
+  const err = h('p', { class: 'error', role: 'alert', hidden: true });
+  let at = 0;
+  let lastPointer = 0;
+
+  const show = (i: number, focus = true) => {
+    at = Math.max(0, Math.min(steps.length - 1, i));
+    stepEls.forEach((el, j) => {
+      el.hidden = j !== at;
+      el.classList.toggle('enter', j === at);
+    });
+    [...progress.children].forEach((x, j) => x.classList.toggle('on', j <= at));
+    progressText.textContent = t('q.progress', { i: at + 1, n: steps.length });
+    backBtn.hidden = at === 0;
+    const last = at === steps.length - 1;
+    nextBtn.hidden = last;
+    submitBtn.hidden = !last;
+    err.hidden = true;
+    if (focus) {
+      const target = stepEls[at]?.querySelector<HTMLElement>('legend');
+      if (target) {
+        target.tabIndex = -1;
+        target.focus({ preventScroll: true });
+      }
+      window.scrollTo({ top: 0 });
+    }
+  };
+
+  // Tapping an answer moves on; arrow keys inside a radio group do not (that would skip questions).
+  stage.addEventListener('pointerup', () => (lastPointer = Date.now()));
+  // A click also fires when the tapped answer was already selected (the default), so that moves on too.
+  stage.addEventListener('click', (e) => {
+    const input = e.target as HTMLInputElement;
+    if (input.type !== 'radio' || !steps[at]?.auto || Date.now() - lastPointer > 800) return;
+    setTimeout(() => show(at + 1), 240);
+  });
+  backBtn.addEventListener('click', () => show(at - 1));
+  nextBtn.addEventListener('click', () => show(at + 1));
+
   const form = h(
     'form',
-    { class: 'stack', novalidate: true },
-    h(
-      'p',
-      { class: 'small' },
-      m ? t('q.measured', { L: num(m.handLengthMm, 0), W: num(m.palmWidthMm, 0) }) : t('q.notmeasured'),
-    ),
-    seg('tip', t('q.tip'), opts('q.tip', ['steel', 'soft']), a.tip),
-    seg('hold', t('q.hold'), opts('q.hold', ['front', 'middle', 'rear']), a.hold),
-    seg(
-      'fingers',
-      t('q.fingers'),
-      ['2', '3', '4'].map((v) => ({ value: v, label: v })),
-      String(a.fingers),
-      t('q.fingers.hint'),
-    ),
-    seg('throwStyle', t('q.throw'), opts('q.throw', ['flat', 'arc', 'unsure']), a.throwStyle),
-    seg('moisture', t('q.moisture'), opts('q.moisture', ['dry', 'normal', 'sweaty']), a.moisture),
-    h(
-      'div',
-      null,
-      seg(
-        'gripFeel',
-        t('q.grip'),
-        ['1', '2', '3', '4', '5'].map((v) => ({ value: v, label: v })),
-        String(a.gripFeel),
-      ),
-      h(
-        'div',
-        { class: 'scale-ends', 'aria-hidden': 'true' },
-        h('span', null, t('q.grip.1')),
-        h('span', null, t('q.grip.5')),
-      ),
-    ),
-    seg(
-      'thickness',
-      t('q.thickness'),
-      opts('q.thickness', ['slim', 'standard', 'chunky', 'auto']),
-      a.thickness,
-    ),
-    currentToggle,
-    currentBox,
-    h(
-      'div',
-      { class: 'field' },
-      h('label', { class: 'label', for: 'budget' }, t('q.budget')),
-      h('p', { class: 'hint' }, t('q.budget.note')),
-      budget,
-    ),
+    { class: 'quiz', novalidate: true },
+    progress,
+    progressText,
+    stage,
     err,
-    h('button', { class: 'btn block', type: 'submit' }, t('q.submit')),
+    h('div', { class: 'quiz-nav' }, backBtn, nextBtn, submitBtn),
   );
 
   form.addEventListener('submit', (e) => {
@@ -293,36 +315,22 @@ export function questionsView(root: HTMLElement) {
       } else {
         const w = Number(weight.value);
         if (!Number.isFinite(w) || w < 12 || w > 40) {
+          show(steps.length - 2, false);
           err.textContent = t('q.current.weight.range');
           err.hidden = false;
           weight.focus();
           return;
         }
         answers.current = { weightG: w, feel };
-        const l = Number(length.value);
-        if (length.value && Number.isFinite(l) && l >= 30 && l <= 70) answers.current.lengthMm = l;
       }
-      const lf = fd.get('lengthFeel');
-      if (lf && answers.current) answers.current.lengthFeel = lf as CurrentDart['lengthFeel'];
-      const tf = fd.get('thicknessFeel');
-      if (tf && answers.current) answers.current.thicknessFeel = tf as CurrentDart['thicknessFeel'];
-      const cg = fd.get('currentGrip');
-      if (cg && answers.current) answers.current.gripFeel = cg as CurrentDart['gripFeel'];
     }
-    const b = Number(budget.value);
-    if (budget.value && Number.isFinite(b) && b >= 10) answers.budgetUsd = b;
+    const b = Number(val('budgetEur'));
+    if (Number.isFinite(b) && b > 0) answers.budgetUsd = Math.round(eurToUsd(b));
     update({ answers, currentName: picked ? dartName(picked) : undefined });
     go('/fitting');
   });
 
-  root.append(
-    h(
-      'section',
-      { class: 'stack' },
-      h('h1', null, t('q.title')),
-      h('p', { class: 'lead' }, t('q.lead')),
-      form,
-    ),
-  );
+  root.append(h('section', null, h('h1', { class: 'visually-hidden' }, t('q.title')), form));
   showPicked();
+  show(0, false);
 }

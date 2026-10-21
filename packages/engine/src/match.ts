@@ -121,7 +121,8 @@ function explain(f: Fit, s: ScoredVariant, cfg: EngineConfig): PickReason[] {
 }
 
 function reasonFor(f: Fit, c: DimCheck, kind: PickReason['kind']): PickReason {
-  if (c.dim === 'balance') return { kind, dim: c.dim, value: c.value ?? 'unknown', preferred: f.preferredBalance };
+  if (c.dim === 'balance')
+    return { kind, dim: c.dim, value: c.value ?? 'unknown', preferred: f.preferredBalance };
   if (c.dim === 'shape') return { kind, dim: c.dim, value: c.value ?? 'unknown', preferred: topShape(f) };
   const est = f[c.dim as NumDim];
   return { kind, dim: c.dim, value: c.value as number, band: est.band };
@@ -162,7 +163,9 @@ export function recommend(
     const prev = byModel.get(v.modelId);
     if (!prev || s.cost < prev.cost) byModel.set(v.modelId, s);
   }
-  const ranked = [...byModel.values()].sort((a, b) => a.cost - b.cost || a.variant.id.localeCompare(b.variant.id));
+  const ranked = [...byModel.values()].sort(
+    (a, b) => a.cost - b.cost || a.variant.id.localeCompare(b.variant.id),
+  );
   const picks: Pick[] = [];
   const used = new Set<string>();
   const add = (s: ScoredVariant | undefined, role: Pick['role']) => {
@@ -254,7 +257,12 @@ export function sensitivity(
       const alt = { ...answers, [q]: opt } as Answers;
       const best = recommend(runFit(m, alt, cfg), variants, opts, cfg).picks[0];
       if (best && best.variant.id !== baseBest) {
-        out.push({ question: q, answer: opt, newBestId: best.variant.id, newBestName: `${best.variant.brand} ${best.variant.model}` });
+        out.push({
+          question: q,
+          answer: opt,
+          newBestId: best.variant.id,
+          newBestName: `${best.variant.brand} ${best.variant.model}`,
+        });
       }
     }
   }

@@ -5,60 +5,47 @@ import { go } from '../router';
 import { DEMO, explain, getFit, type FitResult, type Offer } from '../api';
 import { dartDrawing } from '../draw/dart';
 import { bandRow } from '../draw/bands';
-import { balanceName, dartName, material, reasonText, shapeName } from './words';
+import { balanceName, dartName, reasonText, shapeName } from './words';
+import { approxEur } from '../money';
+import { matchPct, variantArt } from '../score';
 
 const k = (s: string) => s as Key;
+type FullPick = RecPick & { offers: Offer[] };
 
-function offerButton(o: Offer, fitId: string | null): HTMLElement {
-  const label =
-    o.kind === 'search' ? t('r.search', { shop: o.retailerName }) : t('r.buy', { shop: o.retailerName });
+const priceText = (usd: number) => `≈ €${approxEur(usd)}`;
+
+function offerLink(o: Offer, fitId: string | null, primary: boolean): HTMLElement {
   const href = DEMO || !fitId ? o.goUrl : `${o.goUrl}?fit=${encodeURIComponent(fitId)}`;
   return h(
     'a',
-    { class: o.kind === 'product' ? 'btn ghost' : 'btn', href, target: '_blank', rel: 'noopener sponsored' },
-    h('span', null, label),
-    o.price !== null && o.currency === 'USD'
-      ? h('span', { class: 'num small' }, `$${num(o.price, 2)}`)
-      : null,
+    { class: primary ? 'btn' : 'btn ghost', href, target: '_blank', rel: 'noopener sponsored' },
+    h(
+      'span',
+      null,
+      o.kind === 'search' ? t('r.search', { shop: o.retailerName }) : t('r.buy', { shop: o.retailerName }),
+    ),
+    o.price !== null && o.currency === 'USD' ? h('span', { class: 'price' }, priceText(o.price)) : null,
   );
 }
 
-function pickBlock(r: FitResult, p: RecPick & { offers: Offer[] }): HTMLElement {
+const spec = (value: string, label: string) => h('div', null, h('b', null, value), h('span', null, label));
+
+function altCard(r: FitResult, p: FullPick): HTMLElement {
   const v = p.variant;
-  const checks = p.checks.filter((c) => c.dim !== 'shape');
-  const checkText = (c: (typeof checks)[number]) => {
-    const dimName = t(k(`r.dim.${c.dim}`));
-    if (c.status === 'unknown') return `${dimName}: ${t('r.unknown')}`;
-    if (c.dim === 'balance') return `${dimName}: ${balanceName(String(c.value))}`;
-    const unit = c.dim === 'weight' ? 'g' : c.dim === 'grip' ? '' : 'mm';
-    return `${dimName}: ${num(Number(c.value), c.dim === 'diameter' ? 2 : 1)} ${unit}`.trim();
-  };
+  const o = p.offers[0];
   return h(
     'article',
-    { class: 'pick' },
-    h('p', { class: 'role' }, `${t(k(`r.role.${p.role}`))} · ${t(k(`r.quality.${p.quality}`))}`),
+    { class: 'card' },
+    h(
+      'div',
+      { class: 'meta' },
+      h('span', { class: 'small' }, t(k(`r.role.${p.role}`))),
+      h('b', { class: `q-${p.quality}` }, `${matchPct(p.cost)}%`),
+    ),
+    variantArt(v),
     h('h3', null, dartName(v)),
-    h(
-      'p',
-      { class: 'specs num' },
-      h('span', null, `${num(v.weightG)} g`),
-      h('span', null, `${num(v.lengthMm)} mm`),
-      h('span', null, `Ø ${num(v.diameterMm, 2)}`),
-      h('span', null, shapeName(v.shape)),
-      h('span', null, material(v)),
-    ),
-    h(
-      'ul',
-      { class: 'checks' },
-      ...checks.map((c) => h('li', { class: c.status === 'unknown' ? 'near' : c.status }, checkText(c))),
-    ),
-    h('div', { class: 'offers' }, ...p.offers.slice(0, 3).map((o) => offerButton(o, r.id))),
-    h(
-      'p',
-      { class: 'small' },
-      h('a', { href: v.sourceUrl, target: '_blank', rel: 'noopener' }, t('r.source')),
-      v.verifiedAt ? ` · ${v.verifiedAt}` : '',
-    ),
+    h('p', { class: 'small num' }, `${num(v.weightG)} g · ${num(v.lengthMm)} mm · Ø ${num(v.diameterMm, 1)}`),
+    o ? offerLink(o, r.id, false) : null,
   );
 }
 
@@ -70,34 +57,36 @@ export async function resultView(root: HTMLElement, params: Record<string, strin
     return go('/questions');
   }
   const f = r.fit;
-  const best = r.recommendation.picks[0];
+  const picks = r.recommendation.picks as FullPick[];
+  const best = picks[0];
   const lang = getLang();
 
-  // ── Ideal barrel, with the best match drawn over it ───────────────
+  // ── Explanation (AI, grounded; template in the demo) ───────────────
+  const explainP = h('p', { class: 'explain', 'aria-busy': 'true' }, t('r.explain.loading'));
+  if (best)
+    explain(r, best, lang)
+      .then((e) => {
+        explainP.textContent = e.text;
+        explainP.setAttribute('aria-busy', 'false');
+      })
+      .catch(() => {
+        explainP.textContent = t('error.generic');
+        explainP.setAttribute('aria-busy', 'false');
+      });
+
+  // ── Your ideal barrel with this dart drawn over it ─────────────────
   const bestGeo = best ? variantBarrel(best.variant) : null;
-  const drawing = dartDrawing({
+  const overlay = dartDrawing({
     ideal: f.barrel,
     lengthBand: f.length.band,
     diameterBand: f.diameter.band,
     animate: false,
-    caption: `${num(f.barrel.massG, 0)} g · ${f.physics.tungstenPct}% tungsten · ${shapeName(f.barrel.shape)}`,
-    match:
-      bestGeo && best
-        ? { ...bestGeo, label: `${dartName(best.variant)} ${num(best.variant.weightG)} g` }
-        : undefined,
+    match: bestGeo && best ? { ...bestGeo, label: dartName(best.variant) } : undefined,
   });
-  const physicsNotes = f.reasons
-    .filter((x) => x.code.startsWith('physics'))
-    .map((x) => reasonText(x))
-    .filter(Boolean) as string[];
 
-  // ── Bands ─────────────────────────────────────────────────────────
   const why = (dim: string) =>
     f.reasons
-      .filter(
-        (x) =>
-          x.dim === dim && x.code !== 'weight_prior' && x.code !== 'length_fingers' && x.code !== 'grip_feel',
-      )
+      .filter((x) => x.dim === dim && !['weight_prior', 'length_fingers', 'grip_feel'].includes(x.code))
       .map(reasonText)
       .filter(Boolean)
       .join(' ');
@@ -142,24 +131,6 @@ export async function resultView(root: HTMLElement, params: Record<string, strin
       why: why('grip'),
     }),
   );
-
-  // ── Explanation (AI, grounded; template in the demo) ───────────────
-  const explainP = h('p', { class: 'explain', 'aria-busy': 'true' }, t('r.explain.loading'));
-  const explainSrc = h('p', { class: 'small', hidden: true }, t('r.explain.ai'));
-  if (best) {
-    explain(r, best, lang)
-      .then((e) => {
-        explainP.textContent = e.text;
-        explainP.setAttribute('aria-busy', 'false');
-        explainSrc.hidden = e.source !== 'ai';
-      })
-      .catch(() => {
-        explainP.textContent = t('error.generic');
-        explainP.setAttribute('aria-busy', 'false');
-      });
-  }
-
-  // ── Setup ─────────────────────────────────────────────────────────
   const su = f.setup;
   const setup = h(
     'div',
@@ -169,7 +140,7 @@ export async function resultView(root: HTMLElement, params: Record<string, strin
       null,
       h('span', { class: 'small' }, t('r.setup.shaft')),
       h('b', null, t(k(`r.setup.${su.shaft}`))),
-      h('span', { class: 'num small' }, range(su.shaftMm, 'mm', 0)),
+      h('span', { class: 'small num' }, range(su.shaftMm, 'mm', 0)),
     ),
     h(
       'div',
@@ -182,12 +153,8 @@ export async function resultView(root: HTMLElement, params: Record<string, strin
       null,
       h('span', { class: 'small' }, t('r.setup.point')),
       h('b', { class: 'num' }, range(su.pointMm, 'mm', 0)),
-      su.longPoint ? h('span', { class: 'small' }, t('r.setup.longpoint')) : null,
     ),
   );
-
-  // ── Pro twin and what-ifs ─────────────────────────────────────────
-  const twin = r.proTwin;
   const whatIf = r.whatIf.slice(0, 3).map((w) => {
     const a =
       w.question === 'hold'
@@ -197,13 +164,18 @@ export async function resultView(root: HTMLElement, params: Record<string, strin
           : w.question === 'thickness'
             ? t(k(`q.thickness.${w.answer}`)).toLowerCase()
             : String(w.answer);
-    return h(
-      'li',
-      null,
-      `${t(k(`r.whatif.${w.question}`), { a })}, ${t('r.whatif.then', { name: w.newBestName })}.`,
-    );
+    return h('li', null, `${t(k(`r.whatif.${w.question}`), { a })}: ${w.newBestName}`);
   });
+  const physics = f.reasons
+    .filter((x) => x.code.startsWith('physics'))
+    .map(reasonText)
+    .filter(Boolean) as string[];
 
+  const more = (title: string, ...body: Array<HTMLElement | null | false>) =>
+    h('details', { class: 'more' }, h('summary', null, title), h('div', null, ...body));
+
+  const twin = r.proTwin;
+  const v = best?.variant;
   const copyBtn = h('button', { class: 'btn ghost', type: 'button' }, t('r.share'));
   copyBtn.addEventListener('click', async () => {
     try {
@@ -214,121 +186,108 @@ export async function resultView(root: HTMLElement, params: Record<string, strin
     }
   });
 
-  const picks = r.recommendation.picks;
-  const confKey = f.confidence;
-  const sections: Array<HTMLElement | null> = [
-    h(
-      'section',
-      { class: 'stack' },
-      h('h1', null, t('r.title')),
-      h(
-        'div',
-        { class: 'confidence' },
-        h('span', { class: `pill ${confKey}` }, t(k(`r.confidence.${confKey}`))),
-        h('p', { class: 'small' }, t(k(`r.confidence.why.${confKey}`))),
-      ),
-    ),
-    h(
-      'section',
-      { class: 'stack' },
-      h('h2', null, t('r.ideal.title')),
-      h(
-        'p',
-        null,
-        t('r.ideal.lead', {
-          L: num(f.barrel.lengthMm),
-          D: num(f.barrel.diameterMm),
-          g: num(f.barrel.massG, 0),
-          cog: num(f.barrel.cogMm, 0),
-        }),
-      ),
-      h(
-        'figure',
-        { class: 'sheet' },
-        drawing,
-        h(
-          'div',
-          { class: 'legend', 'aria-hidden': 'true' },
-          h('span', null, h('i', { class: 'l-ideal' }), t('r.legend.zone')),
-          best
-            ? h(
-                'span',
-                null,
-                h('i', { class: 'l-match' }),
-                `${t('r.legend.best')}: ${dartName(best.variant)} ${num(best.variant.weightG)} g`,
-              )
-            : null,
+  const parts: Array<HTMLElement | null> = [
+    v && best
+      ? h(
+          'section',
+          { class: 'r-hero' },
+          h(
+            'div',
+            { class: 'score' },
+            h('b', { class: `q-${best.quality}` }, `${matchPct(best.cost)}%`),
+            h('span', null, t(k(`r.quality.${best.quality}`))),
+          ),
+          h('h1', null, dartName(v)),
+          variantArt(v),
+          h(
+            'div',
+            { class: 'specs3' },
+            spec(`${num(v.weightG)} g`, t('fit.r.weight')),
+            spec(`${num(v.lengthMm)}`, t('r.length.mm')),
+            spec(`${num(v.diameterMm, 1)}`, t('r.diameter.mm')),
+          ),
+          h(
+            'div',
+            { class: 'offers' },
+            ...best.offers.slice(0, 2).map((o, i) => offerLink(o, r.id, i === 0)),
+          ),
+        )
+      : h(
+          'section',
+          { class: 'r-hero' },
+          h('h1', null, t('r.title')),
+          h('p', { class: 'callout' }, t('r.none', { tip: t(k(`q.tip.${f.tip}`)) })),
         ),
-      ),
-      ...physicsNotes.map((n) => h('p', { class: 'callout' }, n)),
-      best ? h('p', { class: 'small' }, t('r.ideal.compare')) : null,
-    ),
-    h(
-      'section',
-      { class: 'stack' },
-      h('h2', null, t('r.bands')),
-      bands,
-      h('p', null, `${t('r.balance')}: ${balanceName(f.preferredBalance)}.`),
-    ),
-    h(
-      'section',
-      { class: 'stack' },
-      h('h2', null, t('r.match.title')),
-      h('p', { class: 'small' }, t('r.match.lead', { n: r.recommendation.considered })),
-      r.recommendation.coverage === 'none'
-        ? h('p', { class: 'callout' }, t('r.none', { tip: t(k(`q.tip.${f.tip}`)) }))
-        : r.recommendation.coverage === 'thin'
-          ? h('p', { class: 'callout' }, t('r.thin'))
-          : null,
-      ...picks.map((p) => pickBlock(r, p)),
-      h('p', { class: 'disclosure' }, t('r.disclosure')),
-      r.recommendation.filteredOut.specCheck
-        ? h('p', { class: 'small' }, t('r.flagged', { n: r.recommendation.filteredOut.specCheck }))
-        : null,
-    ),
-    best ? h('section', { class: 'stack' }, h('h2', null, t('r.explain')), explainP, explainSrc) : null,
-    h(
-      'section',
-      { class: 'stack' },
-      h('h2', null, t('r.setup.title')),
-      setup,
-      h('p', { class: 'small' }, t('r.setup.note')),
-    ),
     twin
       ? h(
           'section',
-          { class: 'stack twin' },
-          h('h2', null, t('r.twin')),
-          h('strong', null, twin.pro.name),
-          h(
-            'p',
-            null,
-            t(twin.pro.exactDart ? 'r.twin.exact' : 'r.twin.line', {
-              dart: `${dartName(twin.scored.variant)} ${num(twin.scored.variant.weightG)} g`,
-            }),
-          ),
-          h('p', { class: 'small' }, t('r.twin.note')),
+          { class: 'twin', 'aria-labelledby': 'twin-name' },
+          h('p', { class: 'kicker' }, t('r.twin')),
+          h('h2', { id: 'twin-name' }, twin.pro.name),
+          h('p', null, `${dartName(twin.scored.variant)} ${num(twin.scored.variant.weightG)} g`),
         )
       : null,
-    whatIf.length
+    best
+      ? h(
+          'section',
+          { class: 'overlay-fig' },
+          h('h2', null, t('r.vs')),
+          h('figure', { class: 'sheet' }, overlay),
+          h(
+            'div',
+            { class: 'legend', 'aria-hidden': 'true' },
+            h('span', null, h('i', { class: 'l-ideal' }), t('r.legend.zone')),
+            h('span', null, h('i', { class: 'l-match' }), t('r.legend.this')),
+          ),
+        )
+      : null,
+    picks.length > 1
       ? h(
           'section',
           { class: 'stack' },
-          h('h2', null, t('r.whatif')),
-          h('ul', { class: 'whatif' }, ...whatIf),
+          h('h2', null, t('r.alts.title')),
+          h('div', { class: 'rail' }, ...picks.slice(1).map((p) => altCard(r, p))),
         )
       : null,
     h(
       'section',
-      { class: 'actions' },
+      null,
+      best ? more(t('r.explain'), explainP) : null,
+      more(
+        t('r.more.sizes'),
+        h(
+          'p',
+          { class: 'small' },
+          t('r.ideal.short', {
+            L: num(f.barrel.lengthMm),
+            D: num(f.barrel.diameterMm),
+            g: num(f.barrel.massG, 0),
+            shape: shapeName(f.barrel.shape),
+          }),
+        ),
+        ...physics.map((n) => h('p', { class: 'callout' }, n)),
+        bands,
+        h('p', { class: 'small' }, `${t('r.balance')}: ${balanceName(f.preferredBalance)}`),
+      ),
+      more(t('r.setup.title'), setup),
+      whatIf.length ? more(t('r.whatif'), h('ul', { class: 'whatif' }, ...whatIf)) : null,
+    ),
+    h(
+      'section',
+      { class: 'r-actions' },
       DEMO || r.saved || !r.id
         ? null
-        : h('a', { class: 'btn', href: `#/signin?fit=${encodeURIComponent(r.id)}` }, t('r.save')),
-      r.saved ? h('p', { class: 'small' }, t('r.saved')) : null,
+        : h('a', { class: 'btn block', href: `#/signin?fit=${encodeURIComponent(r.id)}` }, t('r.save')),
       DEMO ? null : copyBtn,
-      h('a', { class: 'btn link', href: '#/' }, t('r.again')),
-      h('a', { class: 'btn link', href: '#/method' }, t('r.method')),
+      h('a', { class: 'btn ghost block', href: '#/' }, t('r.again')),
+      h(
+        'p',
+        { class: 'disclosure' },
+        t('r.disclosure.short'),
+        ' ',
+        h('a', { href: '#/method' }, t('r.method')),
+      ),
     ),
   ];
-  root.append(...sections.filter((x): x is HTMLElement => x !== null));
+  root.append(...parts.filter((x): x is HTMLElement => x !== null));
 }

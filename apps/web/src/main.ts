@@ -57,6 +57,7 @@ function layout() {
       class: 'btn link',
       type: 'button',
       lang: getLang() === 'nl' ? 'en' : 'nl',
+      'aria-label': t('nav.lang.long'),
       onclick: () => {
         setLang(getLang() === 'nl' ? 'en' : 'nl');
         layout();
@@ -75,7 +76,6 @@ function layout() {
         'nav',
         { 'aria-label': 'Menu' },
         h('a', { href: '#/darts' }, t('nav.darts.short')),
-        h('a', { href: '#/method' }, t('footer.method')),
         DEMO ? null : h('a', { href: '#/me' }, t('nav.me')),
         langBtn,
       ),
@@ -92,7 +92,6 @@ function layout() {
         h('a', { href: '#/privacy' }, t('footer.privacy')),
         h('a', { href: '#/darts' }, t('nav.darts')),
       ),
-      DEMO ? h('p', { class: 'small' }, t('r.demo')) : null,
     ),
   );
 }
