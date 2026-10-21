@@ -5,10 +5,14 @@
 import {
   buildExplainInput,
   fit as runFit,
+  priceTiers,
   proTwin,
   recommend,
   sensitivity,
   templateExplanation,
+  tierBoundsUsd,
+  type PriceTier,
+  type ScoredVariant,
   type Answers,
   type Fit,
   type Measurements,
@@ -39,6 +43,8 @@ export interface FitResult {
   saved: boolean;
   fit: Fit;
   recommendation: Omit<Recommendation, 'picks'> & { picks: Array<Pick & { offers: Offer[] }> };
+  /** Best fit per price class (budget ≤ €50, standard ≤ €100, premium above), affiliate offers attached. */
+  tiers?: Record<PriceTier, (ScoredVariant & { offers: Offer[] }) | null>;
   proTwin: ProTwin | null;
   whatIf: WhatIf[];
   country: string;
@@ -63,6 +69,7 @@ async function json<T>(path: string, init?: RequestInit): Promise<T> {
 // ── Demo: the engine in the browser ────────────────────────────────────
 const LOCAL_KEY = 'df_local_result';
 
+/** Demo: the affiliate shops only (bol.com and Amazon.nl searches); never a non-affiliate shop. */
 function demoOffers(v: Variant): Offer[] {
   const q = encodeURIComponent(`${v.brand} ${v.model} ${v.weightG}g`);
   return [
@@ -77,17 +84,21 @@ function demoOffers(v: Variant): Offer[] {
       goUrl: `https://www.bol.com/nl/nl/s/?searchtext=${q}`,
     },
     {
-      id: `azdarts:${v.id}`,
-      retailer: 'azdarts',
-      retailerName: 'A-Z Darts',
-      kind: 'product',
-      country: '*',
-      price: v.priceUsd,
-      currency: 'USD',
-      goUrl: v.sourceUrl,
+      id: `search:amazon_nl:${v.id}`,
+      retailer: 'amazon_nl',
+      retailerName: 'Amazon.nl',
+      kind: 'search',
+      country: 'NL',
+      price: null,
+      currency: null,
+      goUrl: `https://www.amazon.nl/s?k=${q}`,
     },
   ];
 }
+
+/** The affiliate shop link for any dart (bol.com search). In the live site it goes via /go so the click is logged and tagged. */
+export const shopLink = (v: Variant): string =>
+  DEMO ? demoOffers(v)[0]!.goUrl : `/go/${encodeURIComponent(`search:bol:${v.id}`)}`;
 
 function resolveCurrent(answers: Answers): Answers {
   const cur = answers.current;
@@ -116,6 +127,12 @@ function localFit(m: Measurements | undefined, answers: Answers): FitResult {
     saved: false,
     fit: f,
     recommendation: { ...rec, picks: rec.picks.map((p) => ({ ...p, offers: demoOffers(p.variant) })) },
+    tiers: Object.fromEntries(
+      Object.entries(priceTiers(f, catalogue.variants, tierBoundsUsd())).map(([k, s]) => [
+        k,
+        s ? { ...s, offers: demoOffers(s.variant) } : null,
+      ]),
+    ) as FitResult['tiers'],
     proTwin: proTwin(f, catalogue.pros, catalogue.variants),
     whatIf: sensitivity(m, a, catalogue.variants, { budgetUsd: a.budgetUsd }).slice(0, 4),
     country: 'NL',

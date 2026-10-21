@@ -10,9 +10,11 @@ import {
   ENGINE_VERSION,
   buildExplainInput,
   fit as runFit,
+  priceTiers,
   proTwin,
   recommend,
   sensitivity,
+  tierBoundsUsd,
   type Answers,
   type Fit,
   type Measurements,
@@ -169,12 +171,24 @@ export function createApp(deps: AppDeps) {
   async function buildResult(f: Fit, answers: Answers, m: Measurements | undefined, cty: string) {
     const variants = await activeVariants(db);
     const rec = recommend(f, variants, { budgetUsd: answers.budgetUsd });
-    const picks = await Promise.all(
-      rec.picks.map(async (p) => ({ ...p, offers: await offersFor(db, p.variant, cty) })),
+    const withOffers = await Promise.all(
+      rec.picks.map(async (p) => ({ ...p, offers: await offersFor(db, env, p.variant, cty) })),
+    );
+    // A dart without an affiliate link is not shown.
+    const picks = withOffers.filter((p) => p.offers.length > 0);
+    const raw = priceTiers(f, variants, tierBoundsUsd());
+    const tiers = Object.fromEntries(
+      await Promise.all(
+        Object.entries(raw).map(async ([k, s]) => {
+          if (!s) return [k, null];
+          const offers = await offersFor(db, env, s.variant, cty);
+          return [k, offers.length ? { ...s, offers } : null];
+        }),
+      ),
     );
     const twin = proTwin(f, pros(), variants);
     const whatIf = sensitivity(m, answers, variants, { budgetUsd: answers.budgetUsd }).slice(0, 4);
-    return { fit: f, recommendation: { ...rec, picks }, proTwin: twin, whatIf, country: cty };
+    return { fit: f, recommendation: { ...rec, picks }, tiers, proTwin: twin, whatIf, country: cty };
   }
 
   app.post(

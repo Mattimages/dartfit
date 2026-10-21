@@ -1,6 +1,6 @@
 import { h } from '../h';
 import { num, t, type Key } from '../i18n';
-import { variants } from '../api';
+import { shopLink, variants } from '../api';
 import { approxEur } from '../money';
 import { variantArt } from '../score';
 import { dartName } from './words';
@@ -53,16 +53,17 @@ export function dartsView(root: HTMLElement) {
           { class: 'card' },
           h(
             'a',
-            { href: v.sourceUrl, target: '_blank', rel: 'noopener' },
-            variantArt(v),
+            { href: shopLink(v), target: '_blank', rel: 'noopener sponsored' },
+            h('div', { class: 'stage-box' }, variantArt(v)),
             h('h2', null, dartName(v)),
           ),
           h(
             'p',
-            { class: 'small num' },
-            `${num(v.weightG)} g · ${num(v.lengthMm)} mm · Ø ${num(v.diameterMm, 1)}`,
+            { class: 'specline' },
+            h('span', null, `${num(v.weightG)} g`),
+            h('span', null, `${num(v.lengthMm)} mm`),
+            v.priceUsd ? h('span', { class: 'eur' }, `≈ €${approxEur(v.priceUsd)}`) : null,
           ),
-          v.priceUsd ? h('p', { class: 'small' }, `≈ €${approxEur(v.priceUsd)}`) : null,
           v.specCheck ? h('p', { class: 'flag small' }, t('darts.check')) : null,
         ),
       ),

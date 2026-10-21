@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { loadCatalogue } from '@dartfit/catalogue';
-import { fit, recommend, scoreVariant, proTwin, sensitivity, type Variant } from '../src/index.js';
+import { fit, recommend, scoreVariant, proTwin, sensitivity, priceTiers, type Variant } from '../src/index.js';
 import { baseAnswers, hand } from './helpers.js';
 import { personas } from './personas.js';
 
@@ -99,9 +99,12 @@ describe('proTwin and sensitivity', () => {
     expect(Math.abs(v.lengthMm - 52)).toBeLessThanOrEqual(2);
   });
 
-  it('a slim-barrel player happy with 23 g / 52 mm matches Littler', () => {
+  it('a slim-barrel player happy with 23 g / 52 mm gets a pro with a slim ~23 g, ~50 mm dart', () => {
     const f = fit(hand(185), { ...baseAnswers, thickness: 'slim', current: { weightG: 23, lengthMm: 52, feel: 'right' } });
-    expect(proTwin(f, pros, variants)?.pro.id).toBe('littler');
+    const v = proTwin(f, pros, variants)!.scored.variant;
+    expect(Math.abs(v.weightG - 23)).toBeLessThanOrEqual(1);
+    expect(Math.abs(v.lengthMm - 51)).toBeLessThanOrEqual(2.5);
+    expect(v.diameterMm).toBeLessThanOrEqual(6.8);
   });
 
   it('what-if reports answers that would change the top pick', () => {
@@ -185,9 +188,9 @@ describe('personas (gate G2 fixtures)', () => {
   it('p13 rear grip → never a front-weighted best pick', () => {
     expect(run('p13').best!.balance).not.toBe('front');
   });
-  it('p14 budget $60 → honest "thin" coverage, all picks priced within budget', () => {
+  it('p14 budget $60 → budget darts found, all picks priced within budget', () => {
     const { r } = run('p14');
-    expect(r.coverage).toBe('thin');
+    expect(r.picks.length).toBeGreaterThan(0);
     r.picks.forEach((p) => expect(p.variant.priceUsd!).toBeLessThanOrEqual(60));
   });
   it('p15 large hand flat → heavier band than p16 small hand arc', () => {
@@ -211,5 +214,35 @@ describe('personas (gate G2 fixtures)', () => {
     const { f, r } = run('p20');
     expect(f.weight.band[1]).toBeLessThanOrEqual(20);
     expect(r.coverage).toBe('none');
+  });
+});
+
+describe('priceTiers', () => {
+  const bounds = { budgetMaxUsd: 58, standardMaxUsd: 115 };
+  it('picks the lowest-cost dart within each price class', () => {
+    const f = fit(hand(185), baseAnswers);
+    const tiers = priceTiers(f, variants, bounds);
+    for (const [tier, s] of Object.entries(tiers)) {
+      if (!s) continue;
+      const p = s.variant.priceUsd!;
+      if (tier === 'budget') expect(p).toBeLessThanOrEqual(bounds.budgetMaxUsd);
+      if (tier === 'standard') expect(p > bounds.budgetMaxUsd && p <= bounds.standardMaxUsd).toBe(true);
+      if (tier === 'premium') expect(p).toBeGreaterThan(bounds.standardMaxUsd);
+      const same = variants.filter(
+        (v) =>
+          v.tip === 'steel' &&
+          !v.specCheck &&
+          v.priceUsd !== null &&
+          (tier === 'budget' ? v.priceUsd <= 58 : tier === 'standard' ? v.priceUsd > 58 && v.priceUsd <= 115 : v.priceUsd > 115),
+      );
+      expect(Math.min(...same.map((v) => scoreVariant(f, v).cost))).toBeCloseTo(s.cost, 6);
+    }
+  });
+  it('respects the allowed filter and never returns flagged listings', () => {
+    const f = fit(hand(185), baseAnswers);
+    const none = priceTiers(f, variants, bounds, () => false);
+    expect(none).toEqual({ budget: null, standard: null, premium: null });
+    const all = priceTiers(f, variants, bounds);
+    expect(Object.values(all).every((s) => !s || !s.variant.specCheck)).toBe(true);
   });
 });

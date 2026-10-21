@@ -9,6 +9,8 @@ Mobile site: measure the throwing hand next to a bank card, fit darts to it, lin
 - Every numeric constant in `packages/engine/src/config.ts` needs a provenance entry; a test enforces it. Bump `ENGINE_VERSION` when fitting output changes.
 - The AI explanation may only state numbers present in its input; `apps/api/src/explain.ts` checks this and falls back to the template.
 - Strict CSP: no inline style attributes (set `el.style.cssText` via the `h()` helper), no inline scripts, fonts and models self-hosted.
+- Only affiliate shops are linked (retailers with `affiliateEnv`; in production the ID must be set). No affiliate link → the dart is not shown. A-Z Darts is a spec source only.
+- Results show the best fit per price class (budget ≤ €50, standard ≤ €100, premium), see `priceTiers` and `packages/engine/src/money.ts`.
 - Copy lives in `apps/web/src/i18n.ts`, NL and EN side by side. Write plain Dutch; no "je/u" mixing (use je).
 
 ## Engine v3 in one paragraph

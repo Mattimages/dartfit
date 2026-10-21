@@ -1,7 +1,8 @@
-import { variantBarrel, type Pick as RecPick } from '@dartfit/engine';
+import { tierBoundsUsd, variantBarrel, type Pick as RecPick } from '@dartfit/engine';
 import { h } from '../h';
 import { getLang, num, range, t, type Key } from '../i18n';
 import { go } from '../router';
+import { session } from '../store';
 import { DEMO, explain, getFit, type FitResult, type Offer } from '../api';
 import { dartDrawing } from '../draw/dart';
 import { bandRow } from '../draw/bands';
@@ -42,11 +43,115 @@ function altCard(r: FitResult, p: FullPick): HTMLElement {
       h('span', { class: 'small' }, t(k(`r.role.${p.role}`))),
       h('b', { class: `q-${p.quality}` }, `${matchPct(p.cost)}%`),
     ),
-    variantArt(v),
+    h('div', { class: 'stage-box' }, variantArt(v)),
     h('h3', null, dartName(v)),
-    h('p', { class: 'small num' }, `${num(v.weightG)} g · ${num(v.lengthMm)} mm · Ø ${num(v.diameterMm, 1)}`),
+    h(
+      'p',
+      { class: 'specline' },
+      h('span', null, `${num(v.weightG)} g`),
+      h('span', null, `${num(v.lengthMm)} mm`),
+      h('span', null, `Ø ${num(v.diameterMm, 1)}`),
+    ),
     o ? offerLink(o, r.id, false) : null,
   );
+}
+
+type TierKey = 'budget' | 'standard' | 'premium';
+const TIERS: TierKey[] = ['budget', 'standard', 'premium'];
+
+/** Which price class a price falls in (same bounds as the engine). */
+function tierOf(usd: number | null): TierKey | null {
+  if (usd === null) return null;
+  const b = tierBoundsUsd();
+  return usd <= b.budgetMaxUsd ? 'budget' : usd <= b.standardMaxUsd ? 'standard' : 'premium';
+}
+
+/**
+ * The answer, in three price classes: a tab per class, each showing the best-fitting dart in it
+ * (only darts we can link to through an affiliate shop). `onShow` lets other sections follow.
+ */
+function tierHero(
+  r: FitResult,
+  start: TierKey | null,
+  onShow: (v: FullPick['variant']) => void,
+): HTMLElement | null {
+  const tiers = r.tiers;
+  if (!tiers) return null;
+  const available = TIERS.filter((x) => tiers[x]);
+  if (!available.length) return null;
+  let cur: TierKey = start && tiers[start] ? start : available[0]!;
+  const panel = h('div', { class: 'tier-body', role: 'tabpanel', id: 'tier-panel', tabindex: 0 });
+  const tabs = h(
+    'div',
+    { class: 'tabs', role: 'tablist', 'aria-label': t('r.tiers') },
+    ...TIERS.map((x) => {
+      const sv = tiers[x];
+      const b = h(
+        'button',
+        {
+          class: 'tab',
+          type: 'button',
+          role: 'tab',
+          id: `tab-${x}`,
+          'aria-controls': 'tier-panel',
+          disabled: !sv,
+        },
+        h('span', { class: 'tab-name' }, t(k(`r.tier.${x}`))),
+        h(
+          'span',
+          { class: 'tab-sub' },
+          sv?.variant.priceUsd ? priceText(sv.variant.priceUsd) : t('r.tier.none'),
+        ),
+      );
+      b.addEventListener('click', () => {
+        cur = x;
+        show();
+      });
+      return b;
+    }),
+  );
+  tabs.addEventListener('keydown', (e) => {
+    if (e.key !== 'ArrowRight' && e.key !== 'ArrowLeft') return;
+    const i = available.indexOf(cur);
+    cur = available[(i + (e.key === 'ArrowRight' ? 1 : available.length - 1)) % available.length]!;
+    show();
+    tabs.querySelector<HTMLElement>(`#tab-${cur}`)?.focus();
+  });
+  const show = () => {
+    tabs.querySelectorAll('button').forEach((b) => {
+      const on = b.id === `tab-${cur}`;
+      b.setAttribute('aria-selected', String(on));
+      b.tabIndex = on ? 0 : -1;
+    });
+    panel.setAttribute('aria-labelledby', `tab-${cur}`);
+    const sv = tiers[cur]!;
+    const v = sv.variant;
+    const kids: Array<HTMLElement | null> = [
+      h(
+        'div',
+        { class: 'score' },
+        h('b', { class: `q-${sv.quality}` }, `${matchPct(sv.cost)}%`),
+        h('span', null, t(k(`r.quality.${sv.quality}`))),
+      ),
+      h('h2', { class: 'dart-name' }, dartName(v)),
+      h('div', { class: 'stage-box' }, variantArt(v, '', true)),
+      h(
+        'div',
+        { class: 'specs3' },
+        spec(`${num(v.weightG)} g`, t('fit.r.weight')),
+        spec(`${num(v.lengthMm)}`, t('r.length.mm')),
+        spec(`${num(v.diameterMm, 1)}`, t('r.diameter.mm')),
+      ),
+      v.priceUsd
+        ? h('p', { class: 'price-line' }, h('b', null, priceText(v.priceUsd)), h('span', null, t('r.guide')))
+        : null,
+      h('div', { class: 'offers' }, ...sv.offers.slice(0, 2).map((o, i) => offerLink(o, r.id, i === 0))),
+    ];
+    panel.replaceChildren(...kids.filter((x): x is HTMLElement => x !== null));
+    onShow(v);
+  };
+  show();
+  return h('section', { class: 'r-hero' }, h('h1', { class: 'visually-hidden' }, t('r.title')), tabs, panel);
 }
 
 export async function resultView(root: HTMLElement, params: Record<string, string>) {
@@ -75,14 +180,20 @@ export async function resultView(root: HTMLElement, params: Record<string, strin
       });
 
   // ── Your ideal barrel with this dart drawn over it ─────────────────
-  const bestGeo = best ? variantBarrel(best.variant) : null;
-  const overlay = dartDrawing({
-    ideal: f.barrel,
-    lengthBand: f.length.band,
-    diameterBand: f.diameter.band,
-    animate: false,
-    match: bestGeo && best ? { ...bestGeo, label: dartName(best.variant) } : undefined,
-  });
+  const overlayFig = h('figure', { class: 'sheet' });
+  const drawOverlay = (v: FullPick['variant'] | undefined) =>
+    overlayFig.replaceChildren(
+      dartDrawing({
+        ideal: f.barrel,
+        lengthBand: f.length.band,
+        diameterBand: f.diameter.band,
+        animate: false,
+        match: v ? { ...variantBarrel(v), label: dartName(v) } : undefined,
+      }),
+    );
+  drawOverlay(best?.variant);
+  const pc = session().priceClass;
+  const hero = tierHero(r, pc && pc !== 'any' ? pc : tierOf(best?.variant.priceUsd ?? null), drawOverlay);
 
   const why = (dim: string) =>
     f.reasons
@@ -187,37 +298,38 @@ export async function resultView(root: HTMLElement, params: Record<string, strin
   });
 
   const parts: Array<HTMLElement | null> = [
-    v && best
-      ? h(
-          'section',
-          { class: 'r-hero' },
-          h(
-            'div',
-            { class: 'score' },
-            h('b', { class: `q-${best.quality}` }, `${matchPct(best.cost)}%`),
-            h('span', null, t(k(`r.quality.${best.quality}`))),
-          ),
-          h('h1', null, dartName(v)),
-          variantArt(v),
-          h(
-            'div',
-            { class: 'specs3' },
-            spec(`${num(v.weightG)} g`, t('fit.r.weight')),
-            spec(`${num(v.lengthMm)}`, t('r.length.mm')),
-            spec(`${num(v.diameterMm, 1)}`, t('r.diameter.mm')),
-          ),
-          h(
-            'div',
-            { class: 'offers' },
-            ...best.offers.slice(0, 2).map((o, i) => offerLink(o, r.id, i === 0)),
-          ),
-        )
-      : h(
-          'section',
-          { class: 'r-hero' },
-          h('h1', null, t('r.title')),
-          h('p', { class: 'callout' }, t('r.none', { tip: t(k(`q.tip.${f.tip}`)) })),
-        ),
+    hero ??
+      (v && best
+        ? h(
+            'section',
+            { class: 'r-hero' },
+            h(
+              'div',
+              { class: 'score' },
+              h('b', { class: `q-${best.quality}` }, `${matchPct(best.cost)}%`),
+              h('span', null, t(k(`r.quality.${best.quality}`))),
+            ),
+            h('h1', null, dartName(v)),
+            h('div', { class: 'stage-box' }, variantArt(v, '', true)),
+            h(
+              'div',
+              { class: 'specs3' },
+              spec(`${num(v.weightG)} g`, t('fit.r.weight')),
+              spec(`${num(v.lengthMm)}`, t('r.length.mm')),
+              spec(`${num(v.diameterMm, 1)}`, t('r.diameter.mm')),
+            ),
+            h(
+              'div',
+              { class: 'offers' },
+              ...best.offers.slice(0, 2).map((o, i) => offerLink(o, r.id, i === 0)),
+            ),
+          )
+        : h(
+            'section',
+            { class: 'r-hero' },
+            h('h1', null, t('r.title')),
+            h('p', { class: 'callout' }, t('r.none', { tip: t(k(`q.tip.${f.tip}`)) })),
+          )),
     twin
       ? h(
           'section',
@@ -232,7 +344,7 @@ export async function resultView(root: HTMLElement, params: Record<string, strin
           'section',
           { class: 'overlay-fig' },
           h('h2', null, t('r.vs')),
-          h('figure', { class: 'sheet' }, overlay),
+          overlayFig,
           h(
             'div',
             { class: 'legend', 'aria-hidden': 'true' },

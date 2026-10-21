@@ -5,7 +5,6 @@ import { go } from '../router';
 import { session, update } from '../store';
 import { variants } from '../api';
 import { dartName } from './words';
-import { BUDGETS_EUR, eurToUsd, usdToEur } from '../money';
 import { pictogram } from '../draw/art';
 
 interface Opt {
@@ -167,17 +166,17 @@ export function questionsView(root: HTMLElement) {
     currentBox.hidden = (e.target as HTMLInputElement).value !== 'yes';
   });
 
-  // ── Budget, in euros (catalogue prices are dollars; converted at a fixed reference rate) ──
-  const budgetNow = a.budgetUsd ? Math.round(usdToEur(a.budgetUsd) / 10) * 10 : null;
+  // ── Price class: which tab the result opens on (every class is always shown) ──
   const budget = tiles(
-    'budgetEur',
+    'priceClass',
     t('q.budget'),
-    BUDGETS_EUR.map((b) =>
-      b === null
-        ? { value: 'any', label: t('q.budget.any'), big: '∞' }
-        : { value: String(b), label: t('q.budget.upto'), big: `€${b}` },
-    ),
-    budgetNow && (BUDGETS_EUR as readonly (number | null)[]).includes(budgetNow) ? String(budgetNow) : 'any',
+    [
+      { value: 'budget', label: t('q.pc.budget'), big: '€' },
+      { value: 'standard', label: t('q.pc.standard'), big: '€€' },
+      { value: 'premium', label: t('q.pc.premium'), big: '€€€' },
+      { value: 'any', label: t('q.pc.any'), big: '∞' },
+    ],
+    s.priceClass ?? 'any',
     2,
   );
 
@@ -324,9 +323,8 @@ export function questionsView(root: HTMLElement) {
         answers.current = { weightG: w, feel };
       }
     }
-    const b = Number(val('budgetEur'));
-    if (Number.isFinite(b) && b > 0) answers.budgetUsd = Math.round(eurToUsd(b));
-    update({ answers, currentName: picked ? dartName(picked) : undefined });
+    const pc = val('priceClass') as NonNullable<ReturnType<typeof session>['priceClass']>;
+    update({ answers, currentName: picked ? dartName(picked) : undefined, priceClass: pc || 'any' });
     go('/fitting');
   });
 

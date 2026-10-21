@@ -268,3 +268,31 @@ export function sensitivity(
   }
   return out;
 }
+
+export type PriceTier = 'budget' | 'standard' | 'premium';
+
+/**
+ * The best-fitting dart in each price class. Bounds are the upper price limits of the budget and
+ * standard classes, in USD (the catalogue currency). Darts without a known price, of the other tip
+ * type, flagged by the spec check, or excluded by `allowed` (e.g. no affiliate offer) are skipped.
+ * Ties go to the cheaper dart.
+ */
+export function priceTiers(
+  f: Fit,
+  variants: Variant[],
+  bounds: { budgetMaxUsd: number; standardMaxUsd: number },
+  allowed: (v: Variant) => boolean = () => true,
+  cfg: EngineConfig = defaultConfig,
+): Record<PriceTier, ScoredVariant | null> {
+  const out: Record<PriceTier, ScoredVariant | null> = { budget: null, standard: null, premium: null };
+  for (const v of variants) {
+    if (v.tip !== f.tip || v.specCheck || v.priceUsd === null || !allowed(v)) continue;
+    const tier: PriceTier =
+      v.priceUsd <= bounds.budgetMaxUsd ? 'budget' : v.priceUsd <= bounds.standardMaxUsd ? 'standard' : 'premium';
+    const s = scoreVariant(f, v, cfg);
+    const cur = out[tier];
+    if (!cur || s.cost < cur.cost || (s.cost === cur.cost && v.priceUsd < (cur.variant.priceUsd ?? Infinity)))
+      out[tier] = s;
+  }
+  return out;
+}

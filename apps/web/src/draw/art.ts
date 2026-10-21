@@ -76,7 +76,7 @@ export function handArt(o: HandOpts = {}): SVGElement {
   const palm = [0, 1, 2, 5, 9, 13, 17]
     .map((i, j) => `${j ? 'L' : 'M'}${P(i).x.toFixed(1)},${P(i).y.toFixed(1)}`)
     .join('');
-  const wrist = `M${(P(0).x - 30 * k).toFixed(1)},${(P(0).y + 26 * k).toFixed(1)}L${(P(0).x - 28 * k).toFixed(1)},${P(0).y.toFixed(1)}L${(P(0).x + 34 * k).toFixed(1)},${(P(0).y - 10 * k).toFixed(1)}L${(P(0).x + 34 * k).toFixed(1)},${(P(0).y + 26 * k).toFixed(1)}Z`;
+  const wrist = `M${(P(0).x - 24 * k).toFixed(1)},${(P(0).y + 26 * k).toFixed(1)}L${(P(0).x - 22 * k).toFixed(1)},${(P(0).y - 6 * k).toFixed(1)}L${(P(0).x + 30 * k).toFixed(1)},${(P(0).y - 14 * k).toFixed(1)}L${(P(0).x + 28 * k).toFixed(1)},${(P(0).y + 26 * k).toFixed(1)}Z`;
   const fingers = FINGERS.map((f, i) => {
     const chain = f.map(P);
     if (i === 0) chain.unshift({ x: (P(0).x + P(1).x) / 2, y: (P(0).y + P(1).y) / 2 });
@@ -151,8 +151,10 @@ export interface DartShape {
   profile: Profile;
   grip?: number | null;
   soft?: boolean;
-  /** Flight colour, 0–3: red, green, cream, black. */
+  /** Flight colour, 0–3. */
   tone?: number;
+  /** Red measuring line under the barrel with this label, e.g. "48 mm". */
+  dim?: string;
 }
 
 const POINT = 32;
@@ -195,9 +197,21 @@ export function dartArt(d: DartShape, className = ''): SVGElement {
   const fx = sx + SHAFT;
   const flight = `M${fx - 30},${cy - 1.5}L${fx - 13},${cy - 16}L${fx + 7},${cy - 17.5}L${fx + 7},${cy + 17.5}L${fx - 13},${cy + 16}L${fx - 30},${cy + 1.5}Z`;
   const total = fx + 9;
+  const H = d.dim ? 54 : 44;
+  // The dimension line spans the barrel exactly: what you see is the length that was matched.
+  const dimY = 45;
+  const dim = d.dim
+    ? [
+        s('path', {
+          class: 'dart-dim',
+          d: `M${x0},${dimY}L${sx},${dimY}M${x0},${dimY - 2.2}L${x0},${dimY + 2.2}M${sx},${dimY - 2.2}L${sx},${dimY + 2.2}`,
+        }),
+        s('text', { class: 'dart-dimtext', x: (x0 + sx) / 2, y: dimY + 6.6, 'text-anchor': 'middle' }, d.dim),
+      ]
+    : [];
   return s(
     'svg',
-    { class: `dart-art ${className}`.trim(), viewBox: `-1 0 ${total} 40`, 'aria-hidden': 'true' },
+    { class: `dart-art ${className}`.trim(), viewBox: `-1 0 ${total} ${H}`, 'aria-hidden': 'true' },
     s(
       'defs',
       null,
@@ -208,7 +222,15 @@ export function dartArt(d: DartShape, className = ''): SVGElement {
         s('stop', { offset: 0.42, class: 'steel-1' }),
         s('stop', { offset: 1, class: 'steel-2' }),
       ),
+      s(
+        'radialGradient',
+        { id: `${id}s` },
+        s('stop', { offset: 0, class: 'shadow-0' }),
+        s('stop', { offset: 1, class: 'shadow-1' }),
+      ),
     ),
+    s('ellipse', { cx: (x0 + total) / 2, cy: 39, rx: (total - x0) * 0.55, ry: 2.6, fill: `url(#${id}s)` }),
+    ...dim,
     s('path', { class: `dart-flight tone-${d.tone ?? 0}`, d: flight }),
     s('path', { class: 'dart-shaft', d: shaft }),
     s('path', { class: 'dart-point', d: point }),

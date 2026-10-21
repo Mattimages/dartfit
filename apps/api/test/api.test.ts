@@ -157,9 +157,15 @@ describe('click-outs', () => {
     expect(clicks).toHaveLength(1);
   });
 
-  it('redirects product offers to the verified source page', async () => {
-    const r = await request(app).get('/go/azdarts%3Atarget-littler-g1-23').expect(302);
-    expect(r.headers.location).toBe('https://a-zdarts.com/products/target-luke-littler-swiss-point-steel-tip-darts-23gm');
+  it('never redirects to a shop without an affiliate programme', async () => {
+    await request(app).get('/go/azdarts%3Atarget-littler-g1-23').expect(404);
+  });
+
+  it('only returns affiliate shop offers', async () => {
+    const r = await request(app).post('/api/fit').set('cf-ipcountry', 'NL').send({ answers }).expect(200);
+    expect(r.body.recommendation.picks.length).toBeGreaterThan(0);
+    for (const p of r.body.recommendation.picks)
+      expect(p.offers.every((o: { retailer: string }) => ['bol', 'amazon_nl'].includes(o.retailer))).toBe(true);
   });
 
   it('404s an unknown offer', async () => {
@@ -257,7 +263,7 @@ describe('accounts, saving and alerts (Phase 4 end-to-end)', () => {
   });
 
   it('a click-out by an opted-in user schedules the two-week feedback email', async () => {
-    await user.get(`/go/azdarts%3Atarget-littler-g1-22?fit=${fitId}`).expect(302);
+    await user.get(`/go/search%3Abol%3Atarget-littler-g1-22?fit=${fitId}`).expect(302);
     const jobs = await db.query<{ run_at: Date }>(`SELECT run_at FROM jobs WHERE kind='feedback_email'`);
     expect(jobs).toHaveLength(1);
     expect(new Date(jobs[0]!.run_at).getTime() - Date.now()).toBeGreaterThan(13 * 864e5);

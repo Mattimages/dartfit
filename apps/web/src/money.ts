@@ -1,10 +1,6 @@
-/**
- * Catalogue prices come from the product page in US dollars. Dutch players think in euros, so the
- * site shows an approximate euro amount next to the dollar price and asks the budget in euros.
- * Rate: ECB euro reference rate 16 Sep 2026, 1 EUR = 1.1537 USD (via Banca d'Italia). Approximate on
- * purpose: shown as "≈ €", never used for a checkout.
- */
-export const USD_PER_EUR = 1.1537;
+import { USD_PER_EUR } from '@dartfit/engine';
+
+export { USD_PER_EUR, PRICE_CLASS_EUR } from '@dartfit/engine';
 
 export const usdToEur = (usd: number) => usd / USD_PER_EUR;
 export const eurToUsd = (eur: number) => eur * USD_PER_EUR;
@@ -16,4 +12,4 @@ export function approxEur(usd: number): number {
 }
 
 /** Budget choices offered on the questions screen, in euros (null = no limit). */
-export const BUDGETS_EUR = [null, 60, 100, 150] as const;
+export const BUDGETS_EUR = [null, 50, 100, 150] as const;

@@ -8,6 +8,8 @@ export interface Session {
   answers?: Answers;
   /** Name of the catalogue dart the player picked as their current one. */
   currentName?: string;
+  /** Price class to open the result on; 'any' = the class of the best overall fit. */
+  priceClass?: 'budget' | 'standard' | 'premium' | 'any';
 }
 
 const KEY = 'df_session';

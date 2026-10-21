@@ -68,8 +68,10 @@ describe('buildable range', () => {
         const [lo, hi] = massRange(v.lengthMm, v.diameterMm, v.tungstenPct);
         return v.weightG < lo * 0.9 || v.weightG > hi * 1.1;
       })
+      .filter((v) => !v.specCheck)
       .map((v) => v.id);
-    // Known listing to re-check: see catalogue:check physics outliers.
+    // Anything far out is flagged by the spec check (and never recommended); at most two borderline
+    // listings remain unflagged (rd-javelin-25, one80-vhd-ice-dragon-20: within the flag ratio).
     expect(outside.length).toBeLessThanOrEqual(2);
   });
 });

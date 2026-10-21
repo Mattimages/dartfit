@@ -110,13 +110,24 @@ export interface Offer {
 const retailerName = (id: string, list: Retailer[]) => list.find((r) => r.id === id)?.name ?? id;
 
 /**
- * Offers for a variant in a country: local shops first (searches when no verified product page
- * exists), then the verified product page that ships internationally.
+ * Only shops we earn from are linked: a retailer needs an affiliate programme (affiliateEnv), and in
+ * production its affiliate ID must be configured. Anything else is never shown as a shop link.
  */
-export async function offersFor(db: Db, variant: Variant, country: string): Promise<Offer[]> {
+export function affiliateReady(env: Env, r: Retailer): boolean {
+  if (!r.affiliateEnv) return false;
+  if (env.NODE_ENV !== 'production') return true;
+  return Boolean((env as unknown as Record<string, string | undefined>)[r.affiliateEnv]);
+}
+
+/**
+ * Offers for a variant in a country: local shops first (searches when no verified product page
+ * exists), then verified product pages. Affiliate shops only.
+ */
+export async function offersFor(db: Db, env: Env, variant: Variant, country: string): Promise<Offer[]> {
   const { retailers } = loadCatalogue();
+  const ready = new Set(retailers.filter((r) => affiliateReady(env, r)).map((r) => r.id));
   const local: Offer[] = retailers
-    .filter((r) => r.kind === 'search' && r.countries.includes(country))
+    .filter((r) => r.kind === 'search' && r.countries.includes(country) && ready.has(r.id))
     .map((r) => ({
       id: `search:${r.id}:${variant.id}`,
       retailer: r.id,
@@ -132,7 +143,7 @@ export async function offersFor(db: Db, variant: Variant, country: string): Prom
      ORDER BY (country=$2) DESC, price NULLS LAST`,
     [variant.id, country],
   );
-  const product: Offer[] = rows.map((o) => ({
+  const product: Offer[] = rows.filter((o) => ready.has(o.retailer)).map((o) => ({
     id: o.id,
     retailer: o.retailer,
     retailerName: retailerName(o.retailer, retailers),
@@ -155,7 +166,7 @@ export async function resolveOffer(
   if (offerId.startsWith('search:')) {
     const [, retailerId, variantId] = offerId.split(':');
     const r = retailers.find((x) => x.id === retailerId && x.kind === 'search');
-    if (!r?.searchTemplate || !variantId) return null;
+    if (!r?.searchTemplate || !variantId || !affiliateReady(env, r)) return null;
     const v = (
       await db.query<{ brand: string; name: string; weight_g: number }>(
         'SELECT m.brand, m.name, v.weight_g FROM dart_variants v JOIN dart_models m ON m.id=v.model_id WHERE v.id=$1',
@@ -170,7 +181,8 @@ export async function resolveOffer(
     'SELECT url, variant_id, retailer FROM offers WHERE id=$1',
     [offerId],
   ))[0];
-  if (!o) return null;
+  const r = retailers.find((x) => x.id === o?.retailer);
+  if (!o || !r || !affiliateReady(env, r)) return null;
   return { url: affiliate(env, o.retailer, o.url), variantId: o.variant_id, retailer: o.retailer };
 }
 

@@ -9,7 +9,7 @@ The phone measures the hand on the device (MediaPipe landmarks plus a card homog
 | Path                 | What it is                                                                                                                                                                                                       |
 | -------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `packages/engine`    | Pure TypeScript fitting engine: measurement, evidence fusion, barrel physics, ideal-barrel solver, matching, template explanation. Every number in `config.ts` has a provenance entry.                           |
-| `packages/catalogue` | `data/variants.csv` (69 darts, source URL and verification date per row), loader, schema, link and spec checks.                                                                                                  |
+| `packages/catalogue` | `data/variants.csv` (132 darts across 98 models and 7 brands, source URL and verification date per row), loader, schema, link and spec checks.                                                                   |
 | `apps/api`           | Express 5 API: fits, `/go` affiliate redirect with click log, magic-link accounts, price alerts, AI explanation with a number-grounding check, background jobs. Postgres in production, PGlite in dev and tests. |
 | `apps/web`           | Vite + vanilla TS mobile site (PWA): scan, ruler fallback, questions, fitting animation, result with technical drawing, catalogue, method and privacy pages.                                                     |
 | `scripts`            | Calibration report (gate G1), persona report, model download, screenshots, preview build.                                                                                                                        |
@@ -20,7 +20,7 @@ The phone measures the hand on the device (MediaPipe landmarks plus a card homog
 npm install
 npm run dev:api      # API on :3000 with an embedded database
 npm run dev          # site on :5173, proxies /api and /go to the API
-npm test             # 137 tests
+npm test             # 144 tests
 npm run lint && npm run typecheck
 ```
 
@@ -38,6 +38,6 @@ The camera needs https. The site sets a strict CSP (no inline styles or scripts,
 
 - **Calibration (gate G1).** Tape-measure at least 10 hands, scan each, put the pairs in a CSV and run `npm run calibrate -- file.csv`. It reports the error per dimension and, with `--write`, updates `packages/engine/src/calibration.ts`. Until then the site says measurements are uncalibrated.
 - **Expert review (gate G2).** Have a fitter or shop owner go through `npm run personas` and the method page.
-- **Affiliate programmes.** Sign up for bol.com partner and Amazon; set the IDs. Without them links still work, untagged.
+- **Affiliate programmes.** Sign up for the bol.com Partner Programme and Amazon Associates (amazon.nl) and set `BOL_PARTNER_SITE_ID` / `AMAZON_TAG_NL`. Only shops with an affiliate programme are ever linked; in production a shop only appears once its ID is set, and a dart with no affiliate link is not shown.
 - **Catalogue.** `npm run catalogue:check` validates the CSV and lists darts whose stated weight does not fit their size and alloy (these are excluded from recommendations until re-checked). The API's link-check job flags dead shop links.
 - **Legal.** Have the privacy text and the affiliate disclosure reviewed; set `COMPANY_LINE` with the KvK number.

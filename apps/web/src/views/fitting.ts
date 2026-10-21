@@ -49,9 +49,9 @@ export async function fittingView(root: HTMLElement) {
   const m = s0.measurements;
 
   // ── Panel 1: the hand ─────────────────────────────────────────────
-  const hl = reading(t('fit.r.length'), 'mm');
-  const pw = reading(t('fit.r.width'), 'mm');
-  const il = reading(t('fit.r.index'), 'mm');
+  const hl = reading(`${t('fit.r.length')} mm`, '');
+  const pw = reading(`${t('fit.r.width')} mm`, '');
+  const il = reading(`${t('fit.r.index')} mm`, '');
   const handPts = s0.landmarksMm ?? templateHand(m?.handLengthMm ?? 185);
   const p1 = h(
     'div',
@@ -185,7 +185,7 @@ export async function fittingView(root: HTMLElement) {
     pct.textContent = `${matchPct(best.cost)}%`;
     pct.classList.add(`q-${best.quality}`);
     bestName.textContent = dartName(best.variant);
-    bestArt.replaceChildren(variantArt(best.variant));
+    bestArt.replaceChildren(h('div', { class: 'stage-box' }, variantArt(best.variant)));
   } else {
     bestName.textContent = t('fit.none');
   }
