@@ -1,4 +1,4 @@
-import '@fontsource-variable/archivo/wdth.css';
+import '@fontsource-variable/geist/wght.css';
 import './styles.css';
 import { h, mount } from './h';
 import { getLang, LANGS, setLang, t, type Lang } from './i18n';

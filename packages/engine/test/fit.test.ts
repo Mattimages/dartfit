@@ -107,11 +107,16 @@ const answersArb: fc.Arbitrary<Answers> = fc.record({
 describe('fit properties', () => {
   it('a longer hand never gets a shorter length band (all else equal)', () => {
     fc.assert(
-      fc.property(answersArb, fc.double({ min: 150, max: 225, noNaN: true }), fc.double({ min: 0, max: 30, noNaN: true }), (a, h, d) => {
-        const small = fit(hand(h), a);
-        const big = fit(hand(h + d), a);
-        return big.length.mu >= small.length.mu - 1e-9;
-      }),
+      fc.property(
+        answersArb,
+        fc.double({ min: 150, max: 225, noNaN: true }),
+        fc.double({ min: 0, max: 30, noNaN: true }),
+        (a, h, d) => {
+          const small = fit(hand(h), a);
+          const big = fit(hand(h + d), a);
+          return big.length.mu >= small.length.mu - 1e-9;
+        },
+      ),
     );
   });
 
@@ -127,31 +132,42 @@ describe('fit properties', () => {
 
   it('sweatier hands never get less grip', () => {
     fc.assert(
-      fc.property(answersArb, (a) => fit(undefined, { ...a, moisture: 'sweaty' }).grip.mu >= fit(undefined, { ...a, moisture: 'dry' }).grip.mu),
+      fc.property(
+        answersArb,
+        (a) =>
+          fit(undefined, { ...a, moisture: 'sweaty' }).grip.mu >=
+          fit(undefined, { ...a, moisture: 'dry' }).grip.mu,
+      ),
     );
   });
 
   it('every estimate stays within its configured limits and probabilities sum to 1', () => {
     fc.assert(
-      fc.property(answersArb, fc.option(fc.double({ min: 120, max: 260, noNaN: true }), { nil: undefined }), (a, h) => {
-        const f = fit(h ? hand(h) : undefined, a);
-        const lim = a.tip === 'steel' ? config.weight.steel : config.weight.soft;
-        const p = f.balance.front + f.balance.centre + f.balance.rear;
-        return (
-          f.weight.band[0] >= lim.min &&
-          f.weight.band[1] <= lim.max &&
-          f.length.band[0] >= config.length.min &&
-          f.length.band[1] <= config.length.max &&
-          f.grip.band[0] >= 1 &&
-          f.grip.band[1] <= 5 &&
-          Math.abs(p - 1) < 1e-9
-        );
-      }),
+      fc.property(
+        answersArb,
+        fc.option(fc.double({ min: 120, max: 260, noNaN: true }), { nil: undefined }),
+        (a, h) => {
+          const f = fit(h ? hand(h) : undefined, a);
+          const lim = a.tip === 'steel' ? config.weight.steel : config.weight.soft;
+          const p = f.balance.front + f.balance.centre + f.balance.rear;
+          return (
+            f.weight.band[0] >= lim.min &&
+            f.weight.band[1] <= lim.max &&
+            f.length.band[0] >= config.length.min &&
+            f.length.band[1] <= config.length.max &&
+            f.grip.band[0] >= 1 &&
+            f.grip.band[1] <= 5 &&
+            Math.abs(p - 1) < 1e-9
+          );
+        },
+      ),
     );
   });
 
   it('is deterministic', () => {
-    fc.assert(fc.property(answersArb, (a) => JSON.stringify(fit(hand(185), a)) === JSON.stringify(fit(hand(185), a))));
+    fc.assert(
+      fc.property(answersArb, (a) => JSON.stringify(fit(hand(185), a)) === JSON.stringify(fit(hand(185), a))),
+    );
   });
 });
 
@@ -167,7 +183,10 @@ describe('v3: current dart, dry hands and setup', () => {
   it('a current barrel that feels too thin raises the thickness target', () => {
     const base = { ...baseAnswers, current: { weightG: 22, feel: 'right' as const, diameterMm: 6.4 } };
     const right = fit(hand(185), base);
-    const thin = fit(hand(185), { ...base, current: { ...base.current, thicknessFeel: 'too_thin' as const } });
+    const thin = fit(hand(185), {
+      ...base,
+      current: { ...base.current, thicknessFeel: 'too_thin' as const },
+    });
     expect(thin.diameter.mu).toBeGreaterThan(right.diameter.mu + 0.15);
   });
 
@@ -180,7 +199,10 @@ describe('v3: current dart, dry hands and setup', () => {
 
   it('a dart that feels right pulls balance towards its own', () => {
     const plain = fit(hand(185), baseAnswers);
-    const liked = fit(hand(185), { ...baseAnswers, current: { weightG: 22, feel: 'right', balance: 'front' } });
+    const liked = fit(hand(185), {
+      ...baseAnswers,
+      current: { weightG: 22, feel: 'right', balance: 'front' },
+    });
     expect(liked.balance.front).toBeGreaterThan(plain.balance.front);
   });
 

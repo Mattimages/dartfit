@@ -3,6 +3,7 @@ import fc from 'fast-check';
 import { loadCatalogue } from '@dartfit/catalogue';
 import {
   barrelMetrics,
+  silhouetteOverlap,
   classify,
   config,
   density,
@@ -77,7 +78,11 @@ describe('buildable range', () => {
 });
 
 describe('enforcePhysics', () => {
-  const limits = { length: [36, 60] as [number, number], diameter: [5.6, 8.5] as [number, number], weight: [14, 32] as [number, number] };
+  const limits = {
+    length: [36, 60] as [number, number],
+    diameter: [5.6, 8.5] as [number, number],
+    weight: [14, 32] as [number, number],
+  };
 
   it('leaves a buildable target alone', () => {
     const r = enforcePhysics({ mu: 22, sigma: 2 }, { mu: 48, sigma: 3 }, { mu: 6.8, sigma: 0.4 }, limits);
@@ -136,7 +141,10 @@ describe('ideal barrel', () => {
   });
 
   it('solves a front-loaded profile for a front centre of gravity', () => {
-    const b = solveIdeal({ massG: 22, lengthMm: 48, diameterMm: 7.2, cogFrac: 0.44, tungstenPct: 90 }, [4, 30]);
+    const b = solveIdeal(
+      { massG: 22, lengthMm: 48, diameterMm: 7.2, cogFrac: 0.44, tungstenPct: 90 },
+      [4, 30],
+    );
     expect(b.profile.rear).toBeGreaterThan(b.profile.front);
     expect(['torpedo', 'tapered', 'bomb']).toContain(b.shape);
   });
@@ -175,5 +183,28 @@ describe('physics properties', () => {
       ),
       { numRuns: 60 },
     );
+  });
+});
+
+describe('silhouette overlap (model match)', () => {
+  const straight = { front: 0, rear: 0, endFront: 1, endRear: 1, waist: 0 };
+  const a = { lengthMm: 50, diameterMm: 7, profile: straight };
+
+  it('is 1 for the same barrel and symmetric otherwise', () => {
+    expect(silhouetteOverlap(a, a)).toBeCloseTo(1, 6);
+    const b = { lengthMm: 45, diameterMm: 6.5, profile: straight };
+    expect(silhouetteOverlap(a, b)).toBeCloseTo(silhouetteOverlap(b, a), 9);
+  });
+
+  it('a straight barrel 10% shorter overlaps 90%', () => {
+    expect(silhouetteOverlap(a, { ...a, lengthMm: 45 })).toBeCloseTo(0.9, 2);
+  });
+
+  it('falls as the shape moves away from the ideal', () => {
+    const taper = (front: number) => ({ ...a, profile: { ...straight, front, endFront: 0.6 } });
+    const o1 = silhouetteOverlap(a, taper(0.2));
+    const o2 = silhouetteOverlap(a, taper(0.5));
+    expect(o1).toBeLessThan(1);
+    expect(o2).toBeLessThan(o1);
   });
 });

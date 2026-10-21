@@ -27,6 +27,7 @@ import { explain, type ExplainClient } from './explain.js';
 import { enqueue } from './jobs.js';
 import type { Mailer } from './mail.js';
 import { t, type Lang } from './i18n.js';
+import { photoRouter, servablePhotos, type Fetcher } from './photos.js';
 import {
   AdminVariantRequest,
   ExplainRequest,
@@ -42,6 +43,8 @@ export interface AppDeps {
   env: Env;
   mailer: Mailer;
   explainClient: ExplainClient | null;
+  /** Fetch used by the photo proxy (tests pass a stub). */
+  photoFetch?: Fetcher;
 }
 
 interface User {
@@ -61,12 +64,10 @@ const WEB_DIST = join(dirname(fileURLToPath(import.meta.url)), '..', '..', 'web'
 function parse<T>(schema: ZodType<T>, data: unknown, res: Response): T | null {
   const r = schema.safeParse(data);
   if (!r.success) {
-    res
-      .status(400)
-      .json({
-        error: 'invalid_request',
-        issues: r.error.issues.map((i) => `${i.path.join('.')}: ${i.message}`),
-      });
+    res.status(400).json({
+      error: 'invalid_request',
+      issues: r.error.issues.map((i) => `${i.path.join('.')}: ${i.message}`),
+    });
     return null;
   }
   return r.data;
@@ -163,12 +164,19 @@ export function createApp(deps: AppDeps) {
 
   // ── Health & catalogue ───────────────────────────────────────────────
   app.get('/api/health', (_req, res) => res.json({ ok: true, engine: ENGINE_VERSION, db: db.kind }));
+  app.use(photoRouter(env, deps.photoFetch));
+  const photoModels = [...servablePhotos(env)];
 
   app.get(
     '/api/catalogue',
     wrap(async (_req, res) => {
       res.setHeader('Cache-Control', 'public, max-age=300');
-      res.json({ engineVersion: ENGINE_VERSION, variants: await activeVariants(db), pros: pros() });
+      res.json({
+        engineVersion: ENGINE_VERSION,
+        variants: await activeVariants(db),
+        pros: pros(),
+        photos: photoModels,
+      });
     }),
   );
 

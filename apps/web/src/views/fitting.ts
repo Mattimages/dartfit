@@ -76,9 +76,9 @@ export async function fittingView(root: HTMLElement) {
   const m = s0.measurements;
 
   // ── Panel 1: the hand ─────────────────────────────────────────────
-  const hl = reading(`${t('fit.r.length')} mm`, '');
-  const pw = reading(`${t('fit.r.width')} mm`, '');
-  const il = reading(`${t('fit.r.index')} mm`, '');
+  const hl = reading(t('fit.r.length'), 'mm');
+  const pw = reading(t('fit.r.width'), 'mm');
+  const il = reading(t('fit.r.index'), 'mm');
   const handPts = s0.landmarksMm ?? templateHand(m?.handLengthMm ?? 185);
   const p1 = h(
     'div',

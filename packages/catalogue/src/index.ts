@@ -56,6 +56,56 @@ export const Retailer = z.object({
 });
 export type Retailer = z.infer<typeof Retailer>;
 
+/**
+ * Hosts a product photo may come from: the spec source's shop CDN and the image hosts of the
+ * affiliate feeds (bol.com, Amazon, eBay). The API fetches from these server-side only.
+ */
+export const PHOTO_HOSTS = ['cdn.shopify.com', 'media.s-bol.com', 'm.media-amazon.com', 'i.ebayimg.com'];
+
+export const PhotoRow = z.object({
+  model_id: z.string().regex(/^[a-z0-9-]+$/),
+  image_url: z
+    .string()
+    .url()
+    .startsWith('https://')
+    .refine((u) => PHOTO_HOSTS.includes(new URL(u).hostname), 'host not allowed'),
+  /** Where the photo comes from (azdarts = spec source; affiliate feeds by network name). */
+  source: z.string().min(2),
+  /** yes = the source's terms allow showing it (an affiliate feed); no = preview only. */
+  cleared: z.enum(['yes', 'no']),
+  verified_at: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+});
+
+export interface Photo {
+  modelId: string;
+  url: string;
+  source: string;
+  cleared: boolean;
+}
+
+export function validatePhotos(
+  rows: Record<string, string>[],
+  variants: Variant[],
+): { photos: Photo[]; issues: CatalogueIssue[] } {
+  const models = new Set(variants.map((v) => v.modelId));
+  const issues: CatalogueIssue[] = [];
+  const photos: Photo[] = [];
+  const seen = new Set<string>();
+  rows.forEach((raw, i) => {
+    const r = PhotoRow.safeParse(raw);
+    if (!r.success) {
+      issues.push({ row: i + 2, id: raw.model_id, message: r.error.issues.map((x) => x.message).join('; ') });
+      return;
+    }
+    const d = r.data;
+    if (!models.has(d.model_id)) issues.push({ row: i + 2, id: d.model_id, message: 'unknown model' });
+    if (seen.has(d.model_id)) issues.push({ row: i + 2, id: d.model_id, message: 'duplicate photo' });
+    seen.add(d.model_id);
+    photos.push({ modelId: d.model_id, url: d.image_url, source: d.source, cleared: d.cleared === 'yes' });
+  });
+  return { photos, issues };
+}
+
 /** Minimal RFC-4180 CSV parser (quoted fields, escaped quotes). */
 export function parseCsv(text: string): Record<string, string>[] {
   const rows: string[][] = [];
@@ -74,8 +124,7 @@ export function parseCsv(text: string): Record<string, string>[] {
     else if (c === ',') {
       row.push(field);
       field = '';
-    }
-    else if (c === '\n' || c === '\r') {
+    } else if (c === '\n' || c === '\r') {
       if (c === '\r' && text[i + 1] === '\n') i++;
       row.push(field);
       field = '';
@@ -98,14 +147,21 @@ export interface CatalogueIssue {
   message: string;
 }
 
-export function validateVariants(rows: Record<string, string>[]): { variants: Variant[]; issues: CatalogueIssue[] } {
+export function validateVariants(rows: Record<string, string>[]): {
+  variants: Variant[];
+  issues: CatalogueIssue[];
+} {
   const issues: CatalogueIssue[] = [];
   const variants: Variant[] = [];
   const seen = new Set<string>();
   rows.forEach((raw, i) => {
     const r = VariantRow.safeParse(raw);
     if (!r.success) {
-      issues.push({ row: i + 2, id: raw.id, message: r.error.issues.map((x) => `${x.path.join('.')}: ${x.message}`).join('; ') });
+      issues.push({
+        row: i + 2,
+        id: raw.id,
+        message: r.error.issues.map((x) => `${x.path.join('.')}: ${x.message}`).join('; '),
+      });
       return;
     }
     const d = r.data;
@@ -152,7 +208,7 @@ export function validatePros(raw: unknown, variants: Variant[]): { pros: Pro[]; 
   return { pros: parsed.data, issues };
 }
 
-let cache: { variants: Variant[]; pros: Pro[]; retailers: Retailer[] } | null = null;
+let cache: { variants: Variant[]; pros: Pro[]; retailers: Retailer[]; photos: Photo[] } | null = null;
 
 /** Load and validate the bundled catalogue. Throws when any row is invalid. */
 export function loadCatalogue() {
@@ -162,14 +218,18 @@ export function loadCatalogue() {
   const retailers = z
     .array(Retailer)
     .parse(JSON.parse(readFileSync(join(DATA, 'retailers.json'), 'utf8')).retailers);
-  const all = [...issues, ...prosRes.issues];
-  if (all.length) throw new Error(`catalogue invalid:\n${all.map((i) => `  row ${i.row} ${i.id ?? ''}: ${i.message}`).join('\n')}`);
+  const photoRes = validatePhotos(parseCsv(readFileSync(join(DATA, 'photos.csv'), 'utf8')), variants);
+  const all = [...issues, ...prosRes.issues, ...photoRes.issues];
+  if (all.length)
+    throw new Error(
+      `catalogue invalid:\n${all.map((i) => `  row ${i.row} ${i.id ?? ''}: ${i.message}`).join('\n')}`,
+    );
   // Flag listings the barrel physics model cannot reconcile (kept browsable, not recommended).
   const flagged = new Map(physicsOutliers(variants).map((o) => [o.id, o]));
   const checked = variants.map((v) => {
     const o = flagged.get(v.id);
     return o ? { ...v, specCheck: { listedG: o.listedG, modelG: o.modelG } } : v;
   });
-  cache = { variants: checked, pros: prosRes.pros, retailers };
+  cache = { variants: checked, pros: prosRes.pros, retailers, photos: photoRes.photos };
   return cache;
 }

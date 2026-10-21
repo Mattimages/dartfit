@@ -26,7 +26,9 @@ describe('affiliate tagging', () => {
   });
   it('network deeplink: the target URL goes into the template, encoded', () => {
     const out = affiliate(env, 'dartscorner_eu', 'https://dartscorner.de/search?q=a b');
-    expect(out).toBe(`https://track.example/t?a=1&url=${encodeURIComponent('https://dartscorner.de/search?q=a b')}`);
+    expect(out).toBe(
+      `https://track.example/t?a=1&url=${encodeURIComponent('https://dartscorner.de/search?q=a b')}`,
+    );
   });
   it('bol.com: partner click link', () => {
     expect(affiliate(env, 'bol', 'https://www.bol.com/nl/nl/s/?searchtext=x')).toMatch(
@@ -44,7 +46,42 @@ describe('affiliate tagging', () => {
   });
   it('every EU+ country has at least one affiliate shop', () => {
     const { retailers } = loadCatalogue();
-    const countries = ['AT', 'BE', 'BG', 'HR', 'CY', 'CZ', 'DK', 'EE', 'FI', 'FR', 'DE', 'GR', 'HU', 'IE', 'IT', 'LV', 'LT', 'LU', 'MT', 'NL', 'PL', 'PT', 'RO', 'SK', 'SI', 'ES', 'SE', 'CH', 'NO', 'GB'];
-    for (const c of countries) expect(retailers.some((r) => r.affiliateType && r.countries.includes(c)), c).toBe(true);
+    const countries = [
+      'AT',
+      'BE',
+      'BG',
+      'HR',
+      'CY',
+      'CZ',
+      'DK',
+      'EE',
+      'FI',
+      'FR',
+      'DE',
+      'GR',
+      'HU',
+      'IE',
+      'IT',
+      'LV',
+      'LT',
+      'LU',
+      'MT',
+      'NL',
+      'PL',
+      'PT',
+      'RO',
+      'SK',
+      'SI',
+      'ES',
+      'SE',
+      'CH',
+      'NO',
+      'GB',
+    ];
+    for (const c of countries)
+      expect(
+        retailers.some((r) => r.affiliateType && r.countries.includes(c)),
+        c,
+      ).toBe(true);
   });
 });

@@ -2,7 +2,7 @@ import { h } from '../h';
 import { num, t, type Key } from '../i18n';
 import { shopLink, variants } from '../api';
 import { approxEur } from '../money';
-import { variantArt } from '../score';
+import { dartMedia, viewToggle } from '../media';
 import { dartName } from './words';
 
 export function dartsView(root: HTMLElement) {
@@ -54,7 +54,7 @@ export function dartsView(root: HTMLElement) {
           h(
             'a',
             { href: shopLink(v), target: '_blank', rel: 'noopener sponsored' },
-            h('div', { class: 'stage-box' }, variantArt(v)),
+            dartMedia(v),
             h('h2', null, dartName(v)),
           ),
           h(
@@ -79,7 +79,7 @@ export function dartsView(root: HTMLElement) {
       h('label', { class: 'visually-hidden', for: 'q' }, t('darts.search')),
       q,
       chips,
-      count,
+      h('div', { class: 'list-head' }, count, viewToggle()),
       list,
     ),
   );

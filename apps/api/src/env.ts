@@ -26,6 +26,8 @@ export const EnvSchema = z
     DEFAULT_COUNTRY: z.string().length(2).default('NL'),
     RUN_WORKER: bool.default(true),
     TRUST_PROXY: bool.default(false),
+    /** Show product photos whose source has not cleared them (previews only; see photos.csv). */
+    PREVIEW_PHOTOS: bool.default(false),
     /** Legal name, KvK number and address shown in emails and the footer. */
     COMPANY_LINE: z.string().default('DartFit · KvK-nummer volgt · contact@example.com'),
     // Affiliate IDs for the other shops (AMAZON_TAG_FR, EBAY_CAMPAIGN_ID, DARTSCORNER_DEEPLINK, …)

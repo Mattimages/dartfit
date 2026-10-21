@@ -2,17 +2,18 @@
  * DartFit — a pro-shop fitting bay. Bright white page, every dart shown like a product shot on a
  * light studio backdrop with a real contact shadow. Board red is for buying and for YOUR
  * measurements (the red dimension lines); board green is for how well a dart matches.
- * Archivo in two roles: expanded and heavy for headlines and numbers, normal width for reading.
- * One deliberate light look.
+ * One typeface (Geist), tight tracking, hairline rules, a short radius scale. One light look.
  */
 :root {
   color-scheme: light;
   --ground: #ffffff;
-  --stage: #eef1f5;
-  --stage-2: #e3e8ef;
-  --ink: #0f1b2d;
-  --ink-2: #5b6577;
-  --line: #dde2ea;
+  --stage: #f3f4f7;
+  --stage-2: #e9ebf0;
+  --ink: #0d1626;
+  --ink-2: #5d6676;
+  --ink-3: #9299a6;
+  --line: #e7e9ee;
+  --glass: rgb(255 255 255 / 0.78);
   --red: #e3122c;
   --red-ink: #c10f25;
   --red-soft: #fdecee;
@@ -28,9 +29,7 @@
   --steel: #8b939e;
   --steel-fill: #d5dae2;
 
-  --font: 'Archivo Variable', 'Archivo', system-ui, sans-serif;
-  --wide: 'wdth' 125;
-  --semi: 'wdth' 110;
+  --font: 'Geist Variable', 'Geist', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
 
   --s1: 0.25rem;
   --s2: 0.5rem;
@@ -40,8 +39,11 @@
   --s6: 2rem;
   --s7: 3rem;
   --s8: 4.5rem;
-  --r-stage: 28px;
-  --r-tile: 18px;
+  --r-stage: 24px;
+  --r-card: 20px;
+  --r-tile: 16px;
+  --r-ctl: 12px;
+  --ease: cubic-bezier(0.2, 0.8, 0.2, 1);
   --col: 36rem;
 }
 
@@ -62,7 +64,8 @@ body {
   font-family: var(--font);
   font-size: 1rem;
   line-height: 1.5;
-  font-variation-settings: 'wdth' 100;
+  letter-spacing: -0.006em;
+  -webkit-font-smoothing: antialiased;
   min-height: 100dvh;
   display: flex;
   flex-direction: column;
@@ -80,11 +83,12 @@ video {
 }
 a {
   color: inherit;
-  text-underline-offset: 0.2em;
+  text-underline-offset: 0.22em;
   text-decoration-thickness: 1px;
+  text-decoration-color: var(--ink-2);
 }
 :focus-visible {
-  outline: 3px solid var(--focus);
+  outline: 2px solid var(--focus);
   outline-offset: 2px;
   border-radius: 6px;
 }
@@ -115,29 +119,31 @@ a {
 h1,
 h2,
 h3 {
-  font-variation-settings: var(--wide);
-  font-weight: 800;
-  line-height: 1.02;
-  letter-spacing: -0.025em;
+  font-weight: 600;
+  line-height: 1.04;
+  letter-spacing: -0.035em;
   margin: 0;
   text-wrap: balance;
 }
 h1 {
-  font-size: clamp(2.1rem, 9vw, 3.4rem);
+  font-size: clamp(2.1rem, 9vw, 3.2rem);
+  letter-spacing: -0.045em;
+  line-height: 1;
 }
 h2 {
-  font-size: clamp(1.45rem, 6vw, 2rem);
+  font-size: clamp(1.4rem, 5.6vw, 1.85rem);
 }
 h3 {
-  font-size: 1.1rem;
-  letter-spacing: -0.015em;
+  font-size: 1.05rem;
+  letter-spacing: -0.02em;
 }
 p {
   margin: 0;
   max-width: 32rem;
 }
 .lead {
-  font-size: 1.1rem;
+  font-size: 1.08rem;
+  line-height: 1.45;
   color: var(--ink-2);
 }
 .small {
@@ -146,11 +152,10 @@ p {
 }
 .num {
   font-variant-numeric: tabular-nums;
-  font-variation-settings: var(--semi);
-  font-weight: 650;
+  font-weight: 550;
 }
 .kicker {
-  font-weight: 650;
+  font-weight: 550;
   font-size: 0.9rem;
   color: var(--ink-2);
 }
@@ -170,22 +175,38 @@ main,
   align-items: center;
   justify-content: space-between;
   gap: var(--s4);
-  padding-block: var(--s3);
+  padding-block: var(--s2);
+  position: sticky;
+  top: env(safe-area-inset-top, 0px);
+  z-index: 30;
+  /* Glass band across the full width, though the header itself keeps the column. */
+  border-image: linear-gradient(var(--glass), var(--glass)) fill 0 / /0 100vmax;
+  -webkit-backdrop-filter: saturate(1.6) blur(14px);
+  backdrop-filter: saturate(1.6) blur(14px);
+  box-shadow: 0 1px 0 var(--line);
+  clip-path: inset(0 -100vmax -1px);
+}
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0 0 auto;
+  height: env(safe-area-inset-top, 0px);
+  z-index: 31;
+  background: var(--ground);
 }
 .wordmark {
   display: flex;
   align-items: center;
   gap: var(--s2);
-  font-variation-settings: var(--wide);
-  font-weight: 800;
-  letter-spacing: -0.03em;
-  font-size: 1.25rem;
+  font-weight: 650;
+  letter-spacing: -0.045em;
+  font-size: 1.2rem;
   text-decoration: none;
   min-height: 44px;
 }
 .wordmark svg {
-  width: 26px;
-  height: 26px;
+  width: 22px;
+  height: 22px;
 }
 .site-header nav {
   display: flex;
@@ -198,19 +219,22 @@ main,
   align-items: center;
   min-height: 44px;
   padding-inline: var(--s3);
-  font-size: 0.95rem;
-  font-weight: 600;
+  font-size: 0.9rem;
+  font-weight: 500;
   text-decoration: none;
+  color: var(--ink-2);
+}
+.site-header nav a:hover {
   color: var(--ink);
 }
 .site-header nav .btn.link {
   border: 0;
   background: var(--stage);
   border-radius: 999px;
-  min-height: 36px;
+  min-height: 32px;
   padding-inline: var(--s3);
-  font-size: 0.82rem;
-  font-weight: 700;
+  font-size: 0.8rem;
+  font-weight: 550;
   color: var(--ink);
   text-decoration: none;
 }
@@ -224,9 +248,11 @@ main {
 }
 .site-footer {
   border-top: 1px solid var(--line);
-  padding-block: var(--s4) var(--s6);
+  padding-block: var(--s5) var(--s6);
   display: grid;
   gap: var(--s1);
+  font-size: 0.85rem;
+  color: var(--ink-2);
 }
 .site-footer .links {
   display: flex;
@@ -239,6 +265,10 @@ main {
   align-items: center;
   min-height: 44px;
   color: var(--ink-2);
+  text-decoration: none;
+}
+.site-footer .links a:hover {
+  color: var(--ink);
 }
 .stack > * + * {
   margin-top: var(--s4);
@@ -253,19 +283,24 @@ section + section {
   align-items: center;
   justify-content: center;
   gap: var(--s3);
-  min-height: 3.4rem;
+  min-height: 3.25rem;
   padding: 0 var(--s5);
   border-radius: 999px;
-  border: 2px solid var(--red);
+  border: 1px solid var(--red);
   background: var(--red);
   color: #fff;
   font: inherit;
-  font-weight: 700;
-  font-size: 1.05rem;
+  font-weight: 550;
+  font-size: 1rem;
+  letter-spacing: -0.01em;
   text-decoration: none;
   cursor: pointer;
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 0.18),
+    0 1px 2px rgb(193 15 37 / 0.25);
   transition:
-    background 120ms ease,
+    background 160ms ease,
+    border-color 160ms ease,
     transform 80ms ease;
 }
 .btn:hover {
@@ -279,18 +314,26 @@ section + section {
   background: var(--ground);
   color: var(--ink);
   border-color: var(--line);
+  box-shadow: 0 1px 2px rgb(13 22 38 / 0.04);
 }
 .btn.ghost:hover {
-  border-color: var(--ink);
+  background: var(--ground);
+  border-color: var(--ink-2);
 }
 .btn.link {
   border-color: transparent;
   background: transparent;
-  color: var(--ink);
-  padding-inline: var(--s2);
-  text-decoration: underline;
-  font-weight: 600;
+  box-shadow: none;
+  color: var(--ink-2);
+  padding-inline: var(--s3);
+  text-decoration: none;
+  font-weight: 500;
   min-height: 44px;
+}
+.btn.link:hover {
+  background: transparent;
+  border-color: transparent;
+  color: var(--ink);
 }
 .btn.block {
   width: 100%;
@@ -313,7 +356,7 @@ fieldset {
 }
 legend,
 .label {
-  font-weight: 650;
+  font-weight: 550;
   margin-bottom: var(--s2);
   padding: 0;
   display: block;
@@ -329,15 +372,23 @@ input[type='search'],
 input[type='text'] {
   font: inherit;
   width: 100%;
-  min-height: 3.4rem;
+  min-height: 3.25rem;
   padding: 0 var(--s4);
-  border-radius: 14px;
-  border: 1.5px solid var(--line);
+  border-radius: var(--r-ctl);
+  border: 1px solid var(--line);
   background: var(--ground);
   color: var(--ink);
+  transition:
+    border-color 160ms ease,
+    box-shadow 160ms ease;
+}
+input:hover {
+  border-color: var(--ink-2);
 }
 input:focus-visible {
+  outline: none;
   border-color: var(--ink);
+  box-shadow: 0 0 0 4px rgb(13 22 38 / 0.07);
 }
 .check {
   display: grid;
@@ -353,12 +404,12 @@ input:focus-visible {
 }
 .error {
   color: var(--red-ink);
-  font-weight: 650;
+  font-weight: 550;
 }
 .callout {
   padding: var(--s3) var(--s4);
   background: var(--red-soft);
-  border-radius: 14px;
+  border-radius: var(--r-ctl);
 }
 
 /* Segmented control (scan, account) */
@@ -376,9 +427,9 @@ input:focus-visible {
   min-height: 3.25rem;
   padding: var(--s2);
   cursor: pointer;
-  border-radius: 14px;
+  border-radius: var(--r-ctl);
   background: var(--stage);
-  border: 2px solid transparent;
+  border: 0;
   line-height: 1.15;
 }
 .seg input {
@@ -388,8 +439,8 @@ input:focus-visible {
   cursor: pointer;
 }
 .seg label:has(input:checked) {
-  border-color: var(--ink);
   background: var(--ground);
+  box-shadow: inset 0 0 0 1px var(--ink);
 }
 .seg label:has(input:focus-visible) {
   outline: 3px solid var(--focus);
@@ -407,20 +458,26 @@ input:focus-visible {
 
 /* ── Illustrations ────────────────────────────────────────────────── */
 .hand-art .hand-skin {
-  fill: #d7dde6;
-  stroke: #d7dde6;
+  fill: #dfe3ea;
+  stroke: #dfe3ea;
   stroke-linejoin: round;
 }
 .hand-art .wrist-0 {
-  stop-color: #d7dde6;
+  stop-color: #dfe3ea;
 }
 .hand-art .wrist-1 {
-  stop-color: #d7dde6;
+  stop-color: #dfe3ea;
   stop-opacity: 0;
+}
+.hand-art .hand-bone {
+  stroke: var(--red);
+  fill: none;
+  stroke-linecap: round;
+  opacity: 0.45;
 }
 .hand-art .hand-finger {
   fill: none;
-  stroke: #d7dde6;
+  stroke: #dfe3ea;
   stroke-linecap: round;
   stroke-linejoin: round;
 }
@@ -444,8 +501,7 @@ input:focus-visible {
 .hand-art .hand-label {
   fill: var(--red);
   font-family: var(--font);
-  font-weight: 700;
-  font-variation-settings: var(--semi);
+  font-weight: 600;
 }
 @media (prefers-reduced-motion: no-preference) {
   .hand-art.scan .hand-dot {
@@ -515,8 +571,7 @@ input:focus-visible {
   fill: var(--red);
   font-family: var(--font);
   font-size: 4.4px;
-  font-weight: 700;
-  font-variation-settings: var(--semi);
+  font-weight: 600;
 }
 .dart-flight.tone-0 {
   fill: var(--red);
@@ -619,9 +674,14 @@ input:focus-visible {
   margin-bottom: var(--s4);
 }
 .section-head a {
-  font-weight: 650;
-  font-size: 0.95rem;
+  font-weight: 500;
+  font-size: 0.88rem;
+  color: var(--ink-2);
+  text-decoration: none;
   white-space: nowrap;
+}
+.section-head a:hover {
+  color: var(--ink);
 }
 .steps {
   list-style: none;
@@ -634,24 +694,31 @@ input:focus-visible {
 .steps li {
   counter-increment: step;
   display: grid;
-  grid-template-columns: 2.6rem 1fr;
-  gap: var(--s3);
+  grid-template-columns: 2.25rem 1fr;
+  gap: var(--s4);
   align-items: center;
+  padding-block: var(--s1);
 }
 .steps li::before {
   content: counter(step);
   display: grid;
   place-items: center;
-  width: 2.6rem;
-  height: 2.6rem;
+  width: 2.25rem;
+  height: 2.25rem;
   border-radius: 50%;
-  background: var(--stage);
-  font-variation-settings: var(--wide);
-  font-weight: 800;
+  border: 1px solid var(--line);
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: var(--ink-2);
+  font-variant-numeric: tabular-nums;
 }
 .steps b {
   display: block;
-  font-variation-settings: var(--semi);
+  font-weight: 550;
+  letter-spacing: -0.015em;
+}
+.steps .small {
+  font-size: 0.85rem;
 }
 
 /* ── Manual measuring ─────────────────────────────────────────────── */
@@ -667,8 +734,9 @@ input:focus-visible {
 }
 .mm-input input {
   font-size: 2.2rem;
-  font-weight: 800;
-  font-variation-settings: var(--wide);
+  font-weight: 550;
+  letter-spacing: -0.04em;
+  font-variant-numeric: tabular-nums;
   min-height: 4.6rem;
   padding-right: 4rem;
   text-align: center;
@@ -678,7 +746,7 @@ input:focus-visible {
   right: var(--s5);
   top: 50%;
   transform: translateY(-50%);
-  font-weight: 700;
+  font-weight: 500;
   color: var(--ink-2);
 }
 
@@ -691,12 +759,13 @@ input:focus-visible {
 .progress {
   display: grid;
   grid-template-columns: repeat(var(--n), 1fr);
-  gap: 4px;
+  gap: 3px;
 }
 .progress i {
-  height: 4px;
-  border-radius: 2px;
+  height: 2px;
+  border-radius: 1px;
   background: var(--line);
+  transition: background 240ms ease;
 }
 .progress i.on {
   background: var(--red);
@@ -705,11 +774,10 @@ input:focus-visible {
   min-height: 20rem;
 }
 .quiz legend {
-  font-variation-settings: var(--wide);
-  font-weight: 800;
-  letter-spacing: -0.025em;
-  font-size: clamp(1.7rem, 7.5vw, 2.3rem);
-  line-height: 1.05;
+  font-weight: 600;
+  letter-spacing: -0.04em;
+  font-size: clamp(1.75rem, 7.5vw, 2.3rem);
+  line-height: 1.02;
   text-wrap: balance;
   margin-bottom: var(--s5);
 }
@@ -724,18 +792,20 @@ input:focus-visible {
   justify-items: center;
   align-content: center;
   gap: var(--s2);
-  min-height: 7.5rem;
+  min-height: 7.25rem;
   padding: var(--s3) var(--s2);
   border-radius: var(--r-tile);
   background: var(--stage);
-  border: 2px solid transparent;
+  border: 0;
   cursor: pointer;
   text-align: center;
-  font-weight: 650;
+  font-size: 0.92rem;
+  font-weight: 500;
+  letter-spacing: -0.01em;
   line-height: 1.15;
   transition:
-    border-color 120ms ease,
-    background 120ms ease;
+    box-shadow 160ms ease,
+    background 160ms ease;
 }
 .tile input {
   position: absolute;
@@ -747,27 +817,29 @@ input:focus-visible {
   background: var(--stage-2);
 }
 .tile:has(input:checked) {
-  border-color: var(--ink);
   background: var(--ground);
+  box-shadow:
+    inset 0 0 0 1px var(--ink),
+    0 8px 20px -10px rgb(13 22 38 / 0.3);
 }
 .tile:has(input:checked)::after {
   content: '';
   position: absolute;
   top: 10px;
   right: 10px;
-  width: 10px;
-  height: 10px;
+  width: 7px;
+  height: 7px;
   border-radius: 50%;
   background: var(--red);
 }
 .tile:has(input:focus-visible) {
-  outline: 3px solid var(--focus);
+  outline: 2px solid var(--focus);
   outline-offset: 2px;
 }
 .tile .big {
-  font-variation-settings: var(--wide);
-  font-weight: 800;
-  letter-spacing: -0.03em;
+  font-weight: 500;
+  letter-spacing: -0.05em;
+  font-variant-numeric: tabular-nums;
   font-size: 2.2rem;
   line-height: 1;
 }
@@ -795,7 +867,8 @@ input:focus-visible {
   gap: var(--s3);
 }
 .quiz .sub legend {
-  font-size: 1.15rem;
+  font-size: 1.05rem;
+  letter-spacing: -0.02em;
   margin-bottom: var(--s2);
 }
 .picker {
@@ -812,7 +885,7 @@ input:focus-visible {
   color: var(--ink);
   background: var(--stage);
   border: 0;
-  border-radius: 12px;
+  border-radius: var(--r-ctl);
   min-height: 44px;
   padding: var(--s2) var(--s3);
   cursor: pointer;
@@ -842,22 +915,42 @@ input:focus-visible {
   min-width: 0;
 }
 .panel {
-  border: 1.5px solid var(--line);
-  border-radius: 22px;
-  padding: var(--s3) var(--s4) var(--s4);
+  border: 1px solid var(--line);
+  border-radius: var(--r-card);
+  padding: var(--s4);
   display: grid;
-  gap: var(--s2);
-  transition: opacity 300ms ease;
+  gap: var(--s3);
+  background: var(--ground);
+  box-shadow: 0 1px 2px rgb(13 22 38 / 0.03);
+  transition:
+    opacity 300ms ease,
+    box-shadow 300ms ease;
 }
 .panel.wait {
-  opacity: 0.35;
+  opacity: 0.4;
+  box-shadow: none;
 }
 .panel-head {
   display: flex;
   justify-content: space-between;
-  align-items: baseline;
-  font-size: 0.9rem;
-  font-weight: 700;
+  align-items: center;
+  font-size: 0.85rem;
+  font-weight: 550;
+  letter-spacing: -0.01em;
+}
+.panel-head .state {
+  display: inline-grid;
+  place-items: center;
+  min-width: 1.35rem;
+  height: 1.35rem;
+  padding-inline: 0.35rem;
+  border-radius: 999px;
+  background: var(--green-soft);
+  font-size: 0.72rem;
+  font-weight: 600;
+}
+.panel-head .state:empty {
+  display: none;
 }
 .panel-head .state {
   color: var(--green);
@@ -869,7 +962,7 @@ input:focus-visible {
   align-items: center;
 }
 .panel .row .reading b {
-  font-size: 1.2rem;
+  font-size: 1.3rem;
 }
 .panel .row .hand-art {
   height: 5.5rem;
@@ -882,24 +975,30 @@ input:focus-visible {
   gap: var(--s2);
 }
 .reading b {
-  display: block;
-  font-variation-settings: var(--wide);
-  font-weight: 800;
-  letter-spacing: -0.03em;
-  font-size: 1.5rem;
+  display: flex;
+  align-items: baseline;
+  gap: 2px;
+  font-weight: 500;
+  letter-spacing: -0.045em;
+  font-size: 1.6rem;
   line-height: 1.05;
   font-variant-numeric: tabular-nums;
+  white-space: nowrap;
 }
 .reading b small {
-  font-size: 0.8rem;
-  font-weight: 650;
+  font-size: 0.75rem;
+  font-weight: 500;
   color: var(--ink-2);
-  margin-left: 2px;
   letter-spacing: 0;
 }
 .reading > span {
-  font-size: 0.8rem;
+  display: block;
+  margin-top: 2px;
+  font-size: 0.75rem;
   color: var(--ink-2);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 .ticker {
   display: grid;
@@ -909,7 +1008,7 @@ input:focus-visible {
   display: flex;
   justify-content: space-between;
   gap: var(--s3);
-  font-weight: 650;
+  font-weight: 550;
   font-size: 0.95rem;
   min-height: 1.5em;
 }
@@ -920,14 +1019,15 @@ input:focus-visible {
   min-width: 0;
 }
 .ticker .count {
-  font-variation-settings: var(--wide);
-  font-weight: 800;
+  font-weight: 500;
+  letter-spacing: -0.045em;
+  font-variant-numeric: tabular-nums;
   font-size: 1.6rem;
   line-height: 1;
 }
 .ticker .bar {
-  height: 6px;
-  border-radius: 3px;
+  height: 3px;
+  border-radius: 2px;
   background: var(--stage);
   overflow: hidden;
 }
@@ -968,10 +1068,10 @@ input:focus-visible {
   padding-top: var(--s4);
 }
 .found .pct {
-  font-variation-settings: var(--wide);
-  font-weight: 800;
-  letter-spacing: -0.04em;
-  font-size: 4rem;
+  font-weight: 500;
+  letter-spacing: -0.06em;
+  font-variant-numeric: tabular-nums;
+  font-size: 4.25rem;
   line-height: 0.95;
 }
 @media (prefers-reduced-motion: no-preference) {
@@ -996,16 +1096,16 @@ input:focus-visible {
   display: inline-flex;
   align-items: center;
   border-radius: 999px;
-  padding: 0.2rem 0.75rem;
-  font-variation-settings: var(--wide);
-  font-weight: 800;
-  font-size: 1.05rem;
+  padding: 0.15rem 0.6rem;
+  font-weight: 600;
+  font-size: 0.9rem;
+  font-variant-numeric: tabular-nums;
   background: var(--green-soft);
 }
 .score span {
-  font-weight: 650;
+  font-weight: 500;
   color: var(--ink-2);
-  font-size: 0.95rem;
+  font-size: 0.9rem;
 }
 .r-hero .stage-box {
   padding-block: var(--s6) var(--s4);
@@ -1024,44 +1124,52 @@ input:focus-visible {
 .specs3 {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  border-block: 1.5px solid var(--line);
+  border-block: 1px solid var(--line);
 }
 .specs3 div {
-  padding: var(--s3) var(--s2);
+  padding: var(--s4) var(--s2);
   text-align: center;
 }
 .specs3 div + div {
-  border-left: 1.5px solid var(--line);
+  border-left: 1px solid var(--line);
 }
 .specs3 b {
   display: block;
-  font-variation-settings: var(--wide);
-  font-weight: 800;
-  letter-spacing: -0.03em;
-  font-size: 1.45rem;
-  line-height: 1.1;
+  font-weight: 500;
+  letter-spacing: -0.045em;
+  font-size: 1.6rem;
+  line-height: 1.05;
+  font-variant-numeric: tabular-nums;
 }
-.specs3 span {
+.specs3 b small {
   font-size: 0.8rem;
+  font-weight: 500;
+  color: var(--ink-2);
+  letter-spacing: 0;
+  margin-left: 3px;
+}
+.specs3 > div > span {
+  font-size: 0.75rem;
   color: var(--ink-2);
 }
 .offers {
   display: grid;
   gap: var(--s2);
 }
-.offers .btn {
+.offers .btn:has(.price) {
   justify-content: space-between;
 }
 .price {
-  font-variation-settings: var(--semi);
-  font-weight: 700;
-  font-size: 0.95rem;
+  font-weight: 500;
+  font-size: 0.9rem;
+  font-variant-numeric: tabular-nums;
+  opacity: 0.85;
 }
 .twin {
-  background: linear-gradient(160deg, var(--navy-2), var(--navy));
+  background: radial-gradient(120% 140% at 100% 0%, rgb(255 255 255 / 0.07), transparent 60%), var(--navy);
   color: #fff;
-  border-radius: 22px;
-  padding: var(--s5) var(--s4);
+  border-radius: var(--r-card);
+  padding: var(--s5) var(--s5) var(--s5) var(--s4);
   display: grid;
   gap: var(--s1);
   position: relative;
@@ -1077,21 +1185,24 @@ input:focus-visible {
   height: 170px;
   border-radius: 50%;
   background: repeating-conic-gradient(var(--red) 0 18deg, #12a46a 18deg 36deg);
-  -webkit-mask: radial-gradient(circle, transparent 62%, #000 63%, #000 72%, transparent 73%);
-  mask: radial-gradient(circle, transparent 62%, #000 63%, #000 72%, transparent 73%);
-  opacity: 0.9;
+  -webkit-mask: radial-gradient(circle, transparent 66.5%, #000 67%, #000 70%, transparent 70.5%);
+  mask: radial-gradient(circle, transparent 66.5%, #000 67%, #000 70%, transparent 70.5%);
+  opacity: 0.85;
 }
 .twin .kicker {
-  color: #b9c4d6;
+  color: #9fabbf;
+  font-size: 0.82rem;
+  font-weight: 500;
 }
 .twin h2 {
   color: #fff;
-  font-size: clamp(1.7rem, 7.5vw, 2.3rem);
+  font-size: clamp(1.7rem, 7.5vw, 2.2rem);
+  letter-spacing: -0.045em;
   max-width: 80%;
 }
 .twin p {
-  color: #d6deea;
-  font-size: 0.95rem;
+  color: #c5cfdd;
+  font-size: 0.88rem;
 }
 .overlay-fig {
   display: grid;
@@ -1106,9 +1217,9 @@ input:focus-visible {
 }
 .legend i {
   display: inline-block;
-  width: 1.4rem;
+  width: 1.1rem;
   height: 0;
-  border-top: 2.5px solid;
+  border-top: 2px solid;
   vertical-align: middle;
   margin-right: var(--s1);
 }
@@ -1141,73 +1252,80 @@ input:focus-visible {
   align-content: start;
 }
 .card .stage-box {
-  border-radius: 20px;
+  border-radius: var(--r-card);
   padding: var(--s4) var(--s3) var(--s2);
 }
 .card h3,
 .card h2 {
-  font-size: 1.02rem;
-  line-height: 1.15;
-  letter-spacing: -0.015em;
+  font-size: 0.98rem;
+  font-weight: 550;
+  line-height: 1.2;
+  letter-spacing: -0.02em;
 }
 .card .meta {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  font-weight: 650;
-  font-size: 0.85rem;
+  font-weight: 500;
+  font-size: 0.8rem;
   color: var(--ink-2);
 }
 .card .meta b {
   border-radius: 999px;
-  padding: 0.05rem 0.55rem;
+  padding: 0.05rem 0.5rem;
   background: var(--green-soft);
-  font-variation-settings: var(--semi);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
 }
 .card .btn {
-  min-height: 2.9rem;
-  font-size: 0.95rem;
+  min-height: 2.75rem;
+  font-size: 0.9rem;
 }
 .specline {
   display: flex;
   flex-wrap: wrap;
   gap: 0 var(--s3);
-  font-size: 0.85rem;
+  font-size: 0.8rem;
   color: var(--ink-2);
   font-variant-numeric: tabular-nums;
 }
 .specline .eur {
   color: var(--ink);
-  font-weight: 700;
+  font-weight: 550;
 }
 details.more {
-  border-top: 1.5px solid var(--line);
+  border-top: 1px solid var(--line);
 }
 details.more:last-of-type {
-  border-bottom: 1.5px solid var(--line);
+  border-bottom: 1px solid var(--line);
 }
 details.more summary {
   cursor: pointer;
   list-style: none;
-  min-height: 3.6rem;
+  min-height: 3.5rem;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  font-variation-settings: var(--wide);
-  font-weight: 750;
+  font-weight: 550;
   letter-spacing: -0.02em;
-  font-size: 1.1rem;
+  font-size: 1rem;
 }
 details.more summary::-webkit-details-marker {
   display: none;
 }
 details.more summary::after {
-  content: '+';
-  font-size: 1.5rem;
-  color: var(--ink-2);
+  /* A thin chevron that turns when the row opens. */
+  content: '';
+  width: 0.5rem;
+  height: 0.5rem;
+  margin-right: 0.25rem;
+  border-right: 1.5px solid var(--ink-2);
+  border-bottom: 1.5px solid var(--ink-2);
+  transform: translateY(-25%) rotate(45deg);
+  transition: transform 200ms var(--ease);
 }
 details.more[open] summary::after {
-  content: '–';
+  transform: translateY(25%) rotate(-135deg);
 }
 details.more > div {
   padding-block: var(--s1) var(--s5);
@@ -1233,8 +1351,10 @@ details.more > div {
 }
 .bandrow .top b {
   font-size: 1.3rem;
+  font-weight: 500;
+  letter-spacing: -0.04em;
+  font-variant-numeric: tabular-nums;
   line-height: 1;
-  font-variation-settings: var(--wide);
 }
 .bandrow svg {
   width: 100%;
@@ -1273,7 +1393,7 @@ details.more > div {
 }
 .setup div {
   background: var(--stage);
-  border-radius: 14px;
+  border-radius: var(--r-ctl);
   padding: var(--s2) var(--s3);
 }
 .setup b {
@@ -1296,9 +1416,9 @@ details.more > div {
 .pill {
   display: inline-block;
   border-radius: 999px;
-  padding: 0.1rem 0.6rem;
-  font-size: 0.8rem;
-  font-weight: 700;
+  padding: 0.1rem 0.55rem;
+  font-size: 0.75rem;
+  font-weight: 550;
   background: var(--stage);
 }
 .disclosure {
@@ -1310,7 +1430,7 @@ details.more > div {
 /* ── Technical drawing (overlay, method) ──────────────────────────── */
 .sheet {
   background: var(--stage);
-  border-radius: 20px;
+  border-radius: var(--r-card);
   padding: var(--s3) var(--s3) var(--s2);
 }
 .sheet .drawing {
@@ -1337,8 +1457,7 @@ details.more > div {
 .drawing .dimtext {
   fill: var(--ink);
   font-size: 15px;
-  font-weight: 650;
-  font-variation-settings: var(--semi);
+  font-weight: 550;
 }
 .drawing .note {
   fill: var(--ink-2);
@@ -1451,7 +1570,7 @@ details.more > div {
 .status {
   margin-top: var(--s3);
   min-height: 3rem;
-  font-weight: 700;
+  font-weight: 600;
   font-size: 1.1rem;
 }
 .status[data-ok='true'] {
@@ -1483,7 +1602,7 @@ details.more > div {
 }
 .readout {
   background: var(--stage);
-  border-radius: 14px;
+  border-radius: var(--r-ctl);
   padding: var(--s2) var(--s3);
 }
 .readout dt {
@@ -1493,8 +1612,10 @@ details.more > div {
 .readout dd {
   margin: 0;
   font-size: 1.8rem;
+  font-weight: 500;
+  letter-spacing: -0.045em;
+  font-variant-numeric: tabular-nums;
   line-height: 1.05;
-  font-variation-settings: var(--wide);
 }
 .readout dd small {
   font-size: 0.95rem;
@@ -1511,18 +1632,26 @@ details.more > div {
 }
 .chip {
   font: inherit;
-  font-size: 0.95rem;
-  font-weight: 650;
-  min-height: 44px;
+  font-size: 0.88rem;
+  font-weight: 500;
+  min-height: 40px;
   padding: 0 var(--s4);
   border-radius: 999px;
-  border: 0;
-  background: var(--stage);
+  border: 1px solid var(--line);
+  background: var(--ground);
   color: var(--ink);
   cursor: pointer;
+  font-variant-numeric: tabular-nums;
+  transition:
+    background 160ms ease,
+    border-color 160ms ease;
+}
+.chip:hover {
+  border-color: var(--ink-2);
 }
 .chip[aria-pressed='true'] {
   background: var(--ink);
+  border-color: var(--ink);
   color: #fff;
 }
 .grid2 {
@@ -1538,12 +1667,15 @@ details.more > div {
   display: grid;
   gap: var(--s2);
 }
-.grid2 .card a:hover h2 {
-  text-decoration: underline;
+.grid2 .card a .stage-box {
+  transition: background 200ms ease;
+}
+.grid2 .card a:hover .stage-box {
+  background: var(--stage-2);
 }
 .flag {
   color: var(--red-ink);
-  font-weight: 650;
+  font-weight: 550;
 }
 
 /* Score colour follows the engine's quality band, so a weak match never looks like a win. */
@@ -1590,7 +1722,7 @@ td {
   vertical-align: top;
 }
 th {
-  font-weight: 650;
+  font-weight: 550;
   white-space: nowrap;
 }
 code {
@@ -1601,18 +1733,18 @@ code {
 .tabs {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 4px;
-  padding: 4px;
-  border-radius: 999px;
+  gap: 2px;
+  padding: 3px;
+  border-radius: 14px;
   background: var(--stage);
 }
 .tab {
   font: inherit;
   border: 0;
-  border-radius: 999px;
+  border-radius: 11px;
   background: transparent;
-  color: var(--ink);
-  min-height: 3.2rem;
+  color: var(--ink-2);
+  min-height: 3rem;
   display: grid;
   align-content: center;
   justify-items: center;
@@ -1622,18 +1754,22 @@ code {
 }
 .tab[aria-selected='true'] {
   background: var(--ground);
-  box-shadow: 0 1px 2px rgb(15 27 45 / 0.12);
+  color: var(--ink);
+  box-shadow:
+    0 1px 2px rgb(13 22 38 / 0.08),
+    0 0 0 0.5px rgb(13 22 38 / 0.06);
 }
 .tab[disabled] {
   opacity: 0.45;
   cursor: not-allowed;
 }
 .tab-name {
-  font-weight: 750;
-  font-size: 0.95rem;
+  font-weight: 550;
+  font-size: 0.9rem;
+  letter-spacing: -0.015em;
 }
 .tab-sub {
-  font-size: 0.78rem;
+  font-size: 0.72rem;
   color: var(--ink-2);
   font-variant-numeric: tabular-nums;
 }
@@ -1645,7 +1781,8 @@ code {
   outline-offset: 6px;
 }
 .dart-name {
-  font-size: clamp(1.9rem, 8.5vw, 2.8rem);
+  font-size: clamp(1.85rem, 8.2vw, 2.6rem);
+  letter-spacing: -0.045em;
 }
 .price-line {
   display: flex;
@@ -1653,10 +1790,10 @@ code {
   gap: var(--s2);
 }
 .price-line b {
-  font-variation-settings: var(--wide);
-  font-weight: 800;
+  font-weight: 550;
   font-size: 1.5rem;
-  letter-spacing: -0.02em;
+  letter-spacing: -0.04em;
+  font-variant-numeric: tabular-nums;
 }
 .price-line span {
   color: var(--ink-2);
@@ -1672,12 +1809,13 @@ code {
   cursor: pointer;
   display: inline-flex;
   align-items: center;
-  min-height: 36px;
+  min-height: 32px;
   padding: 0 var(--s3);
   border-radius: 999px;
-  background: var(--stage);
-  font-weight: 700;
-  font-size: 0.82rem;
+  border: 1px solid var(--line);
+  font-weight: 550;
+  font-size: 0.78rem;
+  letter-spacing: 0.01em;
   font-variant-numeric: tabular-nums;
 }
 .region summary::-webkit-details-marker {
@@ -1692,20 +1830,22 @@ code {
   display: grid;
   gap: var(--s2);
   padding: var(--s4);
-  border-radius: 18px;
+  border-radius: var(--r-card);
   background: var(--ground);
-  border: 1.5px solid var(--line);
-  box-shadow: 0 12px 32px rgb(15 27 45 / 0.14);
+  border: 1px solid var(--line);
+  box-shadow:
+    0 1px 2px rgb(13 22 38 / 0.04),
+    0 16px 40px -12px rgb(13 22 38 / 0.18);
 }
 .region-panel label {
-  font-weight: 650;
+  font-weight: 550;
   font-size: 0.9rem;
 }
 .region-panel select {
   font: inherit;
   min-height: 44px;
-  border-radius: 12px;
-  border: 1.5px solid var(--line);
+  border-radius: var(--r-ctl);
+  border: 1px solid var(--line);
   background: var(--ground);
   color: var(--ink);
   padding: 0 var(--s3);
@@ -1721,7 +1861,7 @@ code {
 .arc-path {
   fill: none;
   stroke: var(--red);
-  stroke-width: 2.5;
+  stroke-width: 2;
   stroke-linecap: round;
 }
 .arc-board {
@@ -1743,4 +1883,149 @@ code {
     stroke-dashoffset: var(--len);
     animation: draw 0.9s ease-out forwards;
   }
+}
+
+/* ── Model or photo ───────────────────────────────────────────────── */
+/* Both pictures share one grid cell; the box keeps the model's height until the photo is chosen. */
+.media {
+  display: grid;
+  place-items: center;
+}
+.media > .media-model,
+.media > .media-photo {
+  grid-area: 1 / 1;
+  width: 100%;
+}
+.media-photo {
+  /* Out of the flow: the box takes its size from the drawing or, in photo view, its aspect ratio. */
+  position: absolute;
+  inset: var(--s3);
+  width: calc(100% - 2 * var(--s3));
+  height: calc(100% - 2 * var(--s3));
+  object-fit: contain;
+  /* Shop photos sit on white; multiply lets the studio backdrop show through instead. */
+  mix-blend-mode: multiply;
+  visibility: hidden;
+}
+.media[data-view='photo'] {
+  aspect-ratio: 4 / 3;
+  padding: var(--s2);
+}
+.media.has-photo[data-view='photo'] > .media-model {
+  visibility: hidden;
+  height: 0;
+}
+.media.has-photo[data-view='photo'] > .media-photo {
+  visibility: visible;
+}
+/* Room for the switch, so it never sits on the flight or the photo. */
+.media:has(> .view-toggle) {
+  padding-top: 3.5rem;
+}
+/* The big product view: square, like the shop photo itself. */
+.media.has-photo[data-view='photo']:has(> .view-toggle) {
+  aspect-ratio: 1 / 1;
+}
+.media.has-photo[data-view='photo']:has(> .view-toggle) > .media-photo {
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+@media (prefers-reduced-motion: no-preference) {
+  .media.has-photo[data-view='photo'] > .media-photo {
+    animation: fade 0.3s ease both;
+  }
+}
+.view-toggle {
+  display: inline-grid;
+  grid-auto-flow: column;
+  gap: 2px;
+  padding: 3px;
+  border-radius: 999px;
+  background: var(--stage);
+}
+.media .view-toggle {
+  position: absolute;
+  top: var(--s3);
+  right: var(--s3);
+  z-index: 1;
+  background: rgb(255 255 255 / 0.7);
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
+  box-shadow: 0 0 0 1px var(--line);
+}
+.view-toggle button {
+  font: inherit;
+  font-size: 0.78rem;
+  font-weight: 550;
+  letter-spacing: -0.01em;
+  min-height: 30px;
+  min-width: 3.6rem;
+  padding: 0 var(--s3);
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--ink-2);
+  cursor: pointer;
+}
+.view-toggle button[aria-pressed='true'] {
+  background: var(--ink);
+  color: #fff;
+}
+/* The bigger tap area without a bigger pill. */
+.view-toggle button {
+  position: relative;
+}
+.view-toggle button::after {
+  content: '';
+  position: absolute;
+  inset: -7px -2px;
+}
+.no-photos .view-toggle {
+  display: none;
+}
+.list-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--s3);
+}
+
+/* Model match: this dart over the player's ideal barrel, in the product box. */
+.match-view {
+  display: grid;
+  gap: var(--s2);
+  width: 100%;
+}
+.match-view .drawing {
+  width: 100%;
+  height: auto;
+}
+.overlap {
+  display: flex;
+  align-items: baseline;
+  gap: var(--s2);
+  min-height: 30px;
+  /* Leaves the top-right corner to the switch. */
+  padding-right: 10rem;
+}
+.overlap b {
+  font-size: 1.6rem;
+  font-weight: 500;
+  letter-spacing: -0.045em;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+  color: var(--green);
+}
+.overlap span {
+  font-size: 0.8rem;
+  line-height: 1.2;
+  color: var(--ink-2);
+}
+.media.has-match:has(> .view-toggle) {
+  padding-top: var(--s3);
+}
+.match-view .legend {
+  justify-content: center;
+  font-size: 0.78rem;
 }

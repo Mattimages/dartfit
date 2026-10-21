@@ -1,4 +1,11 @@
-import { tierBoundsUsd, variantBarrel, type Pick as RecPick } from '@dartfit/engine';
+import {
+  silhouetteOverlap,
+  tierBoundsUsd,
+  variantBarrel,
+  type Fit,
+  type Pick as RecPick,
+  type Variant,
+} from '@dartfit/engine';
 import { h } from '../h';
 import { getLang, num, range, t, type Key } from '../i18n';
 import { go } from '../router';
@@ -8,7 +15,8 @@ import { dartDrawing } from '../draw/dart';
 import { bandRow } from '../draw/bands';
 import { balanceName, dartName, reasonText, shapeName } from './words';
 import { approxEur } from '../money';
-import { matchPct, variantArt } from '../score';
+import { matchPct } from '../score';
+import { dartMedia } from '../media';
 
 const k = (s: string) => s as Key;
 type FullPick = RecPick & { offers: Offer[] };
@@ -29,7 +37,8 @@ function offerLink(o: Offer, fitId: string | null, primary: boolean): HTMLElemen
   );
 }
 
-const spec = (value: string, label: string) => h('div', null, h('b', null, value), h('span', null, label));
+const spec = (value: string, unit: string, label: string) =>
+  h('div', null, h('b', null, value, h('small', null, unit)), h('span', null, label));
 
 function altCard(r: FitResult, p: FullPick): HTMLElement {
   const v = p.variant;
@@ -43,7 +52,7 @@ function altCard(r: FitResult, p: FullPick): HTMLElement {
       h('span', { class: 'small' }, t(k(`r.role.${p.role}`))),
       h('b', { class: `q-${p.quality}` }, `${matchPct(p.cost)}%`),
     ),
-    h('div', { class: 'stage-box' }, variantArt(v)),
+    dartMedia(v),
     h('h3', null, dartName(v)),
     h(
       'p',
@@ -67,14 +76,41 @@ function tierOf(usd: number | null): TierKey | null {
 }
 
 /**
- * The answer, in three price classes: a tab per class, each showing the best-fitting dart in it
- * (only darts we can link to through an affiliate shop). `onShow` lets other sections follow.
+ * "Model match": this dart's outline drawn over the player's mathematically ideal barrel, with how
+ * much of the two silhouettes coincide.
  */
-function tierHero(
-  r: FitResult,
-  start: TierKey | null,
-  onShow: (v: FullPick['variant']) => void,
-): HTMLElement | null {
+function matchView(f: Fit, v: Variant): HTMLElement {
+  const g = variantBarrel(v);
+  const overlap = Math.round(100 * silhouetteOverlap(f.barrel, g));
+  return h(
+    'div',
+    { class: 'match-view' },
+    h('p', { class: 'overlap' }, h('b', null, `${overlap}%`), h('span', null, t('r.overlap'))),
+    dartDrawing({
+      ideal: f.barrel,
+      lengthBand: f.length.band,
+      diameterBand: f.diameter.band,
+      animate: false,
+      match: { ...g, label: dartName(v) },
+    }),
+    h(
+      'div',
+      { class: 'legend', 'aria-hidden': 'true' },
+      h('span', null, h('i', { class: 'l-ideal' }), t('r.legend.zone')),
+      h('span', null, h('i', { class: 'l-match' }), t('r.legend.this')),
+    ),
+  );
+}
+
+/** The big product view: photo or model match, with the switch. */
+const productMedia = (f: Fit, v: Variant) =>
+  dartMedia(v, { width: 800, toggle: true, model: matchView(f, v), modelLabel: t('media.match') });
+
+/**
+ * The answer, in three price classes: a tab per class, each showing the best-fitting dart in it
+ * (only darts we can link to through an affiliate shop).
+ */
+function tierHero(r: FitResult, start: TierKey | null): HTMLElement | null {
   const tiers = r.tiers;
   if (!tiers) return null;
   const available = TIERS.filter((x) => tiers[x]);
@@ -134,13 +170,13 @@ function tierHero(
         h('span', null, t(k(`r.quality.${sv.quality}`))),
       ),
       h('h2', { class: 'dart-name' }, dartName(v)),
-      h('div', { class: 'stage-box' }, variantArt(v, '', true)),
+      productMedia(r.fit, v),
       h(
         'div',
         { class: 'specs3' },
-        spec(`${num(v.weightG)} g`, t('fit.r.weight')),
-        spec(`${num(v.lengthMm)}`, t('r.length.mm')),
-        spec(`${num(v.diameterMm, 1)}`, t('r.diameter.mm')),
+        spec(num(v.weightG), 'g', t('fit.r.weight')),
+        spec(num(v.lengthMm), 'mm', t('fit.r.length')),
+        spec(num(v.diameterMm, 1), 'mm', t('fit.r.diameter')),
       ),
       v.priceUsd
         ? h('p', { class: 'price-line' }, h('b', null, priceText(v.priceUsd)), h('span', null, t('r.guide')))
@@ -148,7 +184,6 @@ function tierHero(
       h('div', { class: 'offers' }, ...sv.offers.slice(0, 2).map((o, i) => offerLink(o, r.id, i === 0))),
     ];
     panel.replaceChildren(...kids.filter((x): x is HTMLElement => x !== null));
-    onShow(v);
   };
   show();
   return h('section', { class: 'r-hero' }, h('h1', { class: 'visually-hidden' }, t('r.title')), tabs, panel);
@@ -179,21 +214,8 @@ export async function resultView(root: HTMLElement, params: Record<string, strin
         explainP.setAttribute('aria-busy', 'false');
       });
 
-  // ── Your ideal barrel with this dart drawn over it ─────────────────
-  const overlayFig = h('figure', { class: 'sheet' });
-  const drawOverlay = (v: FullPick['variant'] | undefined) =>
-    overlayFig.replaceChildren(
-      dartDrawing({
-        ideal: f.barrel,
-        lengthBand: f.length.band,
-        diameterBand: f.diameter.band,
-        animate: false,
-        match: v ? { ...variantBarrel(v), label: dartName(v) } : undefined,
-      }),
-    );
-  drawOverlay(best?.variant);
   const pc = session().priceClass;
-  const hero = tierHero(r, pc && pc !== 'any' ? pc : tierOf(best?.variant.priceUsd ?? null), drawOverlay);
+  const hero = tierHero(r, pc && pc !== 'any' ? pc : tierOf(best?.variant.priceUsd ?? null));
 
   const why = (dim: string) =>
     f.reasons
@@ -310,13 +332,13 @@ export async function resultView(root: HTMLElement, params: Record<string, strin
               h('span', null, t(k(`r.quality.${best.quality}`))),
             ),
             h('h1', null, dartName(v)),
-            h('div', { class: 'stage-box' }, variantArt(v, '', true)),
+            productMedia(f, v),
             h(
               'div',
               { class: 'specs3' },
-              spec(`${num(v.weightG)} g`, t('fit.r.weight')),
-              spec(`${num(v.lengthMm)}`, t('r.length.mm')),
-              spec(`${num(v.diameterMm, 1)}`, t('r.diameter.mm')),
+              spec(num(v.weightG), 'g', t('fit.r.weight')),
+              spec(num(v.lengthMm), 'mm', t('fit.r.length')),
+              spec(num(v.diameterMm, 1), 'mm', t('fit.r.diameter')),
             ),
             h(
               'div',
@@ -337,20 +359,6 @@ export async function resultView(root: HTMLElement, params: Record<string, strin
           h('p', { class: 'kicker' }, t('r.twin')),
           h('h2', { id: 'twin-name' }, twin.pro.name),
           h('p', null, `${dartName(twin.scored.variant)} ${num(twin.scored.variant.weightG)} g`),
-        )
-      : null,
-    best
-      ? h(
-          'section',
-          { class: 'overlay-fig' },
-          h('h2', null, t('r.vs')),
-          overlayFig,
-          h(
-            'div',
-            { class: 'legend', 'aria-hidden': 'true' },
-            h('span', null, h('i', { class: 'l-ideal' }), t('r.legend.zone')),
-            h('span', null, h('i', { class: 'l-match' }), t('r.legend.this')),
-          ),
         )
       : null,
     picks.length > 1

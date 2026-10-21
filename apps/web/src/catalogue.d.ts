@@ -7,5 +7,14 @@ declare module 'virtual:dartfit-catalogue' {
     searchTemplate: string;
     priority?: number;
   }
-  export const catalogue: { variants: Variant[]; pros: Pro[]; shops: Shop[] };
+  export interface PhotoRef {
+    url: string;
+    cleared: boolean;
+  }
+  export const catalogue: {
+    variants: Variant[];
+    pros: Pro[];
+    shops: Shop[];
+    photos: Record<string, PhotoRef>;
+  };
 }

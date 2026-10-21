@@ -5,7 +5,7 @@ import { variants } from '../api';
 import { clearSession } from '../store';
 import { dartArt, handArt } from '../draw/art';
 import { approxEur } from '../money';
-import { variantArt } from '../score';
+import { dartMedia } from '../media';
 import { dartName } from './words';
 
 /** The ideal dart for an average hand, drawn as the hero product shot. */
@@ -81,7 +81,7 @@ export function homeView(root: HTMLElement) {
           h(
             'a',
             { class: 'card', href: '#/darts', style: 'text-decoration:none' },
-            h('div', { class: 'stage-box' }, variantArt(v)),
+            dartMedia(v),
             h('h3', null, dartName(v)),
             h(
               'p',

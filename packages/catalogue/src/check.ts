@@ -11,7 +11,9 @@ try {
     shape: variants.filter((v) => v.shape === null).length,
     price: variants.filter((v) => v.priceUsd === null).length,
   };
-  console.log(`catalogue ok: ${variants.length} variants, ${models} models, ${pros.length} pros, ${retailers.length} retailers`);
+  console.log(
+    `catalogue ok: ${variants.length} variants, ${models} models, ${pros.length} pros, ${retailers.length} retailers`,
+  );
   console.log(
     `weights: ${[...byWeight.entries()]
       .sort((a, b) => a[0] - b[0])

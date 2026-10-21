@@ -20,7 +20,7 @@ The phone measures the hand on the device (MediaPipe landmarks plus a card homog
 npm install
 npm run dev:api      # API on :3000 with an embedded database
 npm run dev          # site on :5173, proxies /api and /go to the API
-npm test             # 161 tests
+npm test             # 168 tests
 npm run lint && npm run typecheck
 ```
 
@@ -39,5 +39,6 @@ The camera needs https. The site sets a strict CSP (no inline styles or scripts,
 - **Calibration (gate G1).** Tape-measure at least 10 hands, scan each, put the pairs in a CSV and run `npm run calibrate -- file.csv`. It reports the error per dimension and, with `--write`, updates `packages/engine/src/calibration.ts`. Until then the site says measurements are uncalibrated.
 - **Expert review (gate G2).** Have a fitter or shop owner go through `npm run personas` and the method page.
 - **Affiliate programmes.** Shops per country live in `packages/catalogue/data/retailers.json`: darts specialists first (Darts Corner via Adtraction, Dartsturm via Shopper.com), then bol.com, Amazon (9 EU marketplaces) and eBay Partner Network. Sign up and fill the IDs in `.env` (see `.env.example`). Only shops with an affiliate programme are ever linked; in production a shop only appears once its ID is set. Check every search template and eBay rotation ID in the network dashboard before launch.
+- **Photos.** `packages/catalogue/data/photos.csv` holds one photo per model, proxied through `/img/<model>` so visitors never load from a third party. The current photos come from the spec source and are marked `cleared=no` (shown only with `PREVIEW_PHOTOS=true`). Before launch, take photos from the affiliate feeds, whose terms allow showing them, and mark those `cleared=yes`.
 - **Catalogue.** `npm run catalogue:check` validates the CSV and lists darts whose stated weight does not fit their size and alloy (these are excluded from recommendations until re-checked). The API's link-check job flags dead shop links.
 - **Legal.** Have the privacy text and the affiliate disclosure reviewed; set `COMPANY_LINE` with the KvK number.

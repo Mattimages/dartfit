@@ -24,6 +24,7 @@ import {
 } from '@dartfit/engine';
 import { catalogue } from 'virtual:dartfit-catalogue';
 import { apiLang, getCountry } from './region';
+import { setServablePhotos } from './media';
 import type { Lang } from './i18n';
 
 export const DEMO = import.meta.env.MODE === 'demo';
@@ -232,8 +233,9 @@ export const deleteAccount = () => json('/api/me', { method: 'DELETE' });
 export async function refreshCatalogue(): Promise<void> {
   if (DEMO) return;
   try {
-    const r = await json<{ variants: Variant[] }>('/api/catalogue');
+    const r = await json<{ variants: Variant[]; photos?: string[] }>('/api/catalogue');
     if (Array.isArray(r.variants) && r.variants.length) catalogue.variants = r.variants;
+    if (Array.isArray(r.photos)) setServablePhotos(r.photos);
   } catch {
     /* keep the bundled copy */
   }

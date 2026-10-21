@@ -1,6 +1,14 @@
 import { describe, expect, it } from 'vitest';
 import { loadCatalogue } from '@dartfit/catalogue';
-import { fit, recommend, scoreVariant, proTwin, sensitivity, priceTiers, type Variant } from '../src/index.js';
+import {
+  fit,
+  recommend,
+  scoreVariant,
+  proTwin,
+  sensitivity,
+  priceTiers,
+  type Variant,
+} from '../src/index.js';
 import { baseAnswers, hand } from './helpers.js';
 import { personas } from './personas.js';
 
@@ -33,7 +41,8 @@ describe('scoreVariant', () => {
   it('labels in-band, near and out-of-band dimensions', () => {
     const f = fit(hand(185), baseAnswers); // weight band 21–23
     const check = (w: number) =>
-      scoreVariant(f, { ...byId('target-littler-g1-22'), weightG: w }).checks.find((c) => c.dim === 'weight')!.status;
+      scoreVariant(f, { ...byId('target-littler-g1-22'), weightG: w }).checks.find((c) => c.dim === 'weight')!
+        .status;
     expect(check(22)).toBe('in');
     expect(check(23.4)).toBe('near');
     expect(check(26)).toBe('out');
@@ -100,7 +109,11 @@ describe('proTwin and sensitivity', () => {
   });
 
   it('a slim-barrel player happy with 23 g / 52 mm gets a pro with a slim ~23 g, ~50 mm dart', () => {
-    const f = fit(hand(185), { ...baseAnswers, thickness: 'slim', current: { weightG: 23, lengthMm: 52, feel: 'right' } });
+    const f = fit(hand(185), {
+      ...baseAnswers,
+      thickness: 'slim',
+      current: { weightG: 23, lengthMm: 52, feel: 'right' },
+    });
     const v = proTwin(f, pros, variants)!.scored.variant;
     expect(Math.abs(v.weightG - 23)).toBeLessThanOrEqual(1);
     expect(Math.abs(v.lengthMm - 51)).toBeLessThanOrEqual(2.5);
@@ -110,7 +123,9 @@ describe('proTwin and sensitivity', () => {
   it('what-if reports answers that would change the top pick', () => {
     const w = sensitivity(hand(185), baseAnswers, variants);
     expect(w.length).toBeGreaterThan(0);
-    expect(w.every((x) => x.newBestId !== recommend(fit(hand(185), baseAnswers), variants).picks[0]!.variant.id)).toBe(true);
+    expect(
+      w.every((x) => x.newBestId !== recommend(fit(hand(185), baseAnswers), variants).picks[0]!.variant.id),
+    ).toBe(true);
   });
 });
 
@@ -233,7 +248,11 @@ describe('priceTiers', () => {
           v.tip === 'steel' &&
           !v.specCheck &&
           v.priceUsd !== null &&
-          (tier === 'budget' ? v.priceUsd <= 58 : tier === 'standard' ? v.priceUsd > 58 && v.priceUsd <= 115 : v.priceUsd > 115),
+          (tier === 'budget'
+            ? v.priceUsd <= 58
+            : tier === 'standard'
+              ? v.priceUsd > 58 && v.priceUsd <= 115
+              : v.priceUsd > 115),
       );
       expect(Math.min(...same.map((v) => scoreVariant(f, v).cost))).toBeCloseTo(s.cost, 6);
     }

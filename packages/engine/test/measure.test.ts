@@ -30,7 +30,11 @@ function syntheticHand(scale = 1, cx = 0.5, cy = 0.75): Landmark[] {
     const a = ((angles[f] as number) * Math.PI) / 180;
     lm.push({ ...base, z: 0 });
     for (let s = 1; s <= 3; s++) {
-      lm.push({ x: base.x + Math.sin(a) * 0.035 * s * scale, y: base.y - Math.cos(a) * 0.035 * s * scale, z: 0 });
+      lm.push({
+        x: base.x + Math.sin(a) * 0.035 * s * scale,
+        y: base.y - Math.cos(a) * 0.035 * s * scale,
+        z: 0,
+      });
     }
   });
   return lm;
@@ -88,7 +92,10 @@ describe('card scale', () => {
   it('corner scale is invariant to rotation', () => {
     fc.assert(
       fc.property(fc.double({ min: 0, max: Math.PI * 2, noNaN: true }), (t) => {
-        const rot = (x: number, y: number) => ({ x: x * Math.cos(t) - y * Math.sin(t), y: x * Math.sin(t) + y * Math.cos(t) });
+        const rot = (x: number, y: number) => ({
+          x: x * Math.cos(t) - y * Math.sin(t),
+          y: x * Math.sin(t) + y * Math.cos(t),
+        });
         const s = cardScaleFromCorners([rot(0, 0), rot(428, 0), rot(428, 269.9), rot(0, 269.9)]);
         return Math.abs(s.mmPerPx - 0.2) < 1e-6 && s.skew < 1e-9;
       }),
@@ -135,7 +142,11 @@ describe('robust aggregation', () => {
         thumbIndexSpan: { a: 1, b: 0 },
       },
     };
-    const mm = toMm({ handLength: 1000, palmWidth: 700, indexLength: 0, middleLength: 0, thumbIndexSpan: 0 }, 0.1, cal);
+    const mm = toMm(
+      { handLength: 1000, palmWidth: 700, indexLength: 0, middleLength: 0, thumbIndexSpan: 0 },
+      0.1,
+      cal,
+    );
     expect(mm.palmWidth).toBeCloseTo(79);
   });
 
@@ -154,13 +165,14 @@ describe('robust aggregation', () => {
 describe('detectCard (synthetic image)', () => {
   function image(w: number, h: number, card: { x: number; y: number; w: number; h: number }, seed = 7) {
     let s = seed;
-    const rnd = () => ((s = (s * 1103515245 + 12345) % 2 ** 31) / 2 ** 31);
+    const rnd = () => (s = (s * 1103515245 + 12345) % 2 ** 31) / 2 ** 31;
     const g = new Uint8ClampedArray(w * h);
     for (let y = 0; y < h; y++)
       for (let x = 0; x < w; x++) {
         const inCard = x >= card.x && x < card.x + card.w && y >= card.y && y < card.y + card.h;
         // Card with some printed text-like stripes inside, noisy wood-ish background outside.
-        const stripe = inCard && y > card.y + 20 && y < card.y + 26 && x > card.x + 15 && x < card.x + 90 ? -60 : 0;
+        const stripe =
+          inCard && y > card.y + 20 && y < card.y + 26 && x > card.x + 15 && x < card.x + 90 ? -60 : 0;
         g[y * w + x] = (inCard ? 205 + stripe : 95 + 25 * Math.sin(x / 9)) + rnd() * 18;
       }
     return g;
@@ -189,7 +201,15 @@ describe('detectCard (synthetic image)', () => {
   });
 });
 
-import { applyH, cardHomography, handDimensionsFromMm, homography, landmarksToMm, handOnCard, CARD_MM as CARD } from '../src/index.js';
+import {
+  applyH,
+  cardHomography,
+  handDimensionsFromMm,
+  homography,
+  landmarksToMm,
+  handOnCard,
+  CARD_MM as CARD,
+} from '../src/index.js';
 
 describe('perspective correction', () => {
   it('maps the four source corners exactly', () => {
@@ -246,7 +266,11 @@ describe('perspective correction', () => {
   it('computes hand dimensions from table-plane landmarks', () => {
     const W = 1000;
     const Hh = 1000;
-    const pts = Array.from({ length: 21 }, (_, i) => ({ x: (100 + i * 10) / W, y: (100 + (i % 4) * 30) / Hh, z: 0 }));
+    const pts = Array.from({ length: 21 }, (_, i) => ({
+      x: (100 + i * 10) / W,
+      y: (100 + (i % 4) * 30) / Hh,
+      z: 0,
+    }));
     pts[0] = { x: 0.5, y: 0.9, z: 0 };
     pts[12] = { x: 0.5, y: 0.2, z: 0 };
     const H = homography(

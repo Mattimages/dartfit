@@ -47,14 +47,27 @@ const pusher: Pusher = {
     return 'ok';
   },
 };
-const jobDeps = () => ({ db, env, mailer: createMailer(db, env), pusher, fetchStatus: async (u: string) => (u.includes('rd-javelin-21') || u.includes('red-dragon-javelin-steel-tip-darts-21gm') ? 404 : 200) });
+const jobDeps = () => ({
+  db,
+  env,
+  mailer: createMailer(db, env),
+  pusher,
+  fetchStatus: async (u: string) =>
+    u.includes('rd-javelin-21') || u.includes('red-dragon-javelin-steel-tip-darts-21gm') ? 404 : 200,
+});
 
 async function outbox(to: string) {
-  return db.query<{ subject: string; body_text: string; kind: string }>('SELECT subject, body_text, kind FROM outbox WHERE to_email=$1 ORDER BY id', [to]);
+  return db.query<{ subject: string; body_text: string; kind: string }>(
+    'SELECT subject, body_text, kind FROM outbox WHERE to_email=$1 ORDER BY id',
+    [to],
+  );
 }
 
 async function signIn(agent: ReturnType<typeof request.agent>, email: string, extra: object = {}) {
-  await agent.post('/api/auth/request').send({ email, confirmsAge16: true, ...extra }).expect(200);
+  await agent
+    .post('/api/auth/request')
+    .send({ email, confirmsAge16: true, ...extra })
+    .expect(200);
   const mails = await outbox(email);
   const link = mails.at(-1)!.body_text.match(/token=([\w-]+)/)![1];
   return agent.get(`/api/auth/verify?token=${link}`).expect(302);
@@ -74,15 +87,25 @@ describe('fit', () => {
     const r = await request(app).post('/api/fit').send({ measurements, answers, lang: 'nl' }).expect(200);
     expect(r.body.fit.weight.band).toEqual([21, 23]);
     expect(r.body.recommendation.picks[0].role).toBe('best');
-    expect(r.body.recommendation.picks[0].offers.map((o: { retailer: string }) => o.retailer)).toContain('bol');
+    expect(r.body.recommendation.picks[0].offers.map((o: { retailer: string }) => o.retailer)).toContain(
+      'bol',
+    );
     expect(r.body.proTwin.pro.name).toBeTruthy();
-    const row = (await db.query<{ measurements: object }>('SELECT measurements FROM fits WHERE id=$1', [r.body.id]))[0]!;
+    const row = (
+      await db.query<{ measurements: object }>('SELECT measurements FROM fits WHERE id=$1', [r.body.id])
+    )[0]!;
     expect(Object.keys(row.measurements).sort()).toEqual(Object.keys(measurements).sort());
   });
 
   it('rejects out-of-range input', async () => {
-    await request(app).post('/api/fit').send({ answers: { ...answers, fingers: 7 } }).expect(400);
-    await request(app).post('/api/fit').send({ measurements: { ...measurements, handLengthMm: 900 }, answers }).expect(400);
+    await request(app)
+      .post('/api/fit')
+      .send({ answers: { ...answers, fingers: 7 } })
+      .expect(400);
+    await request(app)
+      .post('/api/fit')
+      .send({ measurements: { ...measurements, handLengthMm: 900 }, answers })
+      .expect(400);
   });
 
   it('uses the country header for local offers', async () => {
@@ -105,7 +128,12 @@ describe('fit', () => {
   it('fills a current dart picked from the catalogue from our own data', async () => {
     const r = await request(app)
       .post('/api/fit')
-      .send({ answers: { ...answers, current: { variantId: 'target-littler-g1-23', weightG: 30, feel: 'right', gripFeel: 'too_smooth' } } })
+      .send({
+        answers: {
+          ...answers,
+          current: { variantId: 'target-littler-g1-23', weightG: 30, feel: 'right', gripFeel: 'too_smooth' },
+        },
+      })
       .expect(200);
     const reason = r.body.fit.reasons.find((x: { code: string }) => x.code === 'grip_current');
     expect(reason.params.current).toBe(3);
@@ -114,8 +142,13 @@ describe('fit', () => {
   });
 
   it('never recommends a listing whose weight does not fit its size', async () => {
-    const r = await request(app).post('/api/fit').send({ answers: { ...answers, fingers: 4, hold: 'rear', throwStyle: 'arc' } }).expect(200);
-    expect(r.body.recommendation.picks.map((p: { variant: { id: string } }) => p.variant.id)).not.toContain('rd-furnace-24');
+    const r = await request(app)
+      .post('/api/fit')
+      .send({ answers: { ...answers, fingers: 4, hold: 'rear', throwStyle: 'arc' } })
+      .expect(200);
+    expect(r.body.recommendation.picks.map((p: { variant: { id: string } }) => p.variant.id)).not.toContain(
+      'rd-furnace-24',
+    );
     expect(r.body.recommendation.filteredOut.specCheck).toBeGreaterThan(0);
   });
 
@@ -134,14 +167,23 @@ describe('explain', () => {
   it('accepts an AI answer whose numbers are all in the input', async () => {
     const fit = await request(app).post('/api/fit').send({ measurements, answers, lang: 'en' }).expect(200);
     const best = fit.body.recommendation.picks[0].variant;
-    fakeAi = { next: `The ${best.brand} ${best.model} at ${best.weightG} g sits inside your 21–23 g band. It suits a three-finger middle grip.`, calls: 0 };
+    fakeAi = {
+      next: `The ${best.brand} ${best.model} at ${best.weightG} g sits inside your 21–23 g band. It suits a three-finger middle grip.`,
+      calls: 0,
+    };
     const r = await request(app).post('/api/explain').send({ fitId: fit.body.id }).expect(200);
     expect(r.body.source).toBe('ai');
   });
 
   it('falls back to the grounded template when the AI invents numbers twice, and caches', async () => {
-    const fit = await request(app).post('/api/fit').send({ measurements, answers: { ...answers, hold: 'front' }, lang: 'nl' }).expect(200);
-    fakeAi = { next: 'Deze dart verbetert je gemiddelde met 12,5 punten en je release met 37 graden, gegarandeerd.', calls: 0 };
+    const fit = await request(app)
+      .post('/api/fit')
+      .send({ measurements, answers: { ...answers, hold: 'front' }, lang: 'nl' })
+      .expect(200);
+    fakeAi = {
+      next: 'Deze dart verbetert je gemiddelde met 12,5 punten en je release met 37 graden, gegarandeerd.',
+      calls: 0,
+    };
     const r = await request(app).post('/api/explain').send({ fitId: fit.body.id }).expect(200);
     expect(r.body.source).toBe('template');
     expect(fakeAi.calls).toBe(2);
@@ -154,7 +196,9 @@ describe('explain', () => {
 describe('click-outs', () => {
   it('logs the click and redirects to a search at the local shop', async () => {
     const fit = await request(app).post('/api/fit').send({ answers }).expect(200);
-    const offer = fit.body.recommendation.picks[0].offers.find((o: { retailer: string }) => o.retailer === 'bol');
+    const offer = fit.body.recommendation.picks[0].offers.find(
+      (o: { retailer: string }) => o.retailer === 'bol',
+    );
     const r = await request(app).get(`${offer.goUrl}?fit=${fit.body.id}`).expect(302);
     expect(r.headers.location).toMatch(/^https:\/\/www\.bol\.com\/nl\/nl\/s\/\?searchtext=/);
     const clicks = await db.query('SELECT * FROM clicks WHERE fit_id=$1', [fit.body.id]);
@@ -170,7 +214,9 @@ describe('click-outs', () => {
     expect(r.body.recommendation.picks.length).toBeGreaterThan(0);
     for (const p of r.body.recommendation.picks)
       expect(
-        p.offers.every((o: { retailer: string }) => ['dartscorner_eu', 'bol', 'amazon_nl', 'ebay_nl'].includes(o.retailer)),
+        p.offers.every((o: { retailer: string }) =>
+          ['dartscorner_eu', 'bol', 'amazon_nl', 'ebay_nl'].includes(o.retailer),
+        ),
       ).toBe(true);
   });
 
@@ -250,22 +296,56 @@ describe('accounts, saving and alerts (Phase 4 end-to-end)', () => {
   it('a non-matching launch sends nothing', async () => {
     await admin
       .post('/api/admin/variants')
-      .send({ id: 'test-heavy-32', modelId: 'test-heavy', brand: 'Testbrand', model: 'Brick', tip: 'steel', weightG: 32, lengthMm: 38, diameterMm: 8.4, shape: 'tapered', balance: 'rear', gripIntensity: 5, tungstenPct: 80, priceUsd: 20, sourceUrl: 'https://example.com/brick' })
+      .send({
+        id: 'test-heavy-32',
+        modelId: 'test-heavy',
+        brand: 'Testbrand',
+        model: 'Brick',
+        tip: 'steel',
+        weightG: 32,
+        lengthMm: 38,
+        diameterMm: 8.4,
+        shape: 'tapered',
+        balance: 'rear',
+        gripIntensity: 5,
+        tungstenPct: 80,
+        priceUsd: 20,
+        sourceUrl: 'https://example.com/brick',
+      })
       .expect(201);
     await runDueJobs(jobDeps());
     expect((await outbox(email)).filter((m) => m.kind === 'alert')).toHaveLength(1);
   });
 
   it('one-click unsubscribe stops further alerts', async () => {
-    const link = (await outbox(email)).find((m) => m.kind === 'alert')!.body_text.match(/(\/api\/unsubscribe\?\S+)/)![1]!;
+    const link = (await outbox(email))
+      .find((m) => m.kind === 'alert')!
+      .body_text.match(/(\/api\/unsubscribe\?\S+)/)![1]!;
     await request(app).get(link).expect(200);
     await admin
       .post('/api/admin/variants')
-      .send({ id: 'test-launch2-22', modelId: 'test-launch2', brand: 'Otherbrand', model: 'Launch Two', tip: 'steel', weightG: 22, lengthMm: 48.5, diameterMm: 6.8, shape: 'straight', balance: 'centre', gripIntensity: 3, tungstenPct: 90, priceUsd: 70, sourceUrl: 'https://example.com/launch2' })
+      .send({
+        id: 'test-launch2-22',
+        modelId: 'test-launch2',
+        brand: 'Otherbrand',
+        model: 'Launch Two',
+        tip: 'steel',
+        weightG: 22,
+        lengthMm: 48.5,
+        diameterMm: 6.8,
+        shape: 'straight',
+        balance: 'centre',
+        gripIntensity: 3,
+        tungstenPct: 90,
+        priceUsd: 70,
+        sourceUrl: 'https://example.com/launch2',
+      })
       .expect(201);
     await runDueJobs(jobDeps());
     expect((await outbox(email)).filter((m) => m.kind === 'alert')).toHaveLength(1);
-    await request(app).get(link.replace(/s=[^&]+/, 's=forged')).expect(400);
+    await request(app)
+      .get(link.replace(/s=[^&]+/, 's=forged'))
+      .expect(400);
   });
 
   it('a click-out by an opted-in user schedules the two-week feedback email', async () => {
@@ -281,7 +361,10 @@ describe('accounts, saving and alerts (Phase 4 end-to-end)', () => {
       .post('/api/feedback')
       .send({ u: q.get('u'), x: q.get('x'), s: q.get('s'), bought: true, weightG: 22, feel: 'right' })
       .expect(200);
-    await request(app).post('/api/feedback').send({ u: q.get('u'), x: q.get('x'), s: 'forged', bought: true }).expect(400);
+    await request(app)
+      .post('/api/feedback')
+      .send({ u: q.get('u'), x: q.get('x'), s: 'forged', bought: true })
+      .expect(400);
   });
 
   it('admin stats show fits, clicks and feedback', async () => {
@@ -325,7 +408,10 @@ describe('housekeeping jobs', () => {
 
 describe('push', () => {
   it('subscribing requires sign-in', async () => {
-    await request(app).post('/api/push/subscribe').send({ endpoint: 'https://push.example/x', keys: { p256dh: 'p'.repeat(20), auth: 'a'.repeat(10) } }).expect(401);
+    await request(app)
+      .post('/api/push/subscribe')
+      .send({ endpoint: 'https://push.example/x', keys: { p256dh: 'p'.repeat(20), auth: 'a'.repeat(10) } })
+      .expect(401);
     expect(pushes).toEqual([]);
   });
 });

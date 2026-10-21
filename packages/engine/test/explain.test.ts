@@ -24,7 +24,14 @@ function fixtures() {
       const pick = r.picks[0];
       if (!pick) continue;
       out.push(
-        buildExplainInput(lang, f, p.a, pick, proTwin(f, pros, variants), p.m ? { handLengthMm: p.m.handLengthMm, middleLengthMm: p.m.middleLengthMm } : null),
+        buildExplainInput(
+          lang,
+          f,
+          p.a,
+          pick,
+          proTwin(f, pros, variants),
+          p.m ? { handLengthMm: p.m.handLengthMm, middleLengthMm: p.m.middleLengthMm } : null,
+        ),
       );
     }
   }

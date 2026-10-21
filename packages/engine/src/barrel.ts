@@ -73,6 +73,33 @@ export function radiusAt(p: Profile, t: number): number {
 
 const STEPS = 240;
 
+/** A barrel's side silhouette: length, maximum diameter and profile. */
+export interface Silhouette {
+  lengthMm: number;
+  diameterMm: number;
+  profile: Profile;
+}
+
+/**
+ * How much two barrel silhouettes coincide, seen from the side with their fronts lined up (where
+ * the point sits): intersection over union of the two outlines, 1 = identical, 0 = no overlap.
+ */
+export function silhouetteOverlap(a: Silhouette, b: Silhouette): number {
+  const L = Math.max(a.lengthMm, b.lengthMm);
+  const r = (s: Silhouette, x: number) =>
+    x <= s.lengthMm ? (s.diameterMm / 2) * radiusAt(s.profile, x / s.lengthMm) : 0;
+  let inter = 0;
+  let union = 0;
+  for (let i = 0; i < STEPS; i++) {
+    const x = ((i + 0.5) / STEPS) * L;
+    const ra = r(a, x);
+    const rb = r(b, x);
+    inter += Math.min(ra, rb);
+    union += Math.max(ra, rb);
+  }
+  return union > 0 ? inter / union : 0;
+}
+
 /**
  * Mass and centre of gravity of a barrel. Bores are subtracted at their positions so they shift the
  * centre of gravity the way they do in a real barrel (the rear thread removes more metal).

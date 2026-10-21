@@ -102,9 +102,33 @@ export function handArt(o: HandOpts = {}): SVGElement {
     s('path', { class: 'hand-skin', d: `${palm}Z`, 'stroke-width': (14 * k).toFixed(1) }),
     ...fingers,
   ];
+  if (o.dots) {
+    // The scan skeleton: thin lines between the landmarks the detector finds.
+    const bones = [
+      [0, 1],
+      [0, 5],
+      [0, 17],
+      [5, 9],
+      [9, 13],
+      [13, 17],
+      ...FINGERS.flatMap((f) => f.slice(1).map((n, j) => [f[j]!, n])),
+    ];
+    children.push(
+      s('path', {
+        class: 'hand-bone',
+        d: bones
+          .map(
+            ([a, b]) =>
+              `M${P(a!).x.toFixed(1)},${P(a!).y.toFixed(1)}L${P(b!).x.toFixed(1)},${P(b!).y.toFixed(1)}`,
+          )
+          .join(''),
+        'stroke-width': (1.1 * k).toFixed(2),
+      }),
+    );
+  }
   if (o.dots)
     pts.forEach((p, i) =>
-      children.push(s('circle', { class: 'hand-dot', cx: p.x, cy: p.y, r: 2.6 * k, style: `--i:${i}` })),
+      children.push(s('circle', { class: 'hand-dot', cx: p.x, cy: p.y, r: 2.3 * k, style: `--i:${i}` })),
     );
   if (o.measure) {
     const x = Math.max(...xs) + 18 * k;
