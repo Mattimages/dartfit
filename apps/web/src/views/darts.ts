@@ -2,11 +2,15 @@ import { h } from '../h';
 import { num, t, type Key } from '../i18n';
 import { shopLink, variants } from '../api';
 import { approxEur } from '../money';
-import { dartMedia, viewToggle } from '../media';
+import { dartMedia, photoUrl, viewToggle } from '../media';
 import { dartName } from './words';
 
 export function dartsView(root: HTMLElement) {
-  const all = [...variants()].sort((a, b) => dartName(a).localeCompare(dartName(b)) || a.weightG - b.weightG);
+  // Darts with a real photo first, then by name and weight.
+  const hasPhoto = (v: ReturnType<typeof variants>[number]) => (photoUrl(v.modelId, 400) ? 0 : 1);
+  const all = [...variants()].sort(
+    (a, b) => hasPhoto(a) - hasPhoto(b) || dartName(a).localeCompare(dartName(b)) || a.weightG - b.weightG,
+  );
   const q = h('input', {
     type: 'search',
     id: 'q',

@@ -45,7 +45,7 @@ export interface FitResult {
   saved: boolean;
   fit: Fit;
   recommendation: Omit<Recommendation, 'picks'> & { picks: Array<Pick & { offers: Offer[] }> };
-  /** Best fit per price class (budget ≤ €50, standard ≤ €100, premium above), affiliate offers attached. */
+  /** Best fit per price class (budget ≤ €50, standard ≤ €80, premium above), affiliate offers attached. */
   tiers?: Record<PriceTier, (ScoredVariant & { offers: Offer[] }) | null>;
   proTwin: ProTwin | null;
   whatIf: WhatIf[];
@@ -53,6 +53,18 @@ export interface FitResult {
   measurements?: Measurements | null;
   answers?: Answers;
   demo?: boolean;
+}
+
+/** Best fit per price class, preferring darts with a real photo; the drawing is the fallback. */
+function photoTiers(f: ReturnType<typeof runFit>) {
+  const withPhoto = catalogue.variants.filter((v) => catalogue.photos[v.modelId]);
+  const pref = priceTiers(f, withPhoto, tierBoundsUsd());
+  const any = priceTiers(f, catalogue.variants, tierBoundsUsd());
+  return {
+    budget: pref.budget ?? any.budget,
+    standard: pref.standard ?? any.standard,
+    premium: pref.premium ?? any.premium,
+  };
 }
 
 export const variants = (): Variant[] => catalogue.variants;
@@ -126,10 +138,7 @@ function localFit(m: Measurements | undefined, answers: Answers): FitResult {
     fit: f,
     recommendation: { ...rec, picks: rec.picks.map((p) => ({ ...p, offers: demoOffers(p.variant) })) },
     tiers: Object.fromEntries(
-      Object.entries(priceTiers(f, catalogue.variants, tierBoundsUsd())).map(([k, s]) => [
-        k,
-        s ? { ...s, offers: demoOffers(s.variant) } : null,
-      ]),
+      Object.entries(photoTiers(f)).map(([k, s]) => [k, s ? { ...s, offers: demoOffers(s.variant) } : null]),
     ) as FitResult['tiers'],
     proTwin: proTwin(f, catalogue.pros, catalogue.variants),
     whatIf: sensitivity(m, a, catalogue.variants, { budgetUsd: a.budgetUsd }).slice(0, 4),

@@ -10,7 +10,7 @@ Mobile site: measure the throwing hand next to a bank card, fit darts to it, lin
 - The AI explanation may only state numbers present in its input; `apps/api/src/explain.ts` checks this and falls back to the template.
 - Strict CSP: no inline style attributes (set `el.style.cssText` via the `h()` helper), no inline scripts, fonts and models self-hosted.
 - Only affiliate shops are linked (retailers with `affiliateEnv`; in production the ID must be set). No affiliate link → the dart is not shown. A-Z Darts is a spec source only.
-- Results show the best fit per price class (budget ≤ €50, standard ≤ €100, premium), see `priceTiers` and `packages/engine/src/money.ts`.
+- Results show the best fit per price class (budget ≤ €50, standard ≤ €80, premium), see `priceTiers` and `packages/engine/src/money.ts`.
 - Height and forearm (optional) enter via `packages/engine/src/body.ts`: hand estimate without a scan, scan cross-check, and launch-angle physics that sets throw style when the player says "not sure".
 - Product photos live in `packages/catalogue/data/photos.csv` and are served from our own origin through the API's `/img/<model>` proxy (CSP keeps `img-src 'self'`; visitors never contact an image CDN). All photos are shown (`PREVIEW_PHOTOS` defaults to true, owner's decision 22 Oct); `cleared` marks which come from an affiliate feed, and `PREVIEW_PHOTOS=false` limits the site to those.
 - The result's product box has two views: **Foto** and **Model match** (the dart drawn over the player's ideal barrel, with `silhouetteOverlap` as a %). The choice is site-wide (`apps/web/src/media.ts`).

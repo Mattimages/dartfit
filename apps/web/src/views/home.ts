@@ -6,6 +6,7 @@ import { clearSession } from '../store';
 import { approxEur, PRICE_CLASS_EUR } from '../money';
 import { dartMedia, photoUrl } from '../media';
 import { dartName } from './words';
+import { heroScan } from './hero-scan';
 
 type Tier = 'budget' | 'standard' | 'premium';
 
@@ -110,7 +111,7 @@ export function homeView(root: HTMLElement) {
       { class: 'land-hero' },
       h('h1', null, t('land.title')),
       h('p', { class: 'lead' }, t('land.lead')),
-      heroFan(fanDarts),
+      heroScan(all) ?? heroFan(fanDarts),
       h(
         'div',
         { class: 'hero-cta' },

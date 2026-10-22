@@ -28,6 +28,10 @@ const COPY = {
         'Fits zonder account: 90 dagen. Accounts die 24 maanden niet gebruikt zijn: verwijderd. Je kunt alles zelf downloaden of verwijderen onder Mijn fits.',
       ],
       [
+        'Anonieme maten',
+        'Van elke fit bewaren we los een anonieme regel: je handmaten in hele millimeters, lengte, je antwoorden over hoe je gooit, land, maand en de uitgerekende ideale dart. Zonder account, zonder link naar je fit, zonder tijdstip en zonder beeld. Zo maken we de meting en het advies beter.',
+      ],
+      [
         'Cookies',
         'Alleen een inlogcookie als je een account gebruikt. Geen advertentie- of trackingcookies.',
       ],
@@ -61,6 +65,10 @@ const COPY = {
       [
         'How long',
         'Fits without an account: 90 days. Accounts unused for 24 months: deleted. You can download or delete everything yourself under My fits.',
+      ],
+      [
+        'Anonymous measurements',
+        'From every fit we also keep one anonymous line: your hand sizes in whole millimetres, height, your answers about how you throw, country, month and the calculated ideal dart. No account, no link to your fit, no time of day and no image. It helps us make the measuring and the advice better.',
       ],
       ['Cookies', 'Only a sign-in cookie if you use an account. No advertising or tracking cookies.'],
       ['Age', 'Accounts and emails from 16. Making a fit needs no account.'],

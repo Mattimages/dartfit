@@ -28,6 +28,7 @@ import { enqueue } from './jobs.js';
 import type { Mailer } from './mail.js';
 import { t, type Lang } from './i18n.js';
 import { photoRouter, servablePhotos, type Fetcher } from './photos.js';
+import { handSamplesCsv, saveHandSample } from './samples.js';
 import {
   AdminVariantRequest,
   ExplainRequest,
@@ -203,7 +204,19 @@ export function createApp(deps: AppDeps) {
     );
     // A dart without an affiliate link is not shown.
     const picks = withOffers.filter((p) => p.offers.length > 0);
-    const raw = priceTiers(f, variants, tierBoundsUsd());
+    // Each price class shows a dart with a real photo when one fits; the drawing is the fallback.
+    const photoSet = new Set(photoModels);
+    const pref = priceTiers(
+      f,
+      variants.filter((v) => photoSet.has(v.modelId)),
+      tierBoundsUsd(),
+    );
+    const any = priceTiers(f, variants, tierBoundsUsd());
+    const raw = {
+      budget: pref.budget ?? any.budget,
+      standard: pref.standard ?? any.standard,
+      premium: pref.premium ?? any.premium,
+    };
     const tiers = Object.fromEntries(
       await Promise.all(
         Object.entries(raw).map(async ([k, s]) => {
@@ -257,6 +270,9 @@ export function createApp(deps: AppDeps) {
           cty,
           body.lang,
         ],
+      );
+      await saveHandSample(db, f, body, cty, result.recommendation.picks[0]?.variant.id ?? null).catch((e) =>
+        console.error('hand sample not saved', e),
       );
       res.json({ id, saved: !!req.user, ...result });
     }),
@@ -700,6 +716,18 @@ export function createApp(deps: AppDeps) {
       if (!check)
         await enqueue(db, 'new_variant_alerts', { variantId: v.id }, { dedupeKey: `alerts:${v.id}` });
       res.status(201).json({ ok: true, id: v.id, specCheck: check });
+    }),
+  );
+
+  // Anonymous hand measurements for calibration and research (admins only), as CSV.
+  app.get(
+    '/api/admin/hand-samples.csv',
+    wrap(async (req, res) => {
+      if (!requireAdmin(req, res)) return;
+      const rows = await db.query<Record<string, unknown>>('SELECT * FROM hand_samples ORDER BY id');
+      res.setHeader('Content-Type', 'text/csv; charset=utf-8');
+      res.setHeader('Content-Disposition', 'attachment; filename="dartfit-hand-samples.csv"');
+      res.send(handSamplesCsv(rows));
     }),
   );
 

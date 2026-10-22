@@ -2265,3 +2265,291 @@ a.card {
   text-decoration: none;
   color: inherit;
 }
+
+/* ── Landing film: scan → measure → model → three barrels → shop card ── */
+.hs {
+  position: relative;
+  aspect-ratio: 1 / 1.08;
+  border-radius: var(--r-stage);
+  background: radial-gradient(110% 90% at 70% 10%, #ffffff 0%, var(--stage) 60%, var(--stage-2) 100%);
+  overflow: hidden;
+  isolation: isolate;
+}
+.hs-hand {
+  position: absolute;
+  inset: 9% 20% 24%;
+  transition:
+    transform 0.8s var(--ease),
+    opacity 0.8s ease;
+}
+.hs-hand > svg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+.hs-beam {
+  position: absolute;
+  left: -12%;
+  right: -12%;
+  top: -18%;
+  height: 16%;
+  background: linear-gradient(to bottom, transparent, rgb(227 18 44 / 0.16));
+  border-bottom: 1.5px solid var(--red);
+  opacity: 0;
+}
+.hs-hand.scanning .hs-beam {
+  animation: hs-beam 1.4s cubic-bezier(0.45, 0, 0.55, 1) forwards;
+}
+@keyframes hs-beam {
+  0% {
+    top: -18%;
+    opacity: 1;
+  }
+  85% {
+    opacity: 1;
+  }
+  100% {
+    top: 102%;
+    opacity: 0;
+  }
+}
+.hs-line {
+  fill: none;
+  stroke: var(--red);
+  stroke-width: 1.4;
+  stroke-linecap: round;
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+  transition: stroke-dashoffset 0.5s var(--ease);
+}
+.hs-m.on .hs-line {
+  stroke-dashoffset: 0;
+}
+.hs-label {
+  fill: var(--red);
+  font-family: var(--font);
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  opacity: 0;
+  transition: opacity 0.3s ease 0.3s;
+}
+.hs-m.on .hs-label {
+  opacity: 1;
+}
+.hs-build .hs-hand {
+  transform: translateY(-16%) scale(0.7);
+  opacity: 0.22;
+}
+.hs-modelbox {
+  position: absolute;
+  left: 3%;
+  right: 3%;
+  bottom: 24%;
+  opacity: 0;
+  transition:
+    opacity 0.5s ease 0.2s,
+    transform 0.7s var(--ease);
+}
+.hs-build .hs-modelbox {
+  opacity: 1;
+}
+.hs-end .hs-modelbox {
+  transform: translateY(-34%);
+}
+.hs-model {
+  width: 100%;
+  height: auto;
+  overflow: visible;
+}
+.hs-point {
+  fill: #b8c0cc;
+}
+.hs-shaft {
+  fill: #d3d8df;
+}
+.hs-ideal {
+  fill: rgb(227 18 44 / 0.07);
+  stroke: var(--red);
+  stroke-width: 1.4;
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+}
+.hs-build .hs-ideal {
+  animation: hs-draw 1.1s var(--ease) 0.25s forwards;
+}
+.hs-end .hs-ideal {
+  stroke-dashoffset: 0;
+}
+@keyframes hs-draw {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+.hs-ideal-label {
+  fill: var(--red);
+  font-family: var(--font);
+  font-size: 9px;
+  font-weight: 550;
+  opacity: 0;
+  transition: opacity 0.4s ease 0.9s;
+}
+.hs-build .hs-ideal-label {
+  opacity: 1;
+}
+.hs-cand {
+  opacity: 0;
+}
+.hs-cand.on {
+  opacity: 1;
+}
+.hs-cand path {
+  fill: rgb(10 143 90 / 0.2);
+  stroke: var(--green);
+  stroke-width: 1.6;
+}
+.hs-cand-label {
+  fill: var(--ink);
+  font-family: var(--font);
+  font-size: 9px;
+  font-weight: 550;
+}
+.hs-chip {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  z-index: 2;
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0.35em;
+  padding: 0.35rem 0.7rem;
+  border-radius: 999px;
+  font-size: 0.78rem;
+  color: var(--ink-2);
+  background: rgb(255 255 255 / 0.85);
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
+  box-shadow: 0 0 0 1px var(--line);
+  opacity: 0;
+  transition:
+    opacity 0.3s ease,
+    color 0.3s ease,
+    box-shadow 0.3s ease;
+}
+.hs-chip.on {
+  opacity: 1;
+}
+.hs-chip b {
+  font-size: 1.25rem;
+  font-weight: 600;
+  letter-spacing: -0.045em;
+  color: var(--ink);
+  font-variant-numeric: tabular-nums;
+  min-width: 2.6ch;
+}
+.hs-chip.best,
+.hs-chip.best b {
+  color: var(--green);
+}
+.hs-chip.best {
+  box-shadow: 0 0 0 1.5px var(--green);
+}
+.hs-step {
+  position: absolute;
+  top: 16px;
+  right: 14px;
+  z-index: 2;
+  font-size: 0.76rem;
+  font-weight: 550;
+  color: var(--ink-2);
+  transition: opacity 0.3s ease;
+}
+.hs-step::before {
+  content: '';
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  margin-right: 6px;
+  border-radius: 50%;
+  background: var(--red);
+  vertical-align: 1px;
+}
+.hs-card {
+  position: absolute;
+  left: 12px;
+  right: 12px;
+  bottom: 12px;
+  z-index: 3;
+  display: grid;
+  grid-template-columns: 80px minmax(0, 1fr);
+  gap: var(--s3);
+  align-items: center;
+  padding: 10px;
+  border-radius: 18px;
+  background: var(--ground);
+  color: inherit;
+  text-decoration: none;
+  box-shadow:
+    0 0 0 1px var(--line),
+    0 18px 40px -16px rgb(13 22 38 / 0.35);
+  transform: translateY(140%);
+  transition: transform 0.75s var(--ease);
+}
+.hs-end .hs-card {
+  transform: none;
+}
+.hs-card img {
+  width: 80px;
+  height: 80px;
+  object-fit: contain;
+  border-radius: 12px;
+  background: var(--stage);
+  mix-blend-mode: multiply;
+}
+.hs-card > div {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+.hs-card b {
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  line-height: 1.2;
+}
+.hs-card-chip {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--green);
+}
+.hs-card-meta {
+  font-size: 0.82rem;
+  color: var(--ink-2);
+  font-variant-numeric: tabular-nums;
+}
+.hs-replay {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  z-index: 2;
+  font: inherit;
+  font-size: 0.76rem;
+  font-weight: 550;
+  min-height: 32px;
+  padding: 0 0.8rem;
+  border-radius: 999px;
+  border: 1px solid var(--line);
+  background: var(--ground);
+  color: var(--ink);
+  cursor: pointer;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s ease 0.6s;
+}
+.hs-end .hs-replay {
+  opacity: 1;
+  pointer-events: auto;
+}
+.hs-end .hs-step {
+  opacity: 0;
+}

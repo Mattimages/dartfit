@@ -6,7 +6,7 @@
 export const USD_PER_EUR = 1.1537;
 
 /** Price classes in euros: budget up to €50, standard up to €100, premium above. */
-export const PRICE_CLASS_EUR = { budgetMax: 50, standardMax: 100 } as const;
+export const PRICE_CLASS_EUR = { budgetMax: 50, standardMax: 80 } as const;
 
 export const tierBoundsUsd = () => ({
   budgetMaxUsd: PRICE_CLASS_EUR.budgetMax * USD_PER_EUR,

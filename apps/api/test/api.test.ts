@@ -443,3 +443,46 @@ describe('cron (Vercel)', () => {
       .expect(404);
   });
 });
+
+describe('anonymous hand samples', () => {
+  it('every fit adds one anonymous row: rounded numbers, month only, no ids', async () => {
+    const before = Number(
+      (await db.query<{ n: number }>('SELECT count(*)::int AS n FROM hand_samples'))[0]!.n,
+    );
+    await request(app)
+      .post('/api/fit')
+      .send({
+        measurements: { ...measurements, handLengthMm: 186.4 },
+        answers: { ...answers, heightCm: 182.6 },
+        lang: 'nl',
+      })
+      .expect(200);
+    const rows = await db.query<Record<string, unknown>>(
+      'SELECT * FROM hand_samples ORDER BY id DESC LIMIT 1',
+    );
+    const after = Number(
+      (await db.query<{ n: number }>('SELECT count(*)::int AS n FROM hand_samples'))[0]!.n,
+    );
+    expect(after).toBe(before + 1);
+    const s = rows[0]!;
+    expect(s.hand_length_mm).toBe(186);
+    expect(s.height_cm).toBe(183);
+    expect(s.month).toMatch(/^\d{4}-\d{2}$/);
+    expect(s.source).toBe('scan');
+    expect(Object.keys(s)).not.toContain('user_id');
+    expect(Object.keys(s)).not.toContain('fit_id');
+    expect(Object.keys(s)).not.toContain('created_at');
+  });
+
+  it('the CSV export is for admins only', async () => {
+    await request(app).get('/api/admin/hand-samples.csv').expect(401);
+    const admin = request.agent(app);
+    await signIn(admin, 'admin@example.com');
+    const r = await admin.get('/api/admin/hand-samples.csv').expect(200);
+    expect(r.headers['content-type']).toMatch(/text\/csv/);
+    const [head, first] = r.text.split('\n');
+    expect(head).toContain('hand_length_mm');
+    expect(head).not.toContain('user');
+    expect(first!.split(',').length).toBe(head!.split(',').length);
+  });
+});
