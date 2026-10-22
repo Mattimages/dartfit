@@ -45,6 +45,8 @@ export interface AppDeps {
   explainClient: ExplainClient | null;
   /** Fetch used by the photo proxy (tests pass a stub). */
   photoFetch?: Fetcher;
+  /** Runs due background jobs; set where there is no in-process worker (Vercel). */
+  runJobs?: () => Promise<void>;
 }
 
 interface User {
@@ -165,6 +167,18 @@ export function createApp(deps: AppDeps) {
   // ── Health & catalogue ───────────────────────────────────────────────
   app.get('/api/health', (_req, res) => res.json({ ok: true, engine: ENGINE_VERSION, db: db.kind }));
   app.use(photoRouter(env, deps.photoFetch));
+
+  // Vercel Cron calls this with "Authorization: Bearer $CRON_SECRET". Without a secret it does not exist.
+  app.get(
+    '/api/cron/jobs',
+    wrap(async (req, res) => {
+      const secret = env.CRON_SECRET;
+      if (!deps.runJobs || !secret || req.headers.authorization !== `Bearer ${secret}`)
+        return void res.status(404).json({ error: 'not_found' });
+      await deps.runJobs();
+      res.json({ ok: true });
+    }),
+  );
   const photoModels = [...servablePhotos(env)];
 
   app.get(

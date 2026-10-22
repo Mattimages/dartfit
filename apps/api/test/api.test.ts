@@ -415,3 +415,31 @@ describe('push', () => {
     expect(pushes).toEqual([]);
   });
 });
+
+describe('cron (Vercel)', () => {
+  it('runs jobs only with the right secret, and does not exist without one', async () => {
+    let runs = 0;
+    const runJobs = async () => {
+      runs++;
+    };
+    const cronEnv = loadEnv({ NODE_ENV: 'test', CRON_SECRET: 'a-long-enough-cron-secret' });
+    const cronApp = createApp({
+      db,
+      env: cronEnv,
+      mailer: createMailer(db, cronEnv),
+      explainClient: null,
+      runJobs,
+    });
+    await request(cronApp).get('/api/cron/jobs').expect(404);
+    await request(cronApp).get('/api/cron/jobs').set('authorization', 'Bearer wrong').expect(404);
+    await request(cronApp)
+      .get('/api/cron/jobs')
+      .set('authorization', 'Bearer a-long-enough-cron-secret')
+      .expect(200);
+    expect(runs).toBe(1);
+    await request(app)
+      .get('/api/cron/jobs')
+      .set('authorization', 'Bearer a-long-enough-cron-secret')
+      .expect(404);
+  });
+});

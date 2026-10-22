@@ -28,6 +28,7 @@ export function photoUrl(modelId: string, width: 400 | 800): string | null {
   const p = catalogue.photos[modelId];
   if (!p) return null;
   if (DEMO) {
+    if (p.url.startsWith('data:')) return p.url;
     const u = new URL(p.url);
     if (u.hostname === 'cdn.shopify.com') u.searchParams.set('width', String(width));
     return u.toString();

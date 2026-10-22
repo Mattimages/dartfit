@@ -28,6 +28,8 @@ export const EnvSchema = z
     TRUST_PROXY: bool.default(false),
     /** Show every product photo in photos.csv, also those not from an affiliate feed (default on). */
     PREVIEW_PHOTOS: bool.default(true),
+    /** Set on Vercel: Vercel Cron sends it as a bearer token to /api/cron/jobs. */
+    CRON_SECRET: z.string().min(16).optional(),
     /** Legal name, KvK number and address shown in emails and the footer. */
     COMPANY_LINE: z.string().default('DartFit · KvK-nummer volgt · contact@example.com'),
     // Affiliate IDs for the other shops (AMAZON_TAG_FR, EBAY_CAMPAIGN_ID, DARTSCORNER_DEEPLINK, …)

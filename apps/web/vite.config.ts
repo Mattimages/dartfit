@@ -1,5 +1,5 @@
 import { defineConfig, type Plugin } from 'vite';
-import { cpSync, existsSync, mkdirSync, rmSync } from 'node:fs';
+import { cpSync, existsSync, mkdirSync, readFileSync, rmSync } from 'node:fs';
 import { execFileSync } from 'node:child_process';
 import { createRequire } from 'node:module';
 import { dirname, join } from 'node:path';
@@ -30,7 +30,10 @@ function mediapipeAssets(): Plugin {
     if (!existsSync(join(out, 'wasm', 'vision_wasm_internal.wasm'))) {
       mkdirSync(join(out, 'wasm'), { recursive: true });
       // SIMD and no-SIMD builds; the FilesetResolver picks one. The "module" variant is unused.
-      cpSync(join(tasks, 'wasm'), join(out, 'wasm'), { recursive: true, filter: (src) => !src.includes('module_internal') });
+      cpSync(join(tasks, 'wasm'), join(out, 'wasm'), {
+        recursive: true,
+        filter: (src) => !src.includes('module_internal'),
+      });
     }
     if (!existsSync(join(out, 'hands', 'hands.js'))) {
       mkdirSync(join(out, 'hands'), { recursive: true });
@@ -63,11 +66,31 @@ function catalogueModule(): Plugin {
     load(s) {
       if (s !== '\0' + id) return null;
       const root = join(here, '..', '..');
-      const json = execFileSync(process.execPath, [join(pkgDir('tsx'), 'dist', 'cli.mjs'), '--tsconfig', join(root, 'tsconfig.json'), join(root, 'packages', 'catalogue', 'src', 'export.ts')], {
-        cwd: root,
-        encoding: 'utf8',
-        maxBuffer: 16 * 1024 * 1024,
-      });
+      const json = execFileSync(
+        process.execPath,
+        [
+          join(pkgDir('tsx'), 'dist', 'cli.mjs'),
+          '--tsconfig',
+          join(root, 'tsconfig.json'),
+          join(root, 'packages', 'catalogue', 'src', 'export.ts'),
+        ],
+        {
+          cwd: root,
+          encoding: 'utf8',
+          maxBuffer: 16 * 1024 * 1024,
+        },
+      );
+      // PHOTOS_DIR (preview builds only): build the product photos into the page as data URLs, for
+      // hosts that block images from other sites. Files are named <model_id>.jpg.
+      const dir = process.env.PHOTOS_DIR;
+      if (dir) {
+        const cat = JSON.parse(json) as { photos: Record<string, { url: string; cleared: boolean }> };
+        for (const [m, p] of Object.entries(cat.photos)) {
+          const f = join(dir, `${m}.jpg`);
+          if (existsSync(f)) p.url = `data:image/jpeg;base64,${readFileSync(f).toString('base64')}`;
+        }
+        return `export const catalogue = ${JSON.stringify(cat)};`;
+      }
       return `export const catalogue = ${json};`;
     },
   };
@@ -77,7 +100,9 @@ export default defineConfig(({ mode }) => ({
   // The demo build runs from any folder (e.g. a static host or a hosted page): relative paths.
   base: mode === 'demo' ? './' : '/',
   define: {
-    __HAS_TASKS_MODEL__: JSON.stringify(mode !== 'demo' && existsSync(join(here, 'public', 'models', 'hand_landmarker.task'))),
+    __HAS_TASKS_MODEL__: JSON.stringify(
+      mode !== 'demo' && existsSync(join(here, 'public', 'models', 'hand_landmarker.task')),
+    ),
   },
   plugins: [mediapipeAssets(), catalogueModule(), ...(mode === 'demo' ? [demoTrim('dist-demo')] : [])],
   resolve: {
