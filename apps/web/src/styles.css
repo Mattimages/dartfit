@@ -2738,3 +2738,107 @@ a.card {
   background: #fff;
   border-color: #fff;
 }
+
+/* Between rounds of the looping film: a short fade of everything but the arena. */
+.hs-stage {
+  position: absolute;
+  inset: 0;
+  transition: opacity 0.4s ease;
+}
+.hs.hs-out .hs-stage {
+  opacity: 0;
+}
+.hs {
+  aspect-ratio: 1 / 1.2;
+}
+/* The closing shot: a stack of shop cards, bottom-anchored, growing upward. */
+.hs-cards {
+  position: absolute;
+  left: 12px;
+  right: 12px;
+  bottom: 12px;
+  z-index: 3;
+  display: flex;
+  flex-direction: column;
+  transform: translateY(140%);
+  transition: transform 0.75s var(--ease);
+}
+.hs-end .hs-cards {
+  transform: none;
+}
+.hs-cards .hs-card {
+  position: relative;
+  left: auto;
+  right: auto;
+  bottom: auto;
+  transform: none;
+  transition:
+    max-height 0.6s var(--ease),
+    margin-top 0.6s var(--ease),
+    padding 0.6s var(--ease),
+    opacity 0.45s ease 0.1s,
+    transform 0.6s var(--ease),
+    box-shadow 0.4s ease;
+}
+.hs-cards .hs-card.later {
+  max-height: 0;
+  margin-top: 0;
+  padding-block: 0;
+  opacity: 0;
+  overflow: hidden;
+  transform: translateY(24px);
+}
+.hs-cards .hs-card.later.in {
+  max-height: 120px;
+  margin-top: 8px;
+  padding-block: 10px;
+  opacity: 1;
+  transform: none;
+}
+.hs-cards .hs-card.best {
+  box-shadow:
+    0 0 0 2px #2ee59d,
+    0 22px 44px -16px rgb(0 0 0 / 0.6);
+}
+.hs-card img {
+  transition:
+    width 0.5s var(--ease),
+    height 0.5s var(--ease);
+}
+.hs-stack .hs-card {
+  grid-template-columns: 58px minmax(0, 1fr);
+}
+.hs-stack .hs-card img {
+  width: 58px;
+  height: 58px;
+}
+.hs-stack .hs-card b {
+  font-size: 0.92rem;
+}
+.hs-card-top {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.hs-tier {
+  display: inline-flex;
+  padding: 0.05rem 0.5rem;
+  border-radius: 999px;
+  font-size: 0.68rem;
+  font-weight: 600;
+  color: #fff;
+  background: #1f5fd6;
+}
+.hs-tier.tier-budget {
+  background: var(--green);
+}
+.hs-tier.tier-premium {
+  background: var(--red);
+}
+.hs-stack .hs-hand {
+  opacity: 0;
+}
+.hs-stack .hs-modelbox {
+  transform-origin: 50% 0;
+  transform: translateY(-118%) scale(0.66);
+}

@@ -1,7 +1,8 @@
 /**
  * The landing hero, as one short film: a hand is scanned, measurement lines are drawn on it, the
  * measurements become the ideal barrel, three real barrels slide over it (each pausing to show how
- * well it fits), the last is the best match, and it ends on that dart's shop card.
+ * well it fits), the last is the best match, and it ends on the shop cards: the best match, then
+ * the other price classes pushing up beneath it.
  *
  * Every number is real: the engine fits an average hand, the barrels are catalogue darts and the
  * percentages are their silhouette overlap with the ideal.
@@ -9,8 +10,10 @@
 import {
   fit,
   radiusAt,
+  priceTiers,
   recommend,
   silhouetteOverlap,
+  tierBoundsUsd,
   variantBarrel,
   type Silhouette,
   type Variant,
@@ -33,15 +36,42 @@ const wait = (ms: number) => new Promise((r) => setTimeout(r, ms));
 const dist = (a: MmPoint, b: MmPoint) => Math.hypot(a.x - b.x, a.y - b.y);
 
 interface Cast {
-  hand: { length: number; knuckles: number; index: number; points: MmPoint[] };
+  hand: { lengthMm: number; length: number; knuckles: number; index: number; points: MmPoint[] };
   ideal: Silhouette & { massG: number };
   barrels: Array<{ v: Variant; shape: Silhouette; overlap: number }>;
+  /** The price classes for the closing shot: the best match first, then the others. */
+  options: Array<{ tier: Tier; v: Variant; overlap: number; best: boolean }>;
+}
+type Tier = 'budget' | 'standard' | 'premium';
+const TIERS: Tier[] = ['budget', 'standard', 'premium'];
+
+/** A thrower for one round of the film: a plausible hand and how they hold and throw. */
+interface Thrower {
+  lengthMm: number;
+  hold: 'front' | 'middle' | 'rear';
+  fingers: 3 | 4;
+  throwStyle: 'flat' | 'arc' | 'unsure';
+  gripFeel: 2 | 3 | 4;
+}
+const FIRST: Thrower = { lengthMm: 186, hold: 'middle', fingers: 3, throwStyle: 'unsure', gripFeel: 3 };
+const pickOne = <T>(xs: readonly T[]) => xs[Math.floor(Math.random() * xs.length)]!;
+/** Adult hand lengths cluster around 188 mm (about ±9 mm); clipped to 168–206. */
+function randomThrower(): Thrower {
+  const g = Math.sqrt(-2 * Math.log(1 - Math.random())) * Math.cos(2 * Math.PI * Math.random());
+  return {
+    lengthMm: Math.round(Math.min(206, Math.max(168, 188 + 9 * g))),
+    hold: pickOne(['front', 'middle', 'middle', 'rear'] as const),
+    fingers: pickOne([3, 3, 4] as const),
+    throwStyle: pickOne(['flat', 'arc', 'unsure'] as const),
+    gripFeel: pickOne([2, 3, 3, 4] as const),
+  };
 }
 
 /** The hand, the ideal and three darts in rising order of fit; the last is the engine's pick. */
-function cast(pool: Variant[]): Cast | null {
-  const points = templateHand(186);
+function cast(pool: Variant[], who: Thrower = FIRST): Cast | null {
+  const points = templateHand(who.lengthMm);
   const hand = {
+    lengthMm: who.lengthMm,
     length: dist(points[0]!, points[12]!),
     knuckles: dist(points[5]!, points[17]!),
     index: dist(points[5]!, points[8]!),
@@ -60,11 +90,11 @@ function cast(pool: Variant[]): Cast | null {
     },
     {
       tip: 'steel',
-      hold: 'middle',
-      fingers: 3,
-      throwStyle: 'unsure',
+      hold: who.hold,
+      fingers: who.fingers,
+      throwStyle: who.throwStyle,
       moisture: 'normal',
-      gripFeel: 3,
+      gripFeel: who.gripFeel,
       thickness: 'auto',
     },
   );
@@ -83,10 +113,30 @@ function cast(pool: Variant[]): Cast | null {
   const first = near(best.overlap - 0.22, [best.v.brand]);
   const second = first && near(best.overlap - 0.1, [best.v.brand, first.v.brand]);
   if (!first || !second) return null;
+  // One dart per price class; the best match stands for its own class.
+  const bounds = tierBoundsUsd();
+  const tierOf = (v: Variant): Tier =>
+    (v.priceUsd ?? 0) <= bounds.budgetMaxUsd
+      ? 'budget'
+      : (v.priceUsd ?? 0) <= bounds.standardMaxUsd
+        ? 'standard'
+        : 'premium';
+  const tiers = priceTiers(f, pool, bounds);
+  const bestTier = tierOf(best.v);
+  const others = TIERS.filter((k) => k !== bestTier)
+    .map((k) => tiers[k])
+    .filter((x): x is NonNullable<typeof x> => !!x)
+    .map((x) => ({
+      tier: tierOf(x.variant),
+      v: x.variant,
+      overlap: silhouetteOverlap(f.barrel, variantBarrel(x.variant)),
+      best: false,
+    }));
   return {
     hand,
     ideal: { ...f.barrel },
     barrels: [first, second, best].sort((a, b) => a.overlap - b.overlap),
+    options: [{ tier: bestTier, v: best.v, overlap: best.overlap, best: true }, ...others],
   };
 }
 
@@ -108,7 +158,7 @@ function outline(b: Silhouette) {
 }
 
 function handLayer(c: Cast) {
-  const art = handArt({ lengthMm: 186, dots: true, className: 'scan' });
+  const art = handArt({ lengthMm: c.hand.lengthMm, dots: true, className: 'scan' });
   const vb = art.getAttribute('viewBox')!;
   const p = c.hand.points;
   const over = s('svg', { viewBox: vb, class: 'hs-measure', 'aria-hidden': 'true' });
@@ -186,43 +236,71 @@ function modelLayer(c: Cast) {
   return { svg, ideal, idealLabel, cands, shaft, point };
 }
 
-function shopCard(c: Cast) {
-  const best = c.barrels[c.barrels.length - 1]!;
-  const src = photoUrl(best.v.modelId, 400);
-  const eur = best.v.priceUsd ? approxEur(best.v.priceUsd) : null;
-  return h(
-    'a',
-    { class: 'hs-card', href: '#/scan' },
-    src ? h('img', { src, alt: '', decoding: 'async' }) : null,
-    h(
-      'div',
-      null,
-      h('span', { class: 'hs-card-chip' }, `${Math.round(best.overlap * 100)}% ${t('hs.match')}`),
-      h('b', null, dartName(best.v)),
-      h('span', { class: 'hs-card-meta' }, `${num(best.v.weightG)} g${eur ? ` · €${eur}` : ''}`),
-    ),
-  );
+/** The closing shot: the best match's card, then the other price classes pushing up beneath it. */
+function shopCards(c: Cast) {
+  const cards = c.options.map((o) => {
+    const src = photoUrl(o.v.modelId, 400);
+    const eur = o.v.priceUsd ? approxEur(o.v.priceUsd) : null;
+    return h(
+      'a',
+      { class: `hs-card${o.best ? ' best' : ' later'}`, href: '#/scan' },
+      src ? h('img', { src, alt: '', decoding: 'async' }) : null,
+      h(
+        'div',
+        null,
+        h(
+          'span',
+          { class: 'hs-card-top' },
+          h('span', { class: `hs-tier tier-${o.tier}` }, t(`land.tier.${o.tier}`)),
+          h('span', { class: 'hs-card-chip' }, `${Math.round(o.overlap * 100)}% ${t('hs.match')}`),
+        ),
+        h('b', null, dartName(o.v)),
+        h('span', { class: 'hs-card-meta' }, `${num(o.v.weightG)} g${eur ? ` · €${eur}` : ''}`),
+      ),
+    );
+  });
+  return {
+    box: h('div', { class: 'hs-cards' }, ...cards),
+    later: cards.filter((x) => x.classList.contains('later')),
+  };
 }
 
-/** Build the hero and run it once; returns null when the catalogue cannot cast the story. */
+/**
+ * Build the hero and keep it running: the first round is an average hand, every round after that a
+ * new plausible hand, grip and throw. Stops when the hero leaves the page. Null when the catalogue
+ * cannot cast the story.
+ */
 export function heroScan(pool: Variant[]): HTMLElement | null {
-  const c = cast(pool);
-  if (!c) return null;
+  const first = cast(pool);
+  if (!first) return null;
   const root = h('div', { class: 'hs', 'aria-label': t('hs.aria'), role: 'img' });
-  const run = () => play(root, c);
-  void run();
+  void (async () => {
+    let c: Cast = first;
+    for (;;) {
+      const finished = await play(root, c);
+      if (!finished) return;
+      await wait(4200);
+      if (!root.isConnected) return;
+      root.classList.add('hs-out');
+      await wait(450);
+      let next: Cast | null = null;
+      for (let i = 0; i < 6 && !next; i++) next = cast(pool, randomThrower());
+      c = next ?? first;
+      root.classList.remove('hs-out');
+    }
+  })();
   return root;
 }
 
-async function play(root: HTMLElement, c: Cast) {
+/** One round of the film. Resolves true when it reached the shop card, false when it should stop. */
+async function play(root: HTMLElement, c: Cast): Promise<boolean> {
   const { layer: hand, groups } = handLayer(c);
   const model = modelLayer(c);
   const modelBox = h('div', { class: 'hs-modelbox' }, model.svg);
   const step = h('span', { class: 'hs-step' });
   const chip = h('span', { class: 'hs-chip' }, h('b', null, '–'), h('span', null, t('hs.overlap')));
-  const card = shopCard(c);
-  const replay = h('button', { type: 'button', class: 'hs-replay' }, t('hs.replay'));
-  root.replaceChildren(hand, modelBox, chip, step, card, replay);
+  const cards = shopCards(c);
+  root.replaceChildren(h('div', { class: 'hs-stage' }, hand, modelBox, chip, step, cards.box));
 
   const still = typeof matchMedia === 'function' && matchMedia('(prefers-reduced-motion: reduce)').matches;
   const alive = () => root.isConnected || !root.dataset.started;
@@ -238,19 +316,19 @@ async function play(root: HTMLElement, c: Cast) {
       await new Promise((r) => requestAnimationFrame(r));
     }
   };
-  replay.addEventListener('click', () => void play(root, c));
-  root.classList.remove('hs-build', 'hs-end');
+  root.classList.remove('hs-build', 'hs-end', 'hs-stack');
 
   if (still) {
     // Reduced motion: the end state, no film.
-    root.classList.add('hs-build', 'hs-end');
+    root.classList.add('hs-build', 'hs-end', 'hs-stack');
+    cards.later.forEach((x) => x.classList.add('in'));
     groups.forEach((g) => g.classList.add('on'));
     chip.classList.add('on');
     model.cands.forEach((g, i) => g.classList.toggle('on', i === last));
     (chip.firstChild as HTMLElement).textContent = `${Math.round(c.barrels[last]!.overlap * 100)}%`;
     chip.classList.add('best');
     setStep(t('hs.step.best'));
-    return;
+    return false;
   }
   root.dataset.started = '1';
 
@@ -258,20 +336,20 @@ async function play(root: HTMLElement, c: Cast) {
   setStep(t('hs.step.scan'));
   hand.classList.add('scanning');
   await wait(1500);
-  if (!alive()) return;
+  if (!alive()) return false;
   // 2. Draw the measurements one by one.
   setStep(t('hs.step.measure'));
   for (const g of groups) {
     g.classList.add('on');
     await wait(520);
-    if (!alive()) return;
+    if (!alive()) return false;
   }
   await wait(500);
   // 3. The measurements become the ideal barrel.
   setStep(t('hs.step.model'));
   root.classList.add('hs-build');
   await wait(1300);
-  if (!alive()) return;
+  if (!alive()) return false;
   // 4. Three real barrels over the ideal, each pausing to show the fit.
   chip.classList.add('on');
   for (let i = 0; i <= last; i++) {
@@ -282,10 +360,10 @@ async function play(root: HTMLElement, c: Cast) {
       duration: 520,
       easing: 'cubic-bezier(0.2, 0.8, 0.2, 1)',
     }).finished;
-    if (!alive()) return;
+    if (!alive()) return false;
     await count(Math.round(c.barrels[i]!.overlap * 100), 520);
     await wait(i === last ? 500 : 900);
-    if (!alive()) return;
+    if (!alive()) return false;
     if (i < last) {
       await g.animate([{ transform: 'translateX(0)' }, { transform: 'translateX(-320px)' }], {
         duration: 380,
@@ -297,7 +375,16 @@ async function play(root: HTMLElement, c: Cast) {
   chip.classList.add('best');
   setStep(t('hs.step.best'));
   await wait(900);
-  if (!alive()) return;
-  // 5. Into the shop card.
+  if (!alive()) return false;
+  // 5. Into the shop card, then the other price classes push up beneath it.
   root.classList.add('hs-end');
+  await wait(1300);
+  if (!alive()) return false;
+  root.classList.add('hs-stack');
+  for (const x of cards.later) {
+    x.classList.add('in');
+    await wait(850);
+    if (!alive()) return false;
+  }
+  return true;
 }
