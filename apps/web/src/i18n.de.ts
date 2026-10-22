@@ -160,7 +160,7 @@ export const de: Partial<Record<Key, string>> = {
   'hs.replay': 'Nochmal',
   'land.title': 'Welcher Dart passt zu deiner Hand?',
   'land.lead':
-    'Leg deine Hand neben eine Bankkarte und beantworte ein paar Fragen. Du siehst sofort, welche Darts zu dir passen und wo du sie kaufst.',
+    'Leg deine Hand neben eine Bankkarte und beantworte ein paar Fragen. Du siehst sofort, welche Darts zu dir passen und welcher Profi so wirft wie du!',
   'land.cta': 'Hand messen',
   'land.cta.manual': 'Keine Kamera? Maße eingeben',
   'land.chip.match': 'Match',

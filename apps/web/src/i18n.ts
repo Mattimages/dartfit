@@ -20,7 +20,7 @@ const nl = {
   'hs.replay': 'Nog een keer',
   'land.title': 'Welke dart past bij jouw hand?',
   'land.lead':
-    'Leg je hand naast een bankpas en beantwoord een paar vragen. Je ziet meteen welke darts bij je passen, en waar je ze koopt.',
+    'Leg je hand naast een bankpas en beantwoord een paar vragen. Je ziet meteen welke darts bij je passen, en welke prof net zo gooit als jij!',
   'land.cta': 'Meet mijn hand',
   'land.cta.manual': 'Geen camera? Vul je maten in',
   'land.chip.match': 'match',
@@ -479,7 +479,7 @@ const en: Record<Key, string> = {
   'hs.replay': 'Play again',
   'land.title': 'Which dart fits your hand?',
   'land.lead':
-    "Put your hand next to a bank card and answer a few questions. You'll see right away which darts fit you, and where to buy them.",
+    "Put your hand next to a bank card and answer a few questions. You'll see right away which darts fit you, and which pro you throw like!",
   'land.cta': 'Measure my hand',
   'land.cta.manual': 'No camera? Type in your sizes',
   'land.chip.match': 'match',
