@@ -23,16 +23,14 @@ const appWith = (env: Record<string, string>, f: Fetcher) =>
   express().use(photoRouter(loadEnv({ NODE_ENV: 'test', ...env }), f, photos));
 
 describe('photo proxy', () => {
-  it('serves only cleared photos unless previews are on', async () => {
+  it('serves all photos by default; PREVIEW_PHOTOS=false limits it to cleared ones', async () => {
     const { f } = stub();
-    const app = appWith({}, f);
+    const app = appWith({ PREVIEW_PHOTOS: 'false' }, f);
     await request(app).get('/img/a').expect(404);
     await request(app).get('/img/b').expect(200);
-    expect([...servablePhotos(loadEnv({ NODE_ENV: 'test' }), photos)]).toEqual(['b']);
-    expect([...servablePhotos(loadEnv({ NODE_ENV: 'test', PREVIEW_PHOTOS: 'true' }), photos)]).toEqual([
-      'a',
-      'b',
-    ]);
+    const env = (v?: string) => loadEnv({ NODE_ENV: 'test', ...(v ? { PREVIEW_PHOTOS: v } : {}) });
+    expect([...servablePhotos(env('false'), photos)]).toEqual(['b']);
+    expect([...servablePhotos(env(), photos)]).toEqual(['a', 'b']);
   });
 
   it('fetches server-side once, then serves from cache with long caching', async () => {

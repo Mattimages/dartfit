@@ -18,12 +18,8 @@ const KEY = 'df_view';
 const EVENT = 'df:view';
 const DEMO = import.meta.env.MODE === 'demo';
 
-/** Models whose photo the API will serve; cleared photos until the API says otherwise. */
-let servable = new Set(
-  Object.entries(catalogue.photos)
-    .filter(([, p]) => p.cleared)
-    .map(([m]) => m),
-);
+/** Models whose photo the API will serve; every photo until the API says otherwise. */
+let servable = new Set(Object.keys(catalogue.photos));
 export function setServablePhotos(models: string[]) {
   servable = new Set(models);
 }
