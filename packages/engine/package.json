@@ -1,0 +1,10 @@
+{
+  "name": "@dartfit/engine",
+  "version": "3.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Pure fit, match and measurement functions. No I/O.",
+  "exports": {
+    ".": "./src/index.ts"
+  }
+}

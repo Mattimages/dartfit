@@ -1,0 +1,209 @@
+[
+  {
+    "id": "littler",
+    "name": "Luke Littler",
+    "country": "ENG",
+    "variantId": "target-littler-g1-23",
+    "exactDart": true,
+    "playingWeightG": 23,
+    "sourceUrl": "https://skysports.com/darts/news/12040/13567352/luke-littler-target-darts-explain-the-science-behind-world-no-1s-phenomenal-success"
+  },
+  {
+    "id": "humphries",
+    "name": "Luke Humphries",
+    "country": "ENG",
+    "variantId": "rd-humphries-tx4-22",
+    "exactDart": false,
+    "playingWeightG": 22,
+    "sourceUrl": "https://en.wikipedia.org/wiki/Luke_Humphries"
+  },
+  {
+    "id": "vanveen",
+    "name": "Gian van Veen",
+    "country": "NED",
+    "variantId": "rd-vanveen-tour-switch-21",
+    "exactDart": false,
+    "playingWeightG": 21,
+    "sourceUrl": "https://en.wikipedia.org/wiki/Gian_van_Veen"
+  },
+  {
+    "id": "price",
+    "name": "Gerwyn Price",
+    "country": "WAL",
+    "variantId": "rd-price-original-23",
+    "exactDart": false,
+    "playingWeightG": 23,
+    "sourceUrl": "https://en.wikipedia.org/wiki/Gerwyn_Price"
+  },
+  {
+    "id": "vangerwen",
+    "name": "Michael van Gerwen",
+    "country": "NED",
+    "variantId": "winmau-mvg-ts-pro-23",
+    "exactDart": false,
+    "playingWeightG": null,
+    "sourceUrl": "https://a-zdarts.com/products/winmau-mvg-ts-pro-switch-point-steel-tip-darts-23gm"
+  },
+  {
+    "id": "noppert",
+    "name": "Danny Noppert",
+    "country": "NED",
+    "variantId": "winmau-noppert-sig2-23",
+    "exactDart": false,
+    "playingWeightG": null,
+    "sourceUrl": "https://a-zdarts.com/products/winmau-danny-noppert-signature-edition-2-0-steel-tip-darts-23gm"
+  },
+  {
+    "id": "vanbarneveld",
+    "name": "Raymond van Barneveld",
+    "country": "NED",
+    "variantId": "target-rvb-gen6-21",
+    "exactDart": false,
+    "playingWeightG": null,
+    "sourceUrl": "https://a-zdarts.com/products/target-raymond-van-barneveld-gen-6-swiss-point-steel-tip-darts-21gm"
+  },
+  {
+    "id": "vanduijvenbode",
+    "name": "Dirk van Duijvenbode",
+    "country": "NED",
+    "variantId": "bulls-dvd-23",
+    "exactDart": false,
+    "playingWeightG": null,
+    "sourceUrl": "https://a-zdarts.com/products/87-17423-23-bulls-dirk-van-deijvenbode-steel-tip-darts-23gm"
+  },
+  {
+    "id": "anderson",
+    "name": "Gary Anderson",
+    "country": "SCO",
+    "variantId": "unicorn-anderson-p6-duo-23",
+    "exactDart": false,
+    "playingWeightG": null,
+    "sourceUrl": "https://a-zdarts.com/products/unicorn-gary-anderson-phase-6-duo-steel-tip-darts-23gm"
+  },
+  {
+    "id": "clayton",
+    "name": "Jonny Clayton",
+    "country": "WAL",
+    "variantId": "rd-clayton-original2-22",
+    "exactDart": false,
+    "playingWeightG": null,
+    "sourceUrl": "https://a-zdarts.com/products/red-dragon-jonny-clayton-original-2-0-steel-tip-darts-22gm"
+  },
+  {
+    "id": "bunting",
+    "name": "Stephen Bunting",
+    "country": "ENG",
+    "variantId": "target-bunting-gen5-22",
+    "exactDart": false,
+    "playingWeightG": null,
+    "sourceUrl": "https://a-zdarts.com/products/target-stephen-bunting-gen-5-swiss-point-steel-tip-darts-22gm"
+  },
+  {
+    "id": "aspinall",
+    "name": "Nathan Aspinall",
+    "country": "ENG",
+    "variantId": "target-aspinall-95k-26",
+    "exactDart": false,
+    "playingWeightG": null,
+    "sourceUrl": "https://a-zdarts.com/products/target-nathan-aspinall-95k-swiss-point-steel-tip-darts-26gm"
+  },
+  {
+    "id": "rock",
+    "name": "Josh Rock",
+    "country": "NIR",
+    "variantId": "target-rock-g1-22",
+    "exactDart": false,
+    "playingWeightG": null,
+    "sourceUrl": "https://a-zdarts.com/products/target-josh-rock-g1-swiss-point-steel-tip-darts-22gm"
+  },
+  {
+    "id": "wright",
+    "name": "Peter Wright",
+    "country": "SCO",
+    "variantId": "rd-wright-dwc-se-20",
+    "exactDart": false,
+    "playingWeightG": null,
+    "sourceUrl": "https://a-zdarts.com/products/red-dragon-peter-wright-snakebite-double-world-champion-special-edition-steel-tip-darts-20gm"
+  },
+  {
+    "id": "zonneveld",
+    "name": "Niels Zonneveld",
+    "country": "NED",
+    "variantId": "shot-niels-zonneveld-2-23",
+    "exactDart": false,
+    "playingWeightG": 23,
+    "sourceUrl": "https://a-zdarts.com/products/shot-pro-series-niels-zonneveld-2-turbo-point-steel-tip-darts-23gm"
+  },
+  {
+    "id": "klaasen",
+    "name": "Jelle Klaasen",
+    "country": "NED",
+    "variantId": "one80-jelle-klaasen-v3-signature-23",
+    "exactDart": false,
+    "playingWeightG": 23,
+    "sourceUrl": "https://a-zdarts.com/products/one80-jelle-klaasen-v3-signature-steel-tip-darts-23gm"
+  },
+  {
+    "id": "merkx",
+    "name": "Alexander Merkx",
+    "country": "NED",
+    "variantId": "shot-alexander-merkx-23",
+    "exactDart": false,
+    "playingWeightG": 23,
+    "sourceUrl": "https://a-zdarts.com/products/shot-pro-series-alexander-merkx-turbo-point-steel-tip-darts-23gm"
+  },
+  {
+    "id": "smith",
+    "name": "Michael Smith",
+    "country": "ENG",
+    "variantId": "shot-michael-smith-series-ii-24",
+    "exactDart": false,
+    "playingWeightG": 24,
+    "sourceUrl": "https://a-zdarts.com/products/shot-michael-smith-series-ll-steel-tip-darts-24gm"
+  },
+  {
+    "id": "searle",
+    "name": "Ryan Searle",
+    "country": "ENG",
+    "variantId": "harrows-ryan-searle-24",
+    "exactDart": false,
+    "playingWeightG": 24,
+    "sourceUrl": "https://a-zdarts.com/products/harrows-ryan-searle-quick-point-steel-tip-darts-24gm"
+  },
+  {
+    "id": "woodhouse",
+    "name": "Luke Woodhouse",
+    "country": "ENG",
+    "variantId": "harrows-luke-woodhouse-series-2-23",
+    "exactDart": false,
+    "playingWeightG": 23,
+    "sourceUrl": "https://a-zdarts.com/products/harrows-luke-woodhouse-series-2-quick-point-steel-tip-darts-23gm"
+  },
+  {
+    "id": "cullen",
+    "name": "Joe Cullen",
+    "country": "ENG",
+    "variantId": "winmau-joe-cullen-24",
+    "exactDart": false,
+    "playingWeightG": 24,
+    "sourceUrl": "https://a-zdarts.com/products/winmau-joe-cullen-steel-tip-darts-24gm"
+  },
+  {
+    "id": "koltsov",
+    "name": "Boris Koltsov",
+    "country": "RUS",
+    "variantId": "one80-boris-koltsov-signature-22",
+    "exactDart": false,
+    "playingWeightG": 22,
+    "sourceUrl": "https://a-zdarts.com/products/one80-boris-koltsov-signature-steel-tip-darts-22gm"
+  },
+  {
+    "id": "noguera",
+    "name": "Jesús Noguera",
+    "country": "ESP",
+    "variantId": "one80-jesus-noguera-signature-22",
+    "exactDart": false,
+    "playingWeightG": 22,
+    "sourceUrl": "https://a-zdarts.com/products/one80-jesus-noguera-perea-signature-steel-tip-darts-22gm"
+  }
+]

@@ -1,6 +1,10 @@
 node_modules/
+dist/
 .env
-dartfit.db
-uploads/
-*.db-shm
-*.db-wal
+*.log
+.data/
+coverage/
+apps/web/public/mediapipe/
+apps/web/public/models/*.task
+.DS_Store
+apps/web/dist-demo/
