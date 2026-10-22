@@ -44,6 +44,22 @@ describe('affiliate tagging', () => {
     expect(affiliateReady(prod, shop('amazon_de'))).toBe(false);
     expect(affiliateReady(env, shop('azdarts'))).toBe(false);
   });
+  it('ALLOW_UNTAGGED_LINKS: shops without an ID yet are linked plainly; spec-only sources never', () => {
+    const base = {
+      NODE_ENV: 'production',
+      DATABASE_URL: 'postgres://x',
+      PUBLIC_URL: 'https://x.test',
+      SESSION_SECRET: 'p'.repeat(40),
+    };
+    const strict = loadEnv(base);
+    const open = loadEnv({ ...base, ALLOW_UNTAGGED_LINKS: 'true' });
+    expect(affiliateReady(strict, shop('bol'))).toBe(false);
+    expect(affiliateReady(open, shop('bol'))).toBe(true);
+    expect(affiliateReady(open, shop('azdarts'))).toBe(false);
+    expect(affiliate(open, 'bol', 'https://www.bol.com/nl/s/?searchtext=x')).toBe(
+      'https://www.bol.com/nl/s/?searchtext=x',
+    );
+  });
   it('every EU+ country has at least one affiliate shop', () => {
     const { retailers } = loadCatalogue();
     const countries = [

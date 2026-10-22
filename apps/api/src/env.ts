@@ -28,6 +28,8 @@ export const EnvSchema = z
     TRUST_PROXY: bool.default(false),
     /** Show every product photo in photos.csv, also those not from an affiliate feed (default on). */
     PREVIEW_PHOTOS: bool.default(true),
+    /** Link affiliate shops whose ID is not set yet, untagged (launch before the sign-ups). */
+    ALLOW_UNTAGGED_LINKS: bool.default(false),
     /** Set on Vercel: Vercel Cron sends it as a bearer token to /api/cron/jobs. */
     CRON_SECRET: z.string().min(16).optional(),
     /** Legal name, KvK number and address shown in emails and the footer. */

@@ -122,7 +122,12 @@ export const MAX_SHOPS = 3;
 export function affiliateReady(env: Env, r: Retailer): boolean {
   if (!r.affiliateEnv) return false;
   if (env.NODE_ENV !== 'production') return true;
-  return Boolean((env as unknown as Record<string, string | undefined>)[r.affiliateEnv]);
+  // Until the owner's affiliate accounts exist, ALLOW_UNTAGGED_LINKS shows these shops with plain
+  // links; each switches to a tagged link as soon as its ID is set. Spec-only sources stay out.
+  return (
+    Boolean((env as unknown as Record<string, string | undefined>)[r.affiliateEnv]) ||
+    env.ALLOW_UNTAGGED_LINKS
+  );
 }
 
 /**
