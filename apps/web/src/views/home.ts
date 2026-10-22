@@ -129,14 +129,6 @@ export function homeView(root: HTMLElement) {
     h(
       'section',
       { class: 'land-block' },
-      h('h2', null, t('land.tiers.title')),
-      h('p', { class: 'sub' }, t('land.tiers.sub')),
-      h('ul', { class: 'tier-cards' }, tierCard('budget'), tierCard('standard'), tierCard('premium')),
-    ),
-
-    h(
-      'section',
-      { class: 'land-block' },
       h('h2', null, t('land.how.title')),
       h(
         'ol',
@@ -154,6 +146,14 @@ export function homeView(root: HTMLElement) {
           ),
         ),
       ),
+    ),
+
+    h(
+      'section',
+      { class: 'land-block' },
+      h('h2', null, t('land.tiers.title')),
+      h('p', { class: 'sub' }, t('land.tiers.sub')),
+      h('ul', { class: 'tier-cards' }, tierCard('budget'), tierCard('standard'), tierCard('premium')),
     ),
 
     proCards.length
