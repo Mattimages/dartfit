@@ -3439,7 +3439,7 @@ a.card {
   margin-top: -2px;
   border-radius: 2px;
   background: #e3122c;
-  transition: width 0.5s var(--ease);
+  transition: width 0.4s var(--ease);
 }
 .hs-slider-knob {
   position: absolute;
@@ -3455,5 +3455,5 @@ a.card {
   font-size: 0.85rem;
   font-weight: 650;
   box-shadow: 0 0 0 3px rgb(227 18 44 / 0.3);
-  transition: left 0.5s var(--ease);
+  transition: left 0.4s var(--ease);
 }

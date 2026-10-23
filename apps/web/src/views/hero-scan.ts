@@ -355,25 +355,25 @@ function askPanel(who: Thrower) {
 
   async function run(wait: (ms: number) => Promise<unknown>, alive: () => boolean) {
     holdRow.classList.add('in');
-    await wait(1100);
+    await wait(750);
     if (!alive()) return false;
     holds[['front', 'middle', 'rear'].indexOf(who.hold)]!.classList.add('on');
     now.hold = who.hold;
     live.update({ ...now }, 'hold');
-    await wait(1700);
+    await wait(1050);
     if (!alive()) return false;
     gripRow.classList.add('in');
     live.update({ ...now }, 'gripFeel');
-    await wait(900);
+    await wait(650);
     for (let g = 2; g <= who.gripFeel; g++) {
       setGrip(g);
       now.gripFeel = g as Answers['gripFeel'];
       live.update({ ...now }, 'gripFeel');
-      await wait(650);
+      await wait(520);
       if (!alive()) return false;
     }
     gripRow.classList.add('done');
-    await wait(1500);
+    await wait(1100);
     return alive();
   }
 
