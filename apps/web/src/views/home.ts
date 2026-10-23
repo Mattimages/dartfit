@@ -68,7 +68,6 @@ export function homeView(root: HTMLElement) {
   const all = showable();
   const picks = tierPicks(all);
   const fanDarts = [picks.budget, picks.premium, picks.standard].filter((v): v is Variant => !!v);
-  const brands = new Set(variants().map((v) => v.brand)).size;
 
   const tierCard = (tier: Tier) => {
     const v = picks[tier];
@@ -117,13 +116,6 @@ export function homeView(root: HTMLElement) {
         { class: 'hero-cta' },
         h('a', { class: 'btn block', href: '#/scan', onclick: start }, t('land.cta')),
         h('a', { class: 'btn link', href: '#/manual', onclick: start }, t('land.cta.manual')),
-      ),
-      h(
-        'ul',
-        { class: 'proof' },
-        h('li', null, h('b', null, String(variants().length)), t('land.proof.darts')),
-        h('li', null, h('b', null, String(brands)), t('land.proof.brands')),
-        h('li', null, h('b', null, '2'), t('land.proof.minutes')),
       ),
     ),
 

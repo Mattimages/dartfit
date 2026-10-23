@@ -249,6 +249,23 @@ describe('accounts, saving and alerts (Phase 4 end-to-end)', () => {
     expect(consents).toEqual(expect.arrayContaining([{ kind: 'alerts_email', granted: true }]));
   });
 
+  it('"keep me posted" under a result: confirm email, alerts on, back to the fit', async () => {
+    const other = request.agent(app);
+    const fit = await other.post('/api/fit').send({ measurements, answers }).expect(200);
+    const mail = 'posted@example.com';
+    await other
+      .post('/api/auth/request')
+      .send({ email: mail, fitId: fit.body.id, purpose: 'alerts', confirmsAge16: true, lang: 'en' })
+      .expect(200);
+    const sent = (await outbox(mail))[0]!;
+    expect(sent.subject).toBe('Confirm your dart alert');
+    expect(sent.body_text).toMatch(/even better/);
+    const token = sent.body_text.match(/token=([\w-]+)/)![1];
+    const r = await other.get(`/api/auth/verify?token=${token}`).expect(302);
+    expect(r.headers.location).toBe(`/#/fit/${fit.body.id}?saved=1&alerts=1`);
+    expect((await other.get('/api/me').expect(200)).body.user.alerts_email).toBe(true);
+  });
+
   it('a login link works once only', async () => {
     const mails = await outbox(email);
     const token = mails.find((m) => m.kind === 'login')!.body_text.match(/token=([\w-]+)/)![1];

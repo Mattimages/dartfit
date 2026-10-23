@@ -15,6 +15,8 @@ Mobile site: measure the throwing hand next to a bank card, fit darts to it, lin
 - Product photos live in `packages/catalogue/data/photos.csv` and are served from our own origin through the API's `/img/<model>` proxy (CSP keeps `img-src 'self'`; visitors never contact an image CDN). All photos are shown (`PREVIEW_PHOTOS` defaults to true, owner's decision 22 Oct); `cleared` marks which come from an affiliate feed, and `PREVIEW_PHOTOS=false` limits the site to those.
 - The result's product box has two views: **Foto** and **Model match** (the dart drawn over the player's ideal barrel, with `silhouetteOverlap` as a %). The choice is site-wide (`apps/web/src/media.ts`).
 - Design system: Geist, hairlines (1px `--line`), radii `--r-ctl` 12 / `--r-tile` 16 / `--r-card` 20 / `--r-stage` 24, weights 500–650, tight negative tracking on headings and numbers.
+- A result ends with "keep me posted" (`apps/web/src/views/alert-signup.ts`): double opt-in through `/api/auth/request` with `purpose: 'alerts'`, and an alert goes out only when a new dart becomes that person's best match (`jobs.ts`). Mail needs `SMTP_URL`; without it messages only land in the `outbox` table.
+- The hand drawing (`draw/art.ts`) is traced from the 21 landmarks; skin tone comes from CSS custom properties (`SKIN_TONES`), and the landing film picks a new one each loop.
 - Country (shops) and language are separate; see `apps/web/src/region.ts`. German lives in `i18n.de.ts` and falls back to English.
 - Copy lives in `apps/web/src/i18n.ts`, NL and EN side by side. Write plain Dutch; no "je/u" mixing (use je).
 

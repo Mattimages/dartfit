@@ -457,29 +457,58 @@ input:focus-visible {
 }
 
 /* ── Illustrations ────────────────────────────────────────────────── */
+/* Hand: skin tone set per drawing with these four properties (see SKIN_TONES in draw/art.ts). */
+.hand-art {
+  --skin: #e3b896;
+  --skin-hi: #f3d5be;
+  --skin-shade: #b9805e;
+  --nail: #f4dbd1;
+}
+.hand-art .skin-hi {
+  stop-color: var(--skin-hi);
+}
+.hand-art .skin-base {
+  stop-color: var(--skin);
+}
+.hand-art .skin-shade {
+  stop-color: var(--skin-shade);
+}
+.hand-art .fade-0 {
+  stop-color: #fff;
+}
+.hand-art .fade-1 {
+  stop-color: #000;
+}
 .hand-art .hand-skin {
-  fill: #dfe3ea;
-  stroke: #dfe3ea;
+  stroke: var(--skin-shade);
   stroke-linejoin: round;
 }
-.hand-art .wrist-0 {
-  stop-color: #dfe3ea;
+.hand-art .hand-tendon {
+  fill: none;
+  stroke: var(--skin-hi);
+  stroke-linecap: round;
+  opacity: 0.45;
 }
-.hand-art .wrist-1 {
-  stop-color: #dfe3ea;
-  stop-opacity: 0;
+.hand-art .hand-knuckle {
+  fill: var(--skin-hi);
+  opacity: 0.55;
+}
+.hand-art .hand-crease {
+  fill: none;
+  stroke: var(--skin-shade);
+  stroke-linecap: round;
+  opacity: 0.7;
+}
+.hand-art .hand-nail {
+  fill: var(--nail);
+  stroke: var(--skin-shade);
+  stroke-opacity: 0.6;
 }
 .hand-art .hand-bone {
   stroke: var(--red);
   fill: none;
   stroke-linecap: round;
   opacity: 0.45;
-}
-.hand-art .hand-finger {
-  fill: none;
-  stroke: #dfe3ea;
-  stroke-linecap: round;
-  stroke-linejoin: round;
 }
 .hand-art .hand-dot {
   fill: var(--red);
@@ -2596,21 +2625,12 @@ a.card {
   );
   opacity: 0.26;
 }
-.hs .hand-art .hand-skin,
-.hs .hand-art .hand-finger {
-  fill: #e6edf7;
-  stroke: #e6edf7;
-}
-.hs .hand-art .hand-skin {
-  fill-opacity: 0.92;
-}
-.hs .hand-art .wrist-0,
-.hs .hand-art .wrist-1 {
-  stop-color: #e6edf7;
+.hs .hand-art {
+  filter: drop-shadow(0 10px 18px rgb(0 0 0 / 0.35));
 }
 .hs .hand-art .hand-bone {
   stroke: #ff4d5e;
-  opacity: 0.7;
+  opacity: 0.55;
 }
 .hs .hand-art .hand-dot {
   fill: #ff3b4f;
@@ -2841,4 +2861,123 @@ a.card {
 .hs-stack .hs-modelbox {
   transform-origin: 50% 0;
   transform: translateY(-118%) scale(0.66);
+}
+
+/* ── "Keep me posted" (end of a result) ───────────────────────────────── */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+.alert-signup {
+  position: relative;
+  display: grid;
+  gap: var(--s3);
+  padding: var(--s6) var(--s5) var(--s5);
+  border-radius: var(--r-stage);
+  overflow: hidden;
+  isolation: isolate;
+  background:
+    radial-gradient(90% 120% at 100% 0%, rgb(227 18 44 / 0.28), transparent 60%),
+    linear-gradient(160deg, #16243a 0%, var(--navy) 70%);
+  color: #fff;
+}
+/* The same board ring as the landing film, peeking in from the corner. */
+.alert-signup::before {
+  content: '';
+  position: absolute;
+  z-index: -1;
+  width: 15rem;
+  aspect-ratio: 1;
+  right: -6rem;
+  top: -6rem;
+  border-radius: 50%;
+  background: repeating-radial-gradient(circle, rgb(255 255 255 / 0.1) 0 1px, transparent 1px 1.4rem);
+}
+.alert-signup h2 {
+  margin: 0;
+  font-size: 1.5rem;
+  line-height: 1.15;
+  letter-spacing: -0.03em;
+  font-weight: 650;
+  text-wrap: balance;
+  max-width: 18ch;
+}
+.alert-signup > p {
+  margin: 0;
+  color: rgb(255 255 255 / 0.82);
+  max-width: 34ch;
+}
+.alert-form {
+  display: grid;
+  gap: var(--s3);
+  margin-top: var(--s2);
+}
+.alert-row {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--s2);
+}
+@media (min-width: 420px) {
+  .alert-row {
+    grid-template-columns: 1fr auto;
+  }
+}
+.alert-signup input[type='email'] {
+  background: #fff;
+  border-color: transparent;
+  color: var(--ink);
+}
+.alert-signup input[type='email']:focus-visible {
+  box-shadow: 0 0 0 4px rgb(255 255 255 / 0.25);
+}
+.alert-signup .btn {
+  white-space: nowrap;
+}
+.alert-signup .check {
+  font-size: 0.9rem;
+  color: rgb(255 255 255 / 0.85);
+}
+.alert-signup .check input {
+  accent-color: #fff;
+}
+.alert-msg {
+  margin: 0;
+  min-height: 1.2em;
+  font-weight: 550;
+}
+.alert-msg:empty {
+  display: none;
+}
+.alert-msg.error {
+  color: #ffb3bd;
+}
+.alert-fine {
+  margin: 0;
+  font-size: 0.8rem;
+  color: rgb(255 255 255 / 0.6);
+}
+.alert-fine a {
+  color: inherit;
+}
+.alert-signup.sent .alert-row,
+.alert-signup.sent .check {
+  display: none;
+}
+.alert-signup.sent .alert-msg,
+.alert-signup.done > p:last-child {
+  padding: var(--s3) var(--s4);
+  border-radius: var(--r-ctl);
+  background: rgb(10 143 90 / 0.25);
+  border: 1px solid rgb(10 143 90 / 0.6);
+  color: #fff;
+}
+
+/* Measurement labels may run past the drawing's own box (the ruler sits beside the hand). */
+.hs-hand > svg,
+.hs-measure {
+  overflow: visible;
 }

@@ -18,7 +18,7 @@ import {
   type Silhouette,
   type Variant,
 } from '@dartfit/engine';
-import { handArt, templateHand, type MmPoint } from '../draw/art';
+import { handArt, SKIN_TONES, templateHand, type MmPoint } from '../draw/art';
 import { h } from '../h';
 import { num, t } from '../i18n';
 import { approxEur } from '../money';
@@ -36,7 +36,14 @@ const wait = (ms: number) => new Promise((r) => setTimeout(r, ms));
 const dist = (a: MmPoint, b: MmPoint) => Math.hypot(a.x - b.x, a.y - b.y);
 
 interface Cast {
-  hand: { lengthMm: number; length: number; knuckles: number; index: number; points: MmPoint[] };
+  hand: {
+    lengthMm: number;
+    length: number;
+    knuckles: number;
+    index: number;
+    points: MmPoint[];
+    tone: number;
+  };
   ideal: Silhouette & { massG: number };
   barrels: Array<{ v: Variant; shape: Silhouette; overlap: number }>;
   /** The price classes for the closing shot: the best match first, then the others. */
@@ -52,8 +59,17 @@ interface Thrower {
   fingers: 3 | 4;
   throwStyle: 'flat' | 'arc' | 'unsure';
   gripFeel: 2 | 3 | 4;
+  /** Skin tone of the drawn hand, an index into SKIN_TONES. */
+  tone: number;
 }
-const FIRST: Thrower = { lengthMm: 186, hold: 'middle', fingers: 3, throwStyle: 'unsure', gripFeel: 3 };
+const FIRST: Thrower = {
+  lengthMm: 186,
+  hold: 'middle',
+  fingers: 3,
+  throwStyle: 'unsure',
+  gripFeel: 3,
+  tone: 1,
+};
 const pickOne = <T>(xs: readonly T[]) => xs[Math.floor(Math.random() * xs.length)]!;
 /** Adult hand lengths cluster around 188 mm (about ±9 mm); clipped to 168–206. */
 function randomThrower(): Thrower {
@@ -64,6 +80,7 @@ function randomThrower(): Thrower {
     fingers: pickOne([3, 3, 4] as const),
     throwStyle: pickOne(['flat', 'arc', 'unsure'] as const),
     gripFeel: pickOne([2, 3, 3, 4] as const),
+    tone: Math.floor(Math.random() * SKIN_TONES.length),
   };
 }
 
@@ -76,6 +93,7 @@ function cast(pool: Variant[], who: Thrower = FIRST): Cast | null {
     knuckles: dist(points[5]!, points[17]!),
     index: dist(points[5]!, points[8]!),
     points,
+    tone: who.tone,
   };
   const f = fit(
     {
@@ -159,6 +177,10 @@ function outline(b: Silhouette) {
 
 function handLayer(c: Cast) {
   const art = handArt({ lengthMm: c.hand.lengthMm, dots: true, className: 'scan' });
+  // A different person each round, so a different skin tone too.
+  const [skin, hi, shade, nail] = SKIN_TONES[c.hand.tone % SKIN_TONES.length]!;
+  (art as unknown as HTMLElement).style.cssText =
+    `--skin:${skin};--skin-hi:${hi};--skin-shade:${shade};--nail:${nail}`;
   const vb = art.getAttribute('viewBox')!;
   const p = c.hand.points;
   const over = s('svg', { viewBox: vb, class: 'hs-measure', 'aria-hidden': 'true' });
@@ -183,8 +205,8 @@ function handLayer(c: Cast) {
     (() => {
       // Written along the ruler so it never runs off the edge.
       const y = (p[0]!.y + p[12]!.y) / 2;
-      const el = label(rx + 13, y, mm(c.hand.length), 'middle');
-      el.setAttribute('transform', `rotate(-90 ${rx + 13} ${y})`);
+      const el = label(rx + 10, y, mm(c.hand.length), 'middle');
+      el.setAttribute('transform', `rotate(90 ${rx + 10} ${y})`);
       return el;
     })(),
   );

@@ -17,6 +17,7 @@ import { balanceName, dartName, reasonText, shapeName } from './words';
 import { approxEur } from '../money';
 import { matchPct } from '../score';
 import { dartMedia } from '../media';
+import { alertSignup } from './alert-signup';
 
 const k = (s: string) => s as Key;
 type FullPick = RecPick & { offers: Offer[] };
@@ -189,7 +190,7 @@ function tierHero(r: FitResult, start: TierKey | null): HTMLElement | null {
   return h('section', { class: 'r-hero' }, h('h1', { class: 'visually-hidden' }, t('r.title')), tabs, panel);
 }
 
-export async function resultView(root: HTMLElement, params: Record<string, string>) {
+export async function resultView(root: HTMLElement, params: Record<string, string>, query?: URLSearchParams) {
   let r: FitResult;
   try {
     r = await getFit(params.id ?? '');
@@ -392,12 +393,10 @@ export async function resultView(root: HTMLElement, params: Record<string, strin
       more(t('r.setup.title'), setup),
       whatIf.length ? more(t('r.whatif'), h('ul', { class: 'whatif' }, ...whatIf)) : null,
     ),
+    alertSignup(r.id ?? undefined, { saved: !!r.saved, justConfirmed: query?.get('alerts') === '1' }),
     h(
       'section',
       { class: 'r-actions' },
-      DEMO || r.saved || !r.id
-        ? null
-        : h('a', { class: 'btn block', href: `#/signin?fit=${encodeURIComponent(r.id)}` }, t('r.save')),
       DEMO ? null : copyBtn,
       h('a', { class: 'btn ghost block', href: '#/' }, t('r.again')),
       h(

@@ -118,7 +118,7 @@ export async function scheduleDaily(db: Db, now = new Date()) {
 
 /**
  * New dart launched: score it against every opted-in user's LATEST fit, alert only when it would
- * enter their top three with a good or excellent fit. The alert_sends primary key guarantees one
+ * become their best match with a good or excellent fit. The alert_sends primary key guarantees one
  * alert per user per variant even if the job runs twice.
  */
 async function alertForVariant(d: JobDeps, p: Record<string, unknown>) {
@@ -147,8 +147,8 @@ async function alertForVariant(d: JobDeps, p: Record<string, unknown>) {
     if (f.tip !== v.tip) continue;
     const s = scoreVariant(f, v);
     if (s.quality !== 'excellent' && s.quality !== 'good') continue;
-    const top = recommend(f, variants).picks.slice(0, 3);
-    if (!top.some((x) => x.variant.modelId === v.modelId)) continue;
+    // The promise is "an even better fitting dart": only alert when the new dart is now their best match.
+    if (recommend(f, variants).picks[0]?.variant.modelId !== v.modelId) continue;
     const inserted = await d.db.query(
       `INSERT INTO alert_sends(user_id, variant_id, channel) VALUES ($1,$2,$3) ON CONFLICT DO NOTHING RETURNING user_id`,
       [row.user_id, v.id, row.alerts_email ? 'email' : 'push'],

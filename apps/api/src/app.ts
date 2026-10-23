@@ -407,6 +407,9 @@ export function createApp(deps: AppDeps) {
         [body.email],
       );
       // Same answer either way, so the endpoint does not reveal who has an account.
+      // The result page's "keep me posted" box is an alert opt-in by definition.
+      const alerts = body.purpose === 'alerts';
+      if (alerts) body.alertsEmail = true;
       if (recent.length < 3) {
         const token = randomToken();
         await db.query(
@@ -420,14 +423,16 @@ export function createApp(deps: AppDeps) {
               alertsEmail: body.alertsEmail,
               feedbackEmail: body.feedbackEmail,
               consentVersion: body.consentVersion,
+              purpose: body.purpose,
             }),
           ],
         );
+        const k = alerts ? 'confirm' : 'login';
         await mailer.send({
           to: body.email,
           kind: 'login',
-          subject: t(body.lang, 'login.subject'),
-          text: t(body.lang, 'login.body', { url: `${env.PUBLIC_URL}/api/auth/verify?token=${token}` }),
+          subject: t(body.lang, `${k}.subject`),
+          text: t(body.lang, `${k}.body`, { url: `${env.PUBLIC_URL}/api/auth/verify?token=${token}` }),
         });
       }
       res.json({ ok: true });
@@ -447,6 +452,7 @@ export function createApp(deps: AppDeps) {
             alertsEmail?: boolean;
             feedbackEmail?: boolean;
             consentVersion?: string;
+            purpose?: 'login' | 'alerts';
           };
         }>(
           `UPDATE login_tokens SET used_at=now() WHERE token_hash=$1 AND used_at IS NULL AND expires_at > now() RETURNING email, payload`,
@@ -485,7 +491,10 @@ export function createApp(deps: AppDeps) {
         maxAge: SESSION_DAYS * 864e5,
         path: '/',
       });
-      res.redirect(302, p.fitId ? `/#/fit/${p.fitId}?saved=1` : '/#/me');
+      res.redirect(
+        302,
+        p.fitId ? `/#/fit/${p.fitId}?saved=1${p.purpose === 'alerts' ? '&alerts=1' : ''}` : '/#/me',
+      );
     }),
   );
 

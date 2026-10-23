@@ -22,6 +22,7 @@ const SVG_TAGS = new Set([
   'marker',
   'pattern',
   'clipPath',
+  'mask',
   'title',
   'use',
 ]);

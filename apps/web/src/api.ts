@@ -227,6 +227,7 @@ export const me = (): Promise<Me> => (DEMO ? Promise.resolve({ user: null }) : j
 export const requestLogin = (body: {
   email: string;
   fitId?: string;
+  purpose?: 'login' | 'alerts';
   alertsEmail: boolean;
   feedbackEmail: boolean;
   confirmsAge16: boolean;

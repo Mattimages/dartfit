@@ -56,6 +56,8 @@ export const LoginRequest = z.object({
   email: z.string().trim().toLowerCase().email().max(200),
   lang: z.enum(['nl', 'en']).default('nl'),
   fitId: z.string().uuid().optional(),
+  /** 'alerts': the "keep me posted" box under a result. Same double opt-in, different email wording. */
+  purpose: z.enum(['login', 'alerts']).default('login'),
   alertsEmail: z.boolean().default(false),
   feedbackEmail: z.boolean().default(false),
   /** Wording version of the consent text the person saw, stored with the consent. */
