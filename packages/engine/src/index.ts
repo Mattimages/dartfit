@@ -10,7 +10,11 @@ export {
   qualityOf,
   topShape,
   priceTiers,
+  matchBreakdown,
+  matchPctOf,
   type PriceTier,
+  type MatchBreakdown,
+  type MatchPart,
 } from './match.js';
 export type { RecommendOptions, ProTwin, WhatIf } from './match.js';
 export * from './measure.js';

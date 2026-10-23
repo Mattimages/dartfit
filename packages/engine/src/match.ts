@@ -94,6 +94,46 @@ export function scoreVariant(f: Fit, v: Variant, cfg: EngineConfig = defaultConf
   return { variant: v, cost: Number(cost.toFixed(3)), quality: qualityOf(cost, cfg), checks };
 }
 
+const SHAPE_DIMS = ['weight', 'length', 'diameter'] as const;
+const STYLE_DIMS = ['shape', 'grip', 'balance'] as const;
+
+export interface MatchPart {
+  pct: number;
+  items: Array<{ dim: DimCheck['dim']; status: DimCheck['status'] }>;
+}
+/** A dart's match split in two: shape (weight, length, thickness) and style (shape type, knurling, balance). */
+export interface MatchBreakdown {
+  shape: MatchPart;
+  style: MatchPart;
+  total: number;
+}
+
+export const matchPctOf = (cost: number, scale: number) =>
+  Math.max(1, Math.min(99, Math.round(100 * Math.exp(-cost / scale))));
+
+/**
+ * The total is the usual match score. Each part uses the same curve with its share of the match
+ * weights, so the total is the weighted geometric mean of the two (shape ≈ 72%, style ≈ 28%).
+ */
+export function matchBreakdown(s: ScoredVariant, cfg: EngineConfig = defaultConfig): MatchBreakdown {
+  const W = cfg.match.weights;
+  const all = Object.values(W).reduce((a, b) => a + b, 0);
+  const part = (dims: readonly DimCheck['dim'][]): MatchPart => {
+    const share = dims.reduce((a, d) => a + (W as Record<string, number>)[d]!, 0) / all;
+    const checks = dims.map((d) => s.checks.find((c) => c.dim === d)).filter((c): c is DimCheck => !!c);
+    const cost = checks.reduce((a, c) => a + c.term, 0);
+    return {
+      pct: matchPctOf(cost, cfg.match.displayScale * share),
+      items: checks.map((c) => ({ dim: c.dim, status: c.status })),
+    };
+  };
+  return {
+    shape: part(SHAPE_DIMS),
+    style: part(STYLE_DIMS),
+    total: matchPctOf(s.cost, cfg.match.displayScale),
+  };
+}
+
 export function topShape(f: Fit): Shape {
   return (Object.keys(f.shape) as Shape[]).reduce((a, b) => (f.shape[b] > f.shape[a] ? b : a));
 }

@@ -265,3 +265,22 @@ describe('priceTiers', () => {
     expect(Object.values(all).every((s) => !s || !s.variant.specCheck)).toBe(true);
   });
 });
+
+describe('match breakdown: shape, style, total', () => {
+  it('splits the score into shape and style, and the total is the usual score', async () => {
+    const { fit: runFit, recommend, matchBreakdown, matchPctOf, config: cfg } = await import('../src/index.js');
+    const { baseAnswers, hand } = await import('./helpers.js');
+    const { loadCatalogue } = await import('@dartfit/catalogue');
+    const f = runFit(hand(186), baseAnswers);
+    const picks = recommend(f, loadCatalogue().variants).picks;
+    for (const p of picks) {
+      const b = matchBreakdown(p);
+      expect(b.total).toBe(matchPctOf(p.cost, cfg.match.displayScale));
+      expect(b.shape.items.map((i) => i.dim)).toEqual(['weight', 'length', 'diameter']);
+      expect(b.style.items.map((i) => i.dim)).toEqual(['shape', 'grip', 'balance']);
+      // Total is the weighted geometric mean of the parts (shape ≈ 72%, style ≈ 28%), within rounding.
+      const geo = 100 * (b.shape.pct / 100) ** (6.5 / 9) * (b.style.pct / 100) ** (2.5 / 9);
+      expect(Math.abs(geo - b.total)).toBeLessThan(2.5);
+    }
+  });
+});

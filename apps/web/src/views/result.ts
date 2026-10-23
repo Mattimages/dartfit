@@ -18,6 +18,7 @@ import { approxEur } from '../money';
 import { matchPct } from '../score';
 import { dartMedia } from '../media';
 import { alertSignup } from './alert-signup';
+import { matchSplit } from './match-split';
 
 const k = (s: string) => s as Key;
 type FullPick = RecPick & { offers: Offer[] };
@@ -164,14 +165,9 @@ function tierHero(r: FitResult, start: TierKey | null): HTMLElement | null {
     const sv = tiers[cur]!;
     const v = sv.variant;
     const kids: Array<HTMLElement | null> = [
-      h(
-        'div',
-        { class: 'score' },
-        h('b', { class: `q-${sv.quality}` }, `${matchPct(sv.cost)}%`),
-        h('span', null, t(k(`r.quality.${sv.quality}`))),
-      ),
       h('h2', { class: 'dart-name' }, dartName(v)),
       productMedia(r.fit, v),
+      matchSplit(sv),
       h(
         'div',
         { class: 'specs3' },
@@ -326,14 +322,9 @@ export async function resultView(root: HTMLElement, params: Record<string, strin
         ? h(
             'section',
             { class: 'r-hero' },
-            h(
-              'div',
-              { class: 'score' },
-              h('b', { class: `q-${best.quality}` }, `${matchPct(best.cost)}%`),
-              h('span', null, t(k(`r.quality.${best.quality}`))),
-            ),
             h('h1', null, dartName(v)),
             productMedia(f, v),
+            matchSplit(best),
             h(
               'div',
               { class: 'specs3' },

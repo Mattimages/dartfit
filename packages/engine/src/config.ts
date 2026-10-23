@@ -183,6 +183,8 @@ export const config = {
     valueSlack: 2.5,
     branchOutSlack: 6,
     strongTerm: 0.5,
+    // Cost → 0–100% for display: 100·exp(−cost / displayScale). Excellent (cost ≤ 2) ≈ 85–100%.
+    displayScale: 12,
   },
 } as const;
 
@@ -411,6 +413,10 @@ export const provenance: Record<string, Prov> = {
   'match.nearFactor': {
     p: 'heuristic',
     note: 'Outside the band but within 1.5× its half-width counts as near.',
+  },
+  'match.displayScale': {
+    p: 'heuristic',
+    note: 'Maps the quality bands to readable percentages: excellent ≈ 85–100, good ≈ 66–85, fair ≈ 43–66.',
   },
   'match.valueSlack': { p: 'heuristic', note: 'A value pick may cost this much more fit than the best.' },
   'match.branchOutSlack': { p: 'heuristic', note: 'A branch-out pick may cost this much more fit.' },

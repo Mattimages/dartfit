@@ -3011,3 +3011,84 @@ a.card {
 .hs.hs-end .hs-modelbox .hs-chip {
   opacity: 0;
 }
+
+/* ── Match split: shape | style | total ─────────────────────────────── */
+.match-split {
+  display: grid;
+  grid-template-columns: 1fr 1fr 0.9fr;
+  border: 1px solid var(--line);
+  border-radius: var(--r-tile);
+  overflow: hidden;
+  background: var(--ground);
+}
+.ms-col {
+  display: grid;
+  align-content: start;
+  gap: 0.15rem;
+  min-width: 0;
+  padding: var(--s3);
+}
+.ms-col + .ms-col {
+  border-left: 1px solid var(--line);
+}
+.ms-title {
+  font-size: 0.75rem;
+  font-weight: 550;
+  color: var(--ink-2);
+}
+.ms-pct {
+  font-size: 1.5rem;
+  font-weight: 650;
+  letter-spacing: -0.045em;
+  line-height: 1.1;
+  font-variant-numeric: tabular-nums;
+}
+.ms-items {
+  display: grid;
+  gap: 0.1rem;
+  margin: 0.3rem 0 0;
+  padding: 0;
+  list-style: none;
+  font-size: 0.75rem;
+  color: var(--ink-2);
+}
+.ms-items li {
+  display: flex;
+  gap: 0.35rem;
+  align-items: baseline;
+  min-width: 0;
+}
+.ms-mark {
+  width: 0.8rem;
+  flex: none;
+  font-weight: 650;
+  text-align: center;
+}
+.ms-in .ms-mark {
+  color: var(--green);
+}
+.ms-near .ms-mark {
+  color: #b7791f;
+}
+.ms-out .ms-mark {
+  color: var(--red);
+}
+.ms-unknown .ms-mark {
+  color: var(--ink-2);
+}
+.ms-col.total {
+  background: var(--stage);
+}
+.ms-col.total .ms-pct {
+  font-size: 1.75rem;
+}
+.ms-quality {
+  font-size: 0.75rem;
+  font-weight: 550;
+}
+.ms-col.total.q-excellent .ms-pct,
+.ms-col.total.q-excellent .ms-quality,
+.ms-col.total.q-good .ms-pct,
+.ms-col.total.q-good .ms-quality {
+  color: var(--green);
+}
