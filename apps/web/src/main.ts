@@ -74,7 +74,22 @@ function layout() {
   const langBtn = h(
     'details',
     { class: 'region' },
-    h('summary', { 'aria-label': t('region.label') }, `${getCountry()} · ${getLang().toUpperCase()}`),
+    // Shows the language only (a globe and "NL"); the shop country is inside, with its name.
+    h(
+      'summary',
+      {
+        'aria-label': `${t('region.label')}: ${COUNTRIES.find((c) => c.code === getCountry())?.name ?? getCountry()}, ${LANGS.find((l) => l.id === getLang())?.name ?? getLang()}`,
+      },
+      h(
+        'svg',
+        { class: 'globe', viewBox: '0 0 16 16', 'aria-hidden': 'true' },
+        h('circle', { cx: 8, cy: 8, r: 6.5 }),
+        h('path', {
+          d: 'M1.5 8h13M8 1.5c2 2 2.8 4.2 2.8 6.5S10 12.5 8 14.5M8 1.5C6 3.5 5.2 5.7 5.2 8S6 12.5 8 14.5',
+        }),
+      ),
+      getLang().toUpperCase(),
+    ),
     h(
       'div',
       { class: 'region-panel' },

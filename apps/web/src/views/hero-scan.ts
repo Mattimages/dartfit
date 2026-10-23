@@ -120,8 +120,26 @@ function cast(pool: Variant[], who: Thrower = FIRST): Cast | null {
     const shape = variantBarrel(v);
     return { v, shape, overlap: silhouetteOverlap(f.barrel, shape) };
   });
-  const top = recommend(f, pool).picks.map((p) => p.variant.id);
-  const best = scored.find((x) => x.v.id === top[0]) ?? [...scored].sort((a, b) => b.overlap - a.overlap)[0];
+  const byId = new Map(scored.map((x) => [x.v.id, x]));
+  // One dart per price class, plus the engine's overall pick.
+  const bounds = tierBoundsUsd();
+  const tierOf = (v: Variant): Tier =>
+    (v.priceUsd ?? 0) <= bounds.budgetMaxUsd
+      ? 'budget'
+      : (v.priceUsd ?? 0) <= bounds.standardMaxUsd
+        ? 'standard'
+        : 'premium';
+  const tiers = priceTiers(f, pool, bounds);
+  const topId = recommend(f, pool).picks[0]?.variant.id;
+  const candidates = [
+    ...(topId && byId.get(topId) ? [byId.get(topId)!] : []),
+    ...TIERS.map((k) => tiers[k] && byId.get(tiers[k]!.variant.id)).filter(
+      (x): x is (typeof scored)[number] => !!x,
+    ),
+  ];
+  // The film ranks by the % it shows: the best match is the candidate with the most overlap,
+  // and every card after it has less, so the numbers only ever go down as the cards push up.
+  const best = [...candidates, ...(candidates.length ? [] : scored)].sort((a, b) => b.overlap - a.overlap)[0];
   if (!best) return null;
   // Two near misses from other brands: a clear miss, then a close one.
   const near = (target: number, avoid: string[]) =>
@@ -131,25 +149,12 @@ function cast(pool: Variant[], who: Thrower = FIRST): Cast | null {
   const first = near(best.overlap - 0.22, [best.v.brand]);
   const second = first && near(best.overlap - 0.1, [best.v.brand, first.v.brand]);
   if (!first || !second) return null;
-  // One dart per price class; the best match stands for its own class.
-  const bounds = tierBoundsUsd();
-  const tierOf = (v: Variant): Tier =>
-    (v.priceUsd ?? 0) <= bounds.budgetMaxUsd
-      ? 'budget'
-      : (v.priceUsd ?? 0) <= bounds.standardMaxUsd
-        ? 'standard'
-        : 'premium';
-  const tiers = priceTiers(f, pool, bounds);
   const bestTier = tierOf(best.v);
   const others = TIERS.filter((k) => k !== bestTier)
-    .map((k) => tiers[k])
-    .filter((x): x is NonNullable<typeof x> => !!x)
-    .map((x) => ({
-      tier: tierOf(x.variant),
-      v: x.variant,
-      overlap: silhouetteOverlap(f.barrel, variantBarrel(x.variant)),
-      best: false,
-    }));
+    .map((k) => tiers[k] && byId.get(tiers[k]!.variant.id))
+    .filter((x): x is (typeof scored)[number] => !!x)
+    .map((x) => ({ tier: tierOf(x.v), v: x.v, overlap: x.overlap, best: false }))
+    .sort((a, b) => b.overlap - a.overlap);
   return {
     hand,
     ideal: { ...f.barrel },
@@ -318,11 +323,12 @@ export function heroScan(pool: Variant[]): HTMLElement | null {
 async function play(root: HTMLElement, c: Cast): Promise<boolean> {
   const { layer: hand, groups } = handLayer(c);
   const model = modelLayer(c);
-  const modelBox = h('div', { class: 'hs-modelbox' }, model.svg);
   const step = h('span', { class: 'hs-step' });
+  // The fit % sits right above the barrels, big enough to read while each one pauses.
   const chip = h('span', { class: 'hs-chip' }, h('b', null, '–'), h('span', null, t('hs.overlap')));
+  const modelBox = h('div', { class: 'hs-modelbox' }, chip, model.svg);
   const cards = shopCards(c);
-  root.replaceChildren(h('div', { class: 'hs-stage' }, hand, modelBox, chip, step, cards.box));
+  root.replaceChildren(h('div', { class: 'hs-stage' }, hand, modelBox, step, cards.box));
 
   const still = typeof matchMedia === 'function' && matchMedia('(prefers-reduced-motion: reduce)').matches;
   const alive = () => root.isConnected || !root.dataset.started;

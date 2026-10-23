@@ -140,7 +140,6 @@ function handGeometry(pts: V[], k: number) {
   // Thumb: a fuller outer edge (the thenar muscle) and a deep web towards the index finger.
   const tw = T.w;
   const thumb = [
-    sub(lerp(P(0), P(1), 0.6), mul(nA, 17 * k)),
     sub(T.c[0]!, mul(T.n[0]!, tw * 0.66)),
     sub(T.c[1]!, mul(T.n[1]!, tw * 0.52)),
     sub(T.c[2]!, mul(T.n[2]!, tw * 0.47)),
@@ -159,7 +158,7 @@ function handGeometry(pts: V[], k: number) {
   ];
   const outline = [
     add(sub(P(0), mul(nA, 29 * k)), mul(axis, -44 * k)),
-    sub(P(0), mul(nA, 27 * k)),
+    sub(P(0), mul(nA, 28.5 * k)),
     ...thumb,
     ...up(I),
     ...web(I, M),
@@ -170,7 +169,7 @@ function handGeometry(pts: V[], k: number) {
     ...up(Pk),
     add(Pk.c[0]!, mul(Pk.n[0]!, Pk.w * 0.62)),
     add(lerp(add(P(17), mul(nA, 9 * k)), add(P(0), mul(nA, 28 * k)), 0.5), mul(nA, 2.5 * k)),
-    add(P(0), mul(nA, 27 * k)),
+    add(P(0), mul(nA, 28.5 * k)),
     add(add(P(0), mul(nA, 29 * k)), mul(axis, -44 * k)),
   ];
   return { fingers, outline, axis, nA, P };
