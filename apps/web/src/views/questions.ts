@@ -252,7 +252,6 @@ export function questionsView(root: HTMLElement) {
 
   /** One question per screen. `auto` steps move on by themselves when tapped. */
   const steps: Array<{ el: HTMLElement; auto: boolean; focus?: Focus }> = [
-    { el: tiles('tip', t('q.tip'), opts('q.tip', ['steel', 'soft']), a.tip, 2), auto: true, focus: 'tip' },
     { el: body, auto: false },
     {
       el: tiles('hold', t('q.hold'), opts('q.hold', ['front', 'middle', 'rear']), a.hold),
@@ -316,7 +315,7 @@ export function questionsView(root: HTMLElement) {
     const fd = new FormData(form as HTMLFormElement);
     const get = (k: string, d: string | number) => String(fd.get(k) ?? d);
     const now: Answers = {
-      tip: get('tip', a.tip) as Answers['tip'],
+      tip: 'steel',
       hold: get('hold', a.hold) as Answers['hold'],
       fingers: Number(get('fingers', a.fingers)) as Answers['fingers'],
       throwStyle: get('throwStyle', a.throwStyle) as Answers['throwStyle'],
@@ -383,7 +382,8 @@ export function questionsView(root: HTMLElement) {
     const fd = new FormData(form as HTMLFormElement);
     const val = (k: string) => String(fd.get(k) ?? '');
     const answers: Answers = {
-      tip: val('tip') as Answers['tip'],
+      // Steel tip only: the site fits sisal-board darts.
+      tip: 'steel',
       hold: val('hold') as Answers['hold'],
       fingers: Number(val('fingers')) as Answers['fingers'],
       throwStyle: val('throwStyle') as Answers['throwStyle'],
@@ -394,7 +394,7 @@ export function questionsView(root: HTMLElement) {
     const hgt = heightIn.value ? Number(heightIn.value) : undefined;
     const fa = forearmIn.value ? Number(forearmIn.value.replace(',', '.')) : undefined;
     if ((hgt !== undefined && !(hgt >= 130 && hgt <= 220)) || (fa !== undefined && !(fa >= 18 && fa <= 36))) {
-      show(1, false);
+      show(0, false);
       err.textContent = t('q.body.range');
       err.hidden = false;
       heightIn.focus();
