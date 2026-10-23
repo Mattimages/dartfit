@@ -3221,3 +3221,30 @@ a.card {
 .hs .hs-modelbox .hs-chip .hs-s {
   flex: none;
 }
+
+/* Total is the headline number in the film. */
+.hs .hs-modelbox .hs-chip .hs-s-total b {
+  font-size: 2.9rem;
+  letter-spacing: -0.05em;
+}
+.hs .hs-modelbox .hs-chip .hs-s-total small {
+  font-size: 0.8rem;
+  font-weight: 650;
+  color: #fff;
+}
+.hs .hs-modelbox .hs-chip.hs-split {
+  align-items: center;
+}
+.hs-card .hs-split {
+  align-items: flex-end;
+}
+.hs-card .hs-s-total small {
+  font-size: 0.7rem;
+  font-weight: 650;
+  color: var(--ink);
+}
+.hs-card .hs-s-total b {
+  font-size: 1.35rem;
+  line-height: 1;
+  letter-spacing: -0.04em;
+}
