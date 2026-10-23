@@ -3248,3 +3248,212 @@ a.card {
   line-height: 1;
   letter-spacing: -0.04em;
 }
+
+/* ── Questionnaire: the live dart ────────────────────────────────────── */
+.qd {
+  position: sticky;
+  top: calc(env(safe-area-inset-top, 0px) + 0.5rem);
+  z-index: 5;
+  padding: var(--s3) var(--s3) var(--s2);
+  border-radius: var(--r-stage);
+  background:
+    radial-gradient(120% 90% at 20% 0%, #24406b 0%, transparent 60%),
+    linear-gradient(160deg, #142238 0%, #0f1b2d 100%);
+  box-shadow: 0 10px 30px -18px rgb(15 27 45 / 0.6);
+}
+.qd-svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  overflow: visible;
+}
+.qd.bump .qd-svg {
+  animation: qd-bump 0.35s var(--ease);
+}
+@keyframes qd-bump {
+  40% {
+    transform: scale(1.025);
+  }
+}
+.qd-path {
+  fill: none;
+  stroke: rgb(255 255 255 / 0.22);
+  stroke-width: 0.8;
+  stroke-dasharray: 2.5 2.5;
+}
+.qd-path.unsure {
+  stroke: rgb(255 255 255 / 0.14);
+}
+.qd[data-focus='throwStyle'] .qd-path {
+  stroke: #ff4d5e;
+  stroke-width: 1.1;
+}
+.qd-point {
+  fill: #b8c4d4;
+}
+.qd-soft {
+  fill: #e3122c;
+}
+.qd-shaft {
+  fill: #50627d;
+}
+.qd-flight {
+  fill: #e3122c;
+  opacity: 0.9;
+}
+.qd-steel-0 {
+  stop-color: #eef2f7;
+}
+.qd-steel-1 {
+  stop-color: #a9b5c5;
+}
+.qd-steel-2 {
+  stop-color: #5d6b80;
+}
+.qd-barrel {
+  stroke: #2b3a52;
+  stroke-width: 0.35;
+}
+.qd[data-focus='thickness'] .qd-barrel {
+  stroke: #ff4d5e;
+  stroke-width: 0.7;
+}
+.qd-knurl line {
+  stroke: #2b3a52;
+  opacity: 0.75;
+}
+.qd-knurl line.cut {
+  stroke-width: 0.35;
+  opacity: 0.55;
+}
+.qd[data-focus='gripFeel'] .qd-knurl line,
+.qd[data-focus='moisture'] .qd-knurl line {
+  stroke: #9e0d20;
+  opacity: 0.85;
+}
+.qd-zone {
+  fill: rgb(227 18 44 / 0.28);
+  stroke: #ff3b4f;
+  stroke-width: 0.6;
+}
+.qd-pad {
+  fill: #ff3b4f;
+  opacity: 0.85;
+}
+.qd-pad.thumb {
+  opacity: 0.6;
+}
+.qd:not([data-focus='hold']):not([data-focus='fingers']) .qd-hold {
+  opacity: 0.45;
+}
+.qd-hold.pulse {
+  animation: qd-pulse 0.5s var(--ease);
+}
+@keyframes qd-pulse {
+  0% {
+    opacity: 0.2;
+  }
+}
+.qd-drop {
+  fill: #7fb6ff;
+  opacity: 0.85;
+}
+@media (prefers-reduced-motion: reduce) {
+  .qd.bump .qd-svg,
+  .qd-hold.pulse {
+    animation: none;
+  }
+}
+
+/* Grip slider */
+.grip-row {
+  display: grid;
+  grid-template-columns: 1fr 2.6rem;
+  align-items: center;
+  gap: var(--s3);
+  margin-top: var(--s3);
+}
+.grip-row input[type='range'] {
+  width: 100%;
+  height: 2.75rem;
+  accent-color: var(--red);
+  cursor: pointer;
+}
+.grip-val {
+  display: grid;
+  place-items: center;
+  height: 2.6rem;
+  border-radius: var(--r-ctl);
+  background: var(--red);
+  color: #fff;
+  font-weight: 650;
+  font-size: 1.15rem;
+  font-variant-numeric: tabular-nums;
+}
+.qd-zone {
+  fill: rgb(227 18 44 / 0.1);
+  stroke: rgb(255 59 79 / 0.55);
+  stroke-dasharray: 1.6 1.2;
+}
+.qd-spot {
+  fill: rgb(227 18 44 / 0.55);
+  stroke: #ff3b4f;
+  stroke-width: 0.7;
+}
+.qd-pad.thumb {
+  opacity: 0.95;
+}
+
+/* Film question panel: the live dart and a grip slider. */
+.hs-askbox .qd {
+  position: static;
+  padding: 0;
+  background: none;
+  box-shadow: none;
+}
+.hs-askbox .qd-svg {
+  max-height: 5.2rem;
+}
+.hs-slider {
+  position: relative;
+  display: block;
+  height: 2.1rem;
+  margin: 0 1rem;
+}
+.hs-slider::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 50%;
+  height: 4px;
+  margin-top: -2px;
+  border-radius: 2px;
+  background: rgb(255 255 255 / 0.16);
+}
+.hs-slider-fill {
+  position: absolute;
+  left: 0;
+  top: 50%;
+  height: 4px;
+  margin-top: -2px;
+  border-radius: 2px;
+  background: #e3122c;
+  transition: width 0.28s var(--ease);
+}
+.hs-slider-knob {
+  position: absolute;
+  top: 50%;
+  width: 2rem;
+  height: 2rem;
+  margin: -1rem 0 0 -1rem;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: #e3122c;
+  color: #fff;
+  font-size: 0.85rem;
+  font-weight: 650;
+  box-shadow: 0 0 0 3px rgb(227 18 44 / 0.3);
+  transition: left 0.28s var(--ease);
+}

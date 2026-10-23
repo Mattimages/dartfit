@@ -6,6 +6,7 @@ import { session, update } from '../store';
 import { variants } from '../api';
 import { dartName } from './words';
 import { pictogram } from '../draw/art';
+import { quizDart, type Focus } from './quiz-dart';
 
 interface Opt {
   value: string;
@@ -180,16 +181,33 @@ export function questionsView(root: HTMLElement) {
     2,
   );
 
+  // Grip: a slider, so the knurling on the live dart follows your thumb.
+  const gripVal = h('output', { class: 'grip-val', for: 'gripFeel' }, String(a.gripFeel));
+  const gripRange = h('input', {
+    type: 'range',
+    id: 'gripFeel',
+    name: 'gripFeel',
+    min: 1,
+    max: 5,
+    step: 1,
+    value: a.gripFeel,
+    'aria-valuetext': String(a.gripFeel),
+  }) as HTMLInputElement;
+  gripRange.addEventListener('input', () => {
+    gripVal.textContent = gripRange.value;
+    gripRange.setAttribute('aria-valuetext', gripRange.value);
+  });
   const grip = h(
-    'div',
-    null,
-    tiles(
-      'gripFeel',
-      t('q.grip'),
-      ['1', '2', '3', '4', '5'].map((v) => ({ value: v, label: '', big: v })),
-      String(a.gripFeel),
-      5,
-      false,
+    'fieldset',
+    { class: 'field' },
+    h('legend', null, t('q.grip')),
+    h('p', { class: 'hint' }, t('q.grip.hint')),
+    h(
+      'div',
+      { class: 'grip-row' },
+      h('label', { class: 'visually-hidden', for: 'gripFeel' }, t('q.grip')),
+      gripRange,
+      gripVal,
     ),
     h(
       'div',
@@ -233,10 +251,14 @@ export function questionsView(root: HTMLElement) {
   );
 
   /** One question per screen. `auto` steps move on by themselves when tapped. */
-  const steps: Array<{ el: HTMLElement; auto: boolean }> = [
-    { el: tiles('tip', t('q.tip'), opts('q.tip', ['steel', 'soft']), a.tip, 2), auto: true },
+  const steps: Array<{ el: HTMLElement; auto: boolean; focus?: Focus }> = [
+    { el: tiles('tip', t('q.tip'), opts('q.tip', ['steel', 'soft']), a.tip, 2), auto: true, focus: 'tip' },
     { el: body, auto: false },
-    { el: tiles('hold', t('q.hold'), opts('q.hold', ['front', 'middle', 'rear']), a.hold), auto: true },
+    {
+      el: tiles('hold', t('q.hold'), opts('q.hold', ['front', 'middle', 'rear']), a.hold),
+      auto: true,
+      focus: 'hold',
+    },
     {
       el: tiles(
         'fingers',
@@ -245,16 +267,19 @@ export function questionsView(root: HTMLElement) {
         String(a.fingers),
       ),
       auto: true,
+      focus: 'fingers',
     },
     {
       el: tiles('throwStyle', t('q.throw'), opts('q.throw', ['flat', 'arc', 'unsure']), a.throwStyle),
       auto: true,
+      focus: 'throwStyle',
     },
     {
       el: tiles('moisture', t('q.moisture'), opts('q.moisture', ['dry', 'normal', 'sweaty']), a.moisture),
       auto: true,
+      focus: 'moisture',
     },
-    { el: grip, auto: true },
+    { el: grip, auto: false, focus: 'gripFeel' },
     {
       el: tiles(
         'thickness',
@@ -264,6 +289,7 @@ export function questionsView(root: HTMLElement) {
         2,
       ),
       auto: true,
+      focus: 'thickness',
     },
     { el: h('div', null, currentToggle, currentBox), auto: false },
     { el: budget, auto: false },
@@ -279,10 +305,29 @@ export function questionsView(root: HTMLElement) {
   const nextBtn = h('button', { class: 'btn', type: 'button' }, t('q.next'));
   const submitBtn = h('button', { class: 'btn', type: 'submit' }, t('q.submit'));
   const stage = h('div', { class: 'stage' }, ...steps.map((st) => h('div', { class: 'step' }, st.el)));
+  const preview = quizDart();
   const stepEls = [...stage.children] as HTMLElement[];
   const err = h('p', { class: 'error', role: 'alert', hidden: true });
   let at = 0;
   let lastPointer = 0;
+
+  // The live dart follows whatever is selected right now (or the defaults for questions not reached).
+  const refresh = () => {
+    const fd = new FormData(form as HTMLFormElement);
+    const get = (k: string, d: string | number) => String(fd.get(k) ?? d);
+    const now: Answers = {
+      tip: get('tip', a.tip) as Answers['tip'],
+      hold: get('hold', a.hold) as Answers['hold'],
+      fingers: Number(get('fingers', a.fingers)) as Answers['fingers'],
+      throwStyle: get('throwStyle', a.throwStyle) as Answers['throwStyle'],
+      moisture: get('moisture', a.moisture) as Answers['moisture'],
+      gripFeel: Number(get('gripFeel', a.gripFeel)) as Answers['gripFeel'],
+      thickness: get('thickness', a.thickness) as Answers['thickness'],
+    };
+    const f = steps[at]?.focus ?? null;
+    preview.el.hidden = !f;
+    preview.update(now, f);
+  };
 
   const show = (i: number, focus = true) => {
     at = Math.max(0, Math.min(steps.length - 1, i));
@@ -297,6 +342,7 @@ export function questionsView(root: HTMLElement) {
     nextBtn.hidden = last;
     submitBtn.hidden = !last;
     err.hidden = true;
+    refresh();
     if (focus) {
       const target = stepEls[at]?.querySelector<HTMLElement>('legend');
       if (target) {
@@ -323,10 +369,14 @@ export function questionsView(root: HTMLElement) {
     { class: 'quiz', novalidate: true },
     progress,
     progressText,
+    preview.el,
     stage,
     err,
     h('div', { class: 'quiz-nav' }, backBtn, nextBtn, submitBtn),
   );
+
+  form.addEventListener('input', () => refresh());
+  form.addEventListener('change', () => refresh());
 
   form.addEventListener('submit', (e) => {
     e.preventDefault();

@@ -17,6 +17,7 @@ import {
   tierBoundsUsd,
   variantBarrel,
   type Silhouette,
+  type Answers,
   type Variant,
 } from '@dartfit/engine';
 import { handArt, SKIN_TONES, templateHand, type MmPoint } from '../draw/art';
@@ -25,6 +26,7 @@ import { num, t } from '../i18n';
 import { approxEur } from '../money';
 import { photoUrl } from '../media';
 import { dartName } from './words';
+import { quizDart } from './quiz-dart';
 
 const SVG = 'http://www.w3.org/2000/svg';
 const s = (tag: string, attrs: Record<string, string | number> = {}, text?: string) => {
@@ -309,32 +311,75 @@ function modelLayer(c: Cast) {
   return { svg, ideal, idealLabel, cands, shaft, point };
 }
 
-/** The two questions, as the questionnaire asks them; the film taps the thrower's answers. */
+/**
+ * The two questions, as the questionnaire asks them, with the same live dart: the film taps the
+ * thrower's hold (the red spot moves) and slides the grip up to their answer (the knurling deepens).
+ */
 function askPanel(who: Thrower) {
-  const row = (title: string, options: HTMLElement[], picked: HTMLElement, foot?: HTMLElement) => ({
-    row: h(
-      'div',
-      { class: 'hs-q' },
-      h('span', { class: 'hs-q-title' }, title),
-      h('span', { class: 'hs-q-opts' }, ...options),
-      foot ?? null,
-    ),
-    pick: picked,
-  });
+  const live = quizDart();
+  const now: Answers = {
+    tip: 'steel',
+    hold: 'middle',
+    fingers: who.fingers,
+    throwStyle: who.throwStyle,
+    moisture: 'normal',
+    gripFeel: 1,
+    thickness: 'auto',
+  };
+  live.update(now, 'hold');
   const holds = (['front', 'middle', 'rear'] as const).map((k) =>
     h('span', { class: 'hs-opt' }, t(`q.hold.${k}`)),
   );
-  const hold = row(t('q.hold'), holds, holds[['front', 'middle', 'rear'].indexOf(who.hold)]!);
-  const dots = [1, 2, 3, 4, 5].map((n) => h('span', { class: 'hs-opt hs-dot' }, String(n)));
-  const grip = row(
-    t('q.grip'),
-    dots,
-    dots[who.gripFeel - 1]!,
+  const holdRow = h(
+    'div',
+    { class: 'hs-q' },
+    h('span', { class: 'hs-q-title' }, t('q.hold')),
+    h('span', { class: 'hs-q-opts' }, ...holds),
+  );
+  const fill = h('span', { class: 'hs-slider-fill' });
+  const knob = h('span', { class: 'hs-slider-knob' }, '1');
+  const gripRow = h(
+    'div',
+    { class: 'hs-q' },
+    h('span', { class: 'hs-q-title' }, t('q.grip')),
+    h('span', { class: 'hs-slider' }, fill, knob),
     h('span', { class: 'hs-q-ends' }, h('span', null, t('q.grip.1')), h('span', null, t('q.grip.5'))),
   );
+  const setGrip = (g: number) => {
+    const pct = ((g - 1) / 4) * 100;
+    fill.style.cssText = `width:${pct}%`;
+    knob.style.cssText = `left:${pct}%`;
+    knob.textContent = String(g);
+  };
+  setGrip(1);
+
+  async function run(wait: (ms: number) => Promise<unknown>, alive: () => boolean) {
+    holdRow.classList.add('in');
+    await wait(600);
+    if (!alive()) return false;
+    holds[['front', 'middle', 'rear'].indexOf(who.hold)]!.classList.add('on');
+    now.hold = who.hold;
+    live.update({ ...now }, 'hold');
+    await wait(850);
+    if (!alive()) return false;
+    gripRow.classList.add('in');
+    live.update({ ...now }, 'gripFeel');
+    await wait(450);
+    for (let g = 2; g <= who.gripFeel; g++) {
+      setGrip(g);
+      now.gripFeel = g as Answers['gripFeel'];
+      live.update({ ...now }, 'gripFeel');
+      await wait(320);
+      if (!alive()) return false;
+    }
+    gripRow.classList.add('done');
+    await wait(700);
+    return alive();
+  }
+
   return {
-    box: h('div', { class: 'hs-askbox', 'aria-hidden': 'true' }, hold.row, grip.row),
-    questions: [hold, grip],
+    box: h('div', { class: 'hs-askbox', 'aria-hidden': 'true' }, live.el, holdRow, gripRow),
+    run,
   };
 }
 
@@ -456,15 +501,8 @@ async function play(root: HTMLElement, c: Cast): Promise<boolean> {
   // 3. Two questions get answered: where you hold it, and how much grip (knurling).
   setStep(t('hs.step.ask'));
   root.classList.add('hs-ask');
-  for (const q of ask.questions) {
-    q.row.classList.add('in');
-    await wait(650);
-    if (!alive()) return false;
-    q.pick.classList.add('on');
-    await wait(750);
-    if (!alive()) return false;
-  }
-  await wait(300);
+  if (!(await ask.run(wait, alive))) return false;
+  await wait(200);
   root.classList.remove('hs-ask');
   // 4. The measurements and answers become the ideal barrel.
   setStep(t('hs.step.model'));
