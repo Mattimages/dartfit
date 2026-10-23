@@ -3043,39 +3043,6 @@ a.card {
   line-height: 1.1;
   font-variant-numeric: tabular-nums;
 }
-.ms-items {
-  display: grid;
-  gap: 0.1rem;
-  margin: 0.3rem 0 0;
-  padding: 0;
-  list-style: none;
-  font-size: 0.75rem;
-  color: var(--ink-2);
-}
-.ms-items li {
-  display: flex;
-  gap: 0.35rem;
-  align-items: baseline;
-  min-width: 0;
-}
-.ms-mark {
-  width: 0.8rem;
-  flex: none;
-  font-weight: 650;
-  text-align: center;
-}
-.ms-in .ms-mark {
-  color: var(--green);
-}
-.ms-near .ms-mark {
-  color: #b7791f;
-}
-.ms-out .ms-mark {
-  color: var(--red);
-}
-.ms-unknown .ms-mark {
-  color: var(--ink-2);
-}
 .ms-col.total {
   background: var(--stage);
 }
@@ -3091,4 +3058,166 @@ a.card {
 .ms-col.total.q-good .ms-pct,
 .ms-col.total.q-good .ms-quality {
   color: var(--green);
+}
+
+/* ── Film: the two questions, then shape | style | total ─────────────── */
+.hs-askbox {
+  position: absolute;
+  left: 12px;
+  right: 12px;
+  bottom: 13%;
+  z-index: 3;
+  display: grid;
+  gap: var(--s3);
+  padding: var(--s4);
+  border-radius: var(--r-card);
+  background: rgb(10 18 31 / 0.72);
+  box-shadow: 0 0 0 1px rgb(255 255 255 / 0.12);
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
+  opacity: 0;
+  transform: translateY(12px);
+  transition:
+    opacity 0.35s ease,
+    transform 0.45s var(--ease);
+  pointer-events: none;
+}
+.hs-ask .hs-askbox {
+  opacity: 1;
+  transform: none;
+}
+.hs-ask .hs-hand {
+  transform: translateY(-10%) scale(0.86);
+  opacity: 0.55;
+}
+.hs-q {
+  display: grid;
+  gap: 0.45rem;
+  opacity: 0;
+  transform: translateY(6px);
+  transition:
+    opacity 0.3s ease,
+    transform 0.35s var(--ease);
+}
+.hs-q.in {
+  opacity: 1;
+  transform: none;
+}
+.hs-q-title {
+  font-size: 0.9rem;
+  font-weight: 600;
+  letter-spacing: -0.015em;
+  color: #fff;
+}
+.hs-q-opts {
+  display: flex;
+  gap: 0.4rem;
+}
+.hs-opt {
+  flex: 1;
+  display: grid;
+  place-items: center;
+  min-height: 2.1rem;
+  border-radius: var(--r-ctl);
+  font-size: 0.82rem;
+  font-weight: 550;
+  color: #c9d4e3;
+  background: rgb(255 255 255 / 0.06);
+  box-shadow: inset 0 0 0 1px rgb(255 255 255 / 0.14);
+  transition:
+    background 0.2s ease,
+    color 0.2s ease,
+    box-shadow 0.2s ease,
+    transform 0.25s var(--ease);
+}
+.hs-opt.on {
+  color: #fff;
+  background: #e3122c;
+  box-shadow:
+    inset 0 0 0 1px #ff4d5e,
+    0 6px 16px -6px rgb(227 18 44 / 0.8);
+  transform: scale(1.06);
+}
+.hs-dot {
+  font-variant-numeric: tabular-nums;
+}
+.hs-q-ends {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.7rem;
+  color: #8fa0b8;
+}
+
+/* The three numbers: shape, style and total, as on the result page. */
+.hs-split {
+  display: inline-flex;
+  align-items: flex-end;
+  gap: 0.9rem;
+}
+.hs-s {
+  display: grid;
+  justify-items: center;
+  gap: 0.1rem;
+}
+.hs-s small {
+  font-size: 0.66rem;
+  font-weight: 550;
+  letter-spacing: 0.01em;
+  color: #9fb0c6;
+  white-space: nowrap;
+}
+.hs .hs-modelbox .hs-chip.hs-split {
+  padding: 0.45rem 0.95rem 0.5rem;
+  border-radius: var(--r-tile);
+}
+.hs .hs-modelbox .hs-chip .hs-s b {
+  font-size: 1.25rem;
+  line-height: 1;
+  min-width: 0;
+}
+.hs .hs-modelbox .hs-chip .hs-s-total b {
+  font-size: 2rem;
+}
+.hs .hs-modelbox .hs-chip.best .hs-s-shape b,
+.hs .hs-modelbox .hs-chip.best .hs-s-style b {
+  color: #fff;
+}
+.hs-card .hs-split {
+  gap: 0.7rem;
+  margin-top: 0.2rem;
+}
+.hs-card .hs-s {
+  justify-items: start;
+}
+.hs-card .hs-s small {
+  font-size: 0.62rem;
+  color: var(--ink-2);
+}
+.hs-card .hs-s b {
+  font-size: 0.82rem;
+  font-weight: 650;
+  letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums;
+  color: var(--ink);
+}
+.hs-card .hs-s-total b {
+  color: var(--green);
+}
+
+/* Result page split: a short line under shape and style saying what they cover. */
+.ms-sub {
+  font-size: 0.72rem;
+  line-height: 1.3;
+  color: var(--ink-2);
+}
+.hs .hs-modelbox .hs-chip.hs-split {
+  width: max-content;
+  gap: 1rem;
+}
+.hs .hs-modelbox .hs-chip .hs-s-total {
+  padding-left: 1rem;
+  border-left: 1px solid rgb(255 255 255 / 0.16);
+}
+.hs .hs-modelbox .hs-chip .hs-s {
+  flex: none;
 }
