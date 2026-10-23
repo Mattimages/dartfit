@@ -24,7 +24,8 @@ describe('bundled catalogue', () => {
   });
 
   it('the world top four are present with the weights their sources state', () => {
-    const w = (id: string) => variants.find((v) => v.id === pros.find((p) => p.id === id)!.variantId)!.weightG;
+    const w = (id: string) =>
+      variants.find((v) => v.id === pros.find((p) => p.id === id)!.variantId)!.weightG;
     expect(w('littler')).toBe(23);
     expect(w('humphries')).toBe(22);
     expect(w('vanveen')).toBe(21);
@@ -78,7 +79,17 @@ describe('validation rejects bad data', () => {
   it('rejects a pro pointing at a missing variant', () => {
     const { variants } = validateVariants([good]);
     const r = validatePros(
-      [{ id: 'abc', name: 'Some One', country: 'NED', variantId: 'nope', exactDart: false, playingWeightG: null, sourceUrl: 'https://x.y' }],
+      [
+        {
+          id: 'abc',
+          name: 'Some One',
+          country: 'NED',
+          variantId: 'nope',
+          exactDart: false,
+          playingWeightG: null,
+          sourceUrl: 'https://x.y',
+        },
+      ],
       variants,
     );
     expect(r.issues).toHaveLength(1);

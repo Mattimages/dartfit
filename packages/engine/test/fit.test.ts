@@ -235,3 +235,41 @@ describe('v3: current dart, dry hands and setup', () => {
     expect(wide.length.mu).toBeGreaterThan(narrow.length.mu);
   });
 });
+
+describe('v3.2: the hand shapes the barrel', () => {
+  const stubby = hand(186, { middleLengthMm: 77, palmWidthMm: 83 });
+  const slender = hand(186, { middleLengthMm: 92, palmWidthMm: 74 });
+
+  it('short, broad fingers with a compact 3-finger grip get a bomb', () => {
+    const f = fit(stubby, { ...baseAnswers, hold: 'middle', fingers: 3 });
+    expect(f.barrel.shape).toBe('bomb');
+    expect(f.shape.bomb).toBeGreaterThan(f.shape.straight);
+    expect(f.reasons.some((r) => r.code === 'shape_compact')).toBe(true);
+  });
+
+  it('long fingers spread over the barrel keep it straight', () => {
+    const f = fit(slender, { ...baseAnswers, hold: 'middle', fingers: 4 });
+    expect(f.barrel.shape).toBe('straight');
+    expect(f.reasons.some((r) => r.code === 'shape_long')).toBe(true);
+  });
+
+  it('front grippers get a torpedo, rear grippers a front-heavy taper', () => {
+    expect(fit(hand(186), { ...baseAnswers, hold: 'front' }).barrel.shape).toBe('torpedo');
+    const rear = fit(hand(186), { ...baseAnswers, hold: 'rear' }).barrel;
+    expect(rear.shape).toBe('tapered');
+    expect(rear.cogFrac).toBeGreaterThan(0.5);
+  });
+
+  it('the ideal still weighs what the fit asked for', () => {
+    for (const m of [stubby, slender, hand(186)])
+      for (const hold of ['front', 'middle', 'rear'] as const) {
+        const f = fit(m, { ...baseAnswers, hold });
+        expect(Math.abs(f.barrel.massG - f.weight.mu) / f.weight.mu).toBeLessThan(0.03);
+      }
+  });
+
+  it('estimated hands (from height or manual) do not move the shape', () => {
+    const est = fit({ ...stubby, estimatedFrom: 'height' }, baseAnswers);
+    expect(est.reasons.some((r) => r.code.startsWith('shape_'))).toBe(false);
+  });
+});

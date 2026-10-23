@@ -260,6 +260,10 @@ export const de: Partial<Record<Key, string>> = {
   'r.alert.needage': 'Bestätige, dass du 16 Jahre oder älter bist.',
   'r.alert.error': 'Das hat nicht geklappt. Versuch es gleich noch einmal.',
   'r.alert.demo': 'Auf der echten Seite bekämst du jetzt eine Bestätigungsmail.',
+  'why.shape_compact':
+    'Deine Finger sind kurz für deine Hand oder dein Griff ist kompakt (sie bedecken {spreadPct}% des Barrels): eine Bomben- oder Torpedoform gibt dir einen klaren Griffpunkt.',
+  'why.shape_long':
+    'Deine Finger liegen auf {spreadPct}% des Barrels: ein gerader Barrel gibt ihnen überall Halt.',
   'r.save': 'Diesen Fit speichern',
   'r.saved': 'In deinem Konto gespeichert',
   'r.again': 'Neu starten',

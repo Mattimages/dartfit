@@ -191,6 +191,17 @@ export function massRange(
 }
 
 /** Classify a solved profile into the shape names shops use. */
+/** The shop shape whose reference profile is closest (tapers only; the ideal has no waist). */
+export function nearestShape(p: Profile, balance: Balance | null, cfg: EngineConfig = defaultConfig): Shape {
+  if (p.waist > 0.03) return 'scalloped';
+  const shapes: Shape[] = ['straight', 'torpedo', 'tapered', 'bomb'];
+  const d = (s: Shape) => {
+    const q = shapeProfile(s, balance, cfg);
+    return (p.front - q.front) ** 2 + (p.rear - q.rear) ** 2;
+  };
+  return shapes.reduce((a, b) => (d(b) < d(a) ? b : a));
+}
+
 export function classify(p: Profile): Shape {
   if (p.waist > 0.03) return 'scalloped';
   const flat = 1 - p.front - p.rear;
@@ -206,38 +217,63 @@ export function classify(p: Profile): Shape {
  * Grid search over the two taper lengths; small, deterministic and fast (≈ 2,000 evaluations).
  */
 export function solveIdeal(
-  target: { massG: number; lengthMm: number; diameterMm: number; cogFrac: number; tungstenPct: number },
+  target: {
+    massG: number;
+    lengthMm: number;
+    diameterMm: number;
+    cogFrac: number;
+    tungstenPct: number;
+    /** Preferred shape: the solver leans towards its profile and may move the diameter for it. */
+    shape?: Shape;
+    /** Preferred balance: tells a front-heavy taper from a rear-heavy one. */
+    balance?: Balance;
+  },
   gripZone: [number, number],
   cfg: EngineConfig = defaultConfig,
 ): IdealBarrel {
   const S = cfg.physics.shapes;
-  let best: { p: Profile; m: BarrelMetrics; err: number; cost: number } | null = null;
+  const H = cfg.handShape;
+  // The same reference profiles as the catalogue darts, so ideal and shop darts compare like for like.
+  const want = target.shape ? shapeProfile(target.shape, target.balance ?? null, cfg) : null;
+  let best: { p: Profile; m: BarrelMetrics; err: number; cost: number; D: number } | null = null;
   for (let f = S.solver.min; f <= S.solver.max + 1e-9; f += S.solver.step) {
     for (let r = S.solver.min; r <= S.solver.max + 1e-9; r += S.solver.step) {
       if (f + r > 0.97) continue;
       const p: Profile = { front: f, rear: r, endFront: S.endRatio, endRear: S.endRatio, waist: 0 };
-      const m = barrelMetrics(
-        { lengthMm: target.lengthMm, diameterMm: target.diameterMm, profile: p },
-        target.tungstenPct,
-        cfg,
-      );
+      const geo = (D: number) =>
+        barrelMetrics({ lengthMm: target.lengthMm, diameterMm: D, profile: p }, target.tungstenPct, cfg);
+      let D = target.diameterMm;
+      let m = geo(D);
+      if (want) {
+        // Mass grows with the square of the diameter: solve the diameter that hits the weight.
+        D = Math.min(
+          target.diameterMm + H.diameterFlex.up,
+          Math.max(target.diameterMm - H.diameterFlex.down, D * Math.sqrt(target.massG / m.massG)),
+        );
+        D = Math.round(D * 20) / 20;
+        m = geo(D);
+      }
       const err = (m.massG - target.massG) / target.massG;
-      // Mass must be right (it is what the player feels most); then the centre of gravity;
-      // then prefer the simplest shape (short tapers) among equals.
-      const cost = (err / 0.01) ** 2 + ((m.cogFrac - target.cogFrac) / 0.01) ** 2 + 0.5 * (f + r);
-      if (!best || cost < best.cost) best = { p, m, err, cost };
+      // Mass must be right (it is what the player feels most); then the centre of gravity; then the
+      // preferred shape (with a cost for moving the diameter); then the simplest tapers among equals.
+      let cost = (err / 0.01) ** 2 + ((m.cogFrac - target.cogFrac) / 0.01) ** 2 + 0.5 * (f + r);
+      if (want)
+        cost +=
+          (H.solverPull * ((f - want.front) ** 2 + (r - want.rear) ** 2)) / 0.01 +
+          ((D - target.diameterMm) / H.diameterSigma) ** 2;
+      if (!best || cost < best.cost) best = { p, m, err, cost, D };
     }
   }
   const b = best!;
   return {
     lengthMm: target.lengthMm,
-    diameterMm: target.diameterMm,
+    diameterMm: Number(b.D.toFixed(2)),
     massG: Number(b.m.massG.toFixed(1)),
     tungstenPct: target.tungstenPct,
     profile: roundProfile(b.p),
     cogMm: Number(b.m.cogMm.toFixed(1)),
     cogFrac: Number(b.m.cogFrac.toFixed(3)),
-    shape: classify(b.p),
+    shape: nearestShape(b.p, target.balance ?? null, cfg),
     gripZone,
     massError: Number(b.err.toFixed(3)),
   };

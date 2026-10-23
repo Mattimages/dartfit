@@ -36,9 +36,7 @@
     {
       "id": "azdarts",
       "name": "A-Z Darts",
-      "countries": [
-        "*"
-      ],
+      "countries": ["*"],
       "kind": "product",
       "currency": "USD",
       "affiliateEnv": null,
@@ -89,9 +87,7 @@
     {
       "id": "dartscorner_uk",
       "name": "Darts Corner",
-      "countries": [
-        "GB"
-      ],
+      "countries": ["GB"],
       "kind": "search",
       "searchTemplate": "https://www.dartscorner.co.uk/search?q={q}",
       "affiliateEnv": "DARTSCORNER_UK_DEEPLINK",
@@ -102,10 +98,7 @@
     {
       "id": "dartsturm",
       "name": "Dartsturm",
-      "countries": [
-        "DE",
-        "AT"
-      ],
+      "countries": ["DE", "AT"],
       "kind": "search",
       "searchTemplate": "https://www.dartsturm.de/search?search={q}",
       "affiliateEnv": "DARTSTURM_DEEPLINK",
@@ -116,10 +109,7 @@
     {
       "id": "bol",
       "name": "bol.com",
-      "countries": [
-        "NL",
-        "BE"
-      ],
+      "countries": ["NL", "BE"],
       "kind": "search",
       "searchTemplate": "https://www.bol.com/nl/nl/s/?searchtext={q}",
       "affiliateEnv": "BOL_PARTNER_SITE_ID",
@@ -130,10 +120,7 @@
     {
       "id": "amazon_uk",
       "name": "Amazon.co.uk",
-      "countries": [
-        "GB",
-        "IE"
-      ],
+      "countries": ["GB", "IE"],
       "kind": "search",
       "searchTemplate": "https://www.amazon.co.uk/s?k={q}",
       "affiliateEnv": "AMAZON_TAG_UK",
@@ -176,10 +163,7 @@
     {
       "id": "amazon_fr",
       "name": "Amazon.fr",
-      "countries": [
-        "FR",
-        "LU"
-      ],
+      "countries": ["FR", "LU"],
       "kind": "search",
       "searchTemplate": "https://www.amazon.fr/s?k={q}",
       "affiliateEnv": "AMAZON_TAG_FR",
@@ -190,10 +174,7 @@
     {
       "id": "amazon_it",
       "name": "Amazon.it",
-      "countries": [
-        "IT",
-        "MT"
-      ],
+      "countries": ["IT", "MT"],
       "kind": "search",
       "searchTemplate": "https://www.amazon.it/s?k={q}",
       "affiliateEnv": "AMAZON_TAG_IT",
@@ -204,10 +185,7 @@
     {
       "id": "amazon_es",
       "name": "Amazon.es",
-      "countries": [
-        "ES",
-        "PT"
-      ],
+      "countries": ["ES", "PT"],
       "kind": "search",
       "searchTemplate": "https://www.amazon.es/s?k={q}",
       "affiliateEnv": "AMAZON_TAG_ES",
@@ -218,9 +196,7 @@
     {
       "id": "amazon_nl",
       "name": "Amazon.nl",
-      "countries": [
-        "NL"
-      ],
+      "countries": ["NL"],
       "kind": "search",
       "searchTemplate": "https://www.amazon.nl/s?k={q}",
       "affiliateEnv": "AMAZON_TAG_NL",
@@ -231,9 +207,7 @@
     {
       "id": "amazon_be",
       "name": "Amazon.com.be",
-      "countries": [
-        "BE"
-      ],
+      "countries": ["BE"],
       "kind": "search",
       "searchTemplate": "https://www.amazon.com.be/s?k={q}",
       "affiliateEnv": "AMAZON_TAG_BE",
@@ -244,12 +218,7 @@
     {
       "id": "amazon_se",
       "name": "Amazon.se",
-      "countries": [
-        "SE",
-        "FI",
-        "DK",
-        "NO"
-      ],
+      "countries": ["SE", "FI", "DK", "NO"],
       "kind": "search",
       "searchTemplate": "https://www.amazon.se/s?k={q}",
       "affiliateEnv": "AMAZON_TAG_SE",
@@ -260,9 +229,7 @@
     {
       "id": "amazon_pl",
       "name": "Amazon.pl",
-      "countries": [
-        "PL"
-      ],
+      "countries": ["PL"],
       "kind": "search",
       "searchTemplate": "https://www.amazon.pl/s?k={q}",
       "affiliateEnv": "AMAZON_TAG_PL",
@@ -273,9 +240,7 @@
     {
       "id": "ebay_uk",
       "name": "eBay.co.uk",
-      "countries": [
-        "GB"
-      ],
+      "countries": ["GB"],
       "kind": "search",
       "searchTemplate": "https://www.ebay.co.uk/sch/i.html?_nkw={q}",
       "affiliateEnv": "EBAY_CAMPAIGN_ID",
@@ -287,9 +252,7 @@
     {
       "id": "ebay_de",
       "name": "eBay.de",
-      "countries": [
-        "DE"
-      ],
+      "countries": ["DE"],
       "kind": "search",
       "searchTemplate": "https://www.ebay.de/sch/i.html?_nkw={q}",
       "affiliateEnv": "EBAY_CAMPAIGN_ID",
@@ -301,9 +264,7 @@
     {
       "id": "ebay_at",
       "name": "eBay.at",
-      "countries": [
-        "AT"
-      ],
+      "countries": ["AT"],
       "kind": "search",
       "searchTemplate": "https://www.ebay.at/sch/i.html?_nkw={q}",
       "affiliateEnv": "EBAY_CAMPAIGN_ID",
@@ -315,9 +276,7 @@
     {
       "id": "ebay_ch",
       "name": "eBay.ch",
-      "countries": [
-        "CH"
-      ],
+      "countries": ["CH"],
       "kind": "search",
       "searchTemplate": "https://www.ebay.ch/sch/i.html?_nkw={q}",
       "affiliateEnv": "EBAY_CAMPAIGN_ID",
@@ -329,9 +288,7 @@
     {
       "id": "ebay_fr",
       "name": "eBay.fr",
-      "countries": [
-        "FR"
-      ],
+      "countries": ["FR"],
       "kind": "search",
       "searchTemplate": "https://www.ebay.fr/sch/i.html?_nkw={q}",
       "affiliateEnv": "EBAY_CAMPAIGN_ID",
@@ -343,9 +300,7 @@
     {
       "id": "ebay_it",
       "name": "eBay.it",
-      "countries": [
-        "IT"
-      ],
+      "countries": ["IT"],
       "kind": "search",
       "searchTemplate": "https://www.ebay.it/sch/i.html?_nkw={q}",
       "affiliateEnv": "EBAY_CAMPAIGN_ID",
@@ -357,9 +312,7 @@
     {
       "id": "ebay_es",
       "name": "eBay.es",
-      "countries": [
-        "ES"
-      ],
+      "countries": ["ES"],
       "kind": "search",
       "searchTemplate": "https://www.ebay.es/sch/i.html?_nkw={q}",
       "affiliateEnv": "EBAY_CAMPAIGN_ID",
@@ -371,9 +324,7 @@
     {
       "id": "ebay_nl",
       "name": "eBay.nl",
-      "countries": [
-        "NL"
-      ],
+      "countries": ["NL"],
       "kind": "search",
       "searchTemplate": "https://www.ebay.nl/sch/i.html?_nkw={q}",
       "affiliateEnv": "EBAY_CAMPAIGN_ID",
@@ -385,9 +336,7 @@
     {
       "id": "ebay_be",
       "name": "eBay.be",
-      "countries": [
-        "BE"
-      ],
+      "countries": ["BE"],
       "kind": "search",
       "searchTemplate": "https://www.benl.ebay.be/sch/i.html?_nkw={q}",
       "affiliateEnv": "EBAY_CAMPAIGN_ID",
@@ -399,9 +348,7 @@
     {
       "id": "ebay_ie",
       "name": "eBay.ie",
-      "countries": [
-        "IE"
-      ],
+      "countries": ["IE"],
       "kind": "search",
       "searchTemplate": "https://www.ebay.ie/sch/i.html?_nkw={q}",
       "affiliateEnv": "EBAY_CAMPAIGN_ID",

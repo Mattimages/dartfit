@@ -5,7 +5,7 @@
  *   tuned     — fitted from user feedback (none yet at launch)
  * A unit test fails if a numeric leaf has no provenance entry.
  */
-export const ENGINE_VERSION = '3.1.0';
+export const ENGINE_VERSION = '3.2.0';
 
 export const config = {
   reference: {
@@ -79,6 +79,27 @@ export const config = {
     front: { torpedo: 0.4, tapered: 0.25, bomb: 0.2, straight: 0.1, scalloped: 0.05 },
     centre: { straight: 0.5, scalloped: 0.15, tapered: 0.15, bomb: 0.1, torpedo: 0.1 },
     rear: { tapered: 0.45, straight: 0.3, bomb: 0.1, torpedo: 0.1, scalloped: 0.05 },
+  },
+  // Hand proportions → barrel shape. Short, broad fingers and a compact grip want one clear fat
+  // point (bomb, torpedo); long fingers spread along the barrel want it straight.
+  handShape: {
+    // Middle finger / knuckle width of the reference hand (85 / 78 mm) and its spread between people.
+    ratioRef: 1.09,
+    ratioCv: 0.06,
+    zClamp: 2,
+    // Per z of stubbiness (positive = shorter fingers for the palm).
+    stubby: { bomb: 0.08, torpedo: 0.04, straight: -0.08, scalloped: -0.02, tapered: -0.03 },
+    // Share of the barrel the fingers cover: below mid is compact, above is long.
+    spreadMid: 0.85,
+    spreadHalf: 0.15,
+    compact: { bomb: 0.12, torpedo: 0.08, straight: -0.12, scalloped: -0.03, tapered: -0.05 },
+    long: { straight: 0.1, scalloped: 0.05, bomb: -0.08, torpedo: -0.04, tapered: -0.03 },
+    floor: 0.01,
+    // Solver: how hard the ideal barrel leans towards the preferred shape's profile, and how far the
+    // diameter may move for it (a bomb is fatter in the middle at the same weight).
+    solverPull: 5,
+    diameterFlex: { down: 0.3, up: 0.7 },
+    diameterSigma: 0.35,
   },
   physics: {
     // Alloy density in g/cm³.
@@ -324,6 +345,45 @@ export const provenance: Record<string, Prov> = {
     note: 'Catalogue calibration suggests up to 0.07 per grip step but gains little; 0.03 is used to avoid overfitting.',
   },
   'physics.shapes': { p: 'heuristic', note: 'Taper lengths that reproduce each shop shape class.' },
+  'handShape.ratioRef': {
+    p: 'sourced',
+    note: 'Derived from reference.middleLength.mu / reference.palmWidth.mu (85 / 78).',
+  },
+  'handShape.ratioCv': {
+    p: 'heuristic',
+    note: 'Finger-to-palm proportion varies less than size; ≈6% between adults is assumed until gate G1 measures it.',
+  },
+  'handShape.zClamp': { p: 'heuristic', note: 'Proportions beyond 2 SD are treated as 2 SD.' },
+  'handShape.stubby': {
+    p: 'heuristic',
+    note: 'Fitting advice: short, thick fingers grip a fat point (bomb/torpedo) more easily than a long straight barrel.',
+  },
+  'handShape.spreadMid': {
+    p: 'heuristic',
+    note: 'Typical 3-finger grip covers about 80% of a 46 mm barrel.',
+  },
+  'handShape.spreadHalf': {
+    p: 'heuristic',
+    note: 'Grip spread range that maps to fully compact or fully long.',
+  },
+  'handShape.compact': {
+    p: 'heuristic',
+    note: 'A compact grip wants one clear grip point: bomb or torpedo.',
+  },
+  'handShape.long': {
+    p: 'heuristic',
+    note: 'Four fingers spread along the barrel suit straight or scalloped.',
+  },
+  'handShape.floor': { p: 'heuristic', note: 'No shape drops to zero.' },
+  'handShape.solverPull': {
+    p: 'heuristic',
+    note: 'Weight of the preferred-shape profile in the ideal-barrel solver, against mass and balance.',
+  },
+  'handShape.diameterFlex': {
+    p: 'heuristic',
+    note: 'How far the ideal diameter may move from the fitted one to make the preferred shape at the target weight.',
+  },
+  'handShape.diameterSigma': { p: 'heuristic', note: 'Cost scale for moving the diameter.' },
   'physics.upgradeGain': { p: 'heuristic', note: 'Recommend 95% tungsten only when it clearly helps.' },
   'physics.standardTungsten': { p: 'heuristic', note: 'Most barrels are 90% tungsten.' },
   'physics.premiumTungsten': { p: 'heuristic', note: 'The common premium alloy.' },

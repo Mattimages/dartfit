@@ -120,6 +120,36 @@ export function gripZone(
   return [Number(a.toFixed(1)), Number((a + len).toFixed(1))];
 }
 
+/**
+ * How the hand itself pulls the barrel shape: stubby fingers (short for the palm) and a compact
+ * grip want a bomb or torpedo; long fingers spread along the barrel want it straight.
+ * Only for measured hands: manual entry and height estimates use reference proportions.
+ */
+export function handShapeNudge(
+  m: Measurements | undefined,
+  zone: [number, number],
+  lengthMm: number,
+  cfg: EngineConfig = defaultConfig,
+): { delta: Record<Shape, number>; lean: 'compact' | 'long' | 'neutral'; spread: number } | null {
+  if (!m || m.estimatedFrom) return null;
+  const H = cfg.handShape;
+  const ratio = m.middleLengthMm / m.palmWidthMm;
+  const z = clamp((H.ratioRef - ratio) / (H.ratioRef * H.ratioCv), -H.zClamp, H.zClamp);
+  const spread = (zone[1] - zone[0]) / lengthMm;
+  const t = clamp((H.spreadMid - spread) / H.spreadHalf, -1, 1);
+  const delta: Record<Shape, number> = { straight: 0, torpedo: 0, tapered: 0, bomb: 0, scalloped: 0 };
+  (Object.keys(delta) as Shape[]).forEach((k) => {
+    delta[k] =
+      z * ((H.stubby as Record<Shape, number>)[k] ?? 0) +
+      (t > 0
+        ? t * ((H.compact as Record<Shape, number>)[k] ?? 0)
+        : -t * ((H.long as Record<Shape, number>)[k] ?? 0));
+  });
+  const score = z * 0.5 + t;
+  const lean = score > 0.5 ? 'compact' : score < -0.5 ? 'long' : 'neutral';
+  return { delta, lean, spread };
+}
+
 export function setupFor(answers: Answers, weightMid: number, cfg: EngineConfig = defaultConfig): Setup {
   const S = cfg.setup;
   const shaft = S.shaft[answers.throwStyle];
@@ -419,12 +449,35 @@ export function fit(
     const table = cfg.shape[b] as Record<Shape, number>;
     (Object.keys(table) as Shape[]).forEach((s) => (shape[s] += bal[b] * table[s]));
   });
+  const zone = gripZone(m, answers, l.mu, cfg);
+  const hs = handShapeNudge(m, zone, l.mu, cfg);
+  if (hs) {
+    (Object.keys(shape) as Shape[]).forEach(
+      (k) => (shape[k] = Math.max(cfg.handShape.floor, shape[k] + hs.delta[k])),
+    );
+    const total = (Object.values(shape) as number[]).reduce((a, b) => a + b, 0);
+    (Object.keys(shape) as Shape[]).forEach((k) => (shape[k] = Number((shape[k] / total).toFixed(3))));
+    if (hs.lean !== 'neutral')
+      reasons.push({
+        code: `shape_${hs.lean}`,
+        dim: 'shape',
+        params: { spreadPct: Math.round(hs.spread * 100) },
+      });
+  }
+  const preferredShape = (Object.keys(shape) as Shape[]).reduce((a, b) => (shape[b] > shape[a] ? b : a));
 
   // ── The ideal barrel ───────────────────────────────────────────────
   const cogFrac = (Object.keys(bal) as Balance[]).reduce((s, b) => s + bal[b] * B.cogFrac[b], 0);
-  const zone = gripZone(m, answers, l.mu, cfg);
   const barrel = solveIdeal(
-    { massG: w.mu, lengthMm: r2(l.mu), diameterMm: r2(d.mu), cogFrac, tungstenPct: phys.tungstenPct },
+    {
+      massG: w.mu,
+      lengthMm: r2(l.mu),
+      diameterMm: r2(d.mu),
+      cogFrac,
+      tungstenPct: phys.tungstenPct,
+      shape: preferredShape,
+      balance: preferredBalance,
+    },
     zone,
     cfg,
   );

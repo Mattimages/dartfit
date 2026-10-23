@@ -22,7 +22,7 @@ Mobile site: measure the throwing hand next to a bank card, fit darts to it, lin
 
 ## Engine v3 in one paragraph
 
-Hand dimensions and answers become Gaussian evidence for weight, length and diameter (`fit.ts`). `enforcePhysics` projects the target onto what a real barrel can be: mass from `barrel.ts` (alloy density, bore, piecewise-linear profile, machining factor 0.876 calibrated on 34 straight catalogue barrels, about ±7% IQR). If 90% tungsten can't make it, 95% is tried. `solveIdeal` then picks taper lengths for the wanted mass and balance. `recommend()` ranks catalogue darts by band fit and excludes listings whose stated weight fails the physics check (`specCheck`).
+Hand dimensions and answers become Gaussian evidence for weight, length and diameter (`fit.ts`). `enforcePhysics` projects the target onto what a real barrel can be: mass from `barrel.ts` (alloy density, bore, piecewise-linear profile, machining factor 0.876 calibrated on 34 straight catalogue barrels, about ±7% IQR). If 90% tungsten can't make it, 95% is tried. Shape starts from hold and throw, then the measured hand nudges it (`handShapeNudge`, config `handShape`): short fingers for the palm and a compact grip lean towards bomb/torpedo, long fingers spread along the barrel towards straight; estimated hands (height) don't nudge. `solveIdeal` then picks taper lengths for the wanted mass and balance, leaning towards the preferred shape's reference profile and moving the diameter within `handShape.diameterFlex` to keep the weight; the ideal is labelled by its nearest reference shape. `recommend()` ranks catalogue darts by band fit and excludes listings whose stated weight fails the physics check (`specCheck`).
 
 ## Commands
 

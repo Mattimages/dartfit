@@ -33,7 +33,6 @@ const s = (tag: string, attrs: Record<string, string | number> = {}, text?: stri
   return el;
 };
 const wait = (ms: number) => new Promise((r) => setTimeout(r, ms));
-const dist = (a: MmPoint, b: MmPoint) => Math.hypot(a.x - b.x, a.y - b.y);
 
 interface Cast {
   hand: {
@@ -61,6 +60,8 @@ interface Thrower {
   gripFeel: 2 | 3 | 4;
   /** Skin tone of the drawn hand, an index into SKIN_TONES. */
   tone: number;
+  /** Finger length relative to the palm: below 1 is stubby, above 1 is slender. */
+  fingerScale: number;
 }
 const FIRST: Thrower = {
   lengthMm: 186,
@@ -69,11 +70,13 @@ const FIRST: Thrower = {
   throwStyle: 'unsure',
   gripFeel: 3,
   tone: 1,
+  fingerScale: 1,
 };
 const pickOne = <T>(xs: readonly T[]) => xs[Math.floor(Math.random() * xs.length)]!;
 /** Adult hand lengths cluster around 188 mm (about ±9 mm); clipped to 168–206. */
+const gauss = () => Math.sqrt(-2 * Math.log(1 - Math.random())) * Math.cos(2 * Math.PI * Math.random());
 function randomThrower(): Thrower {
-  const g = Math.sqrt(-2 * Math.log(1 - Math.random())) * Math.cos(2 * Math.PI * Math.random());
+  const g = gauss();
   return {
     lengthMm: Math.round(Math.min(206, Math.max(168, 188 + 9 * g))),
     hold: pickOne(['front', 'middle', 'middle', 'rear'] as const),
@@ -81,41 +84,64 @@ function randomThrower(): Thrower {
     throwStyle: pickOne(['flat', 'arc', 'unsure'] as const),
     gripFeel: pickOne([2, 3, 3, 4] as const),
     tone: Math.floor(Math.random() * SKIN_TONES.length),
+    // Finger-to-palm proportion varies about ±6% between adults (handShape.ratioCv); this scale moves it
+    // by fk^1.5, so ±4% here; clipped to ±8%.
+    fingerScale: Math.min(1.08, Math.max(0.92, 1 + 0.04 * gauss())),
   };
+}
+
+/** Stretch or shorten each finger from its knuckle (the thumb from its base) by k. */
+function fingersScaled(p: MmPoint[], k: number): MmPoint[] {
+  const out = p.map((q) => ({ ...q }));
+  for (const chain of [
+    [1, 2, 3, 4],
+    [5, 6, 7, 8],
+    [9, 10, 11, 12],
+    [13, 14, 15, 16],
+    [17, 18, 19, 20],
+  ]) {
+    const base = p[chain[0]!]!;
+    for (const i of chain.slice(1))
+      out[i] = { x: base.x + (p[i]!.x - base.x) * k, y: base.y + (p[i]!.y - base.y) * k };
+  }
+  return out;
 }
 
 /** The hand, the ideal and three darts in rising order of fit; the last is the engine's pick. */
 function cast(pool: Variant[], who: Thrower = FIRST): Cast | null {
-  const points = templateHand(who.lengthMm);
+  // The engine gets real-scale measurements (reference proportions, as a scan would measure them);
+  // the drawing gets the same finger proportion, so a stubby hand looks stubby.
+  const fk = who.fingerScale;
+  const size = who.lengthMm / 185;
+  const ref = { palm: 78, middle: 85, index: 78, span: 120 };
+  const m = {
+    handLengthMm: Math.round(who.lengthMm * (0.55 + 0.45 * fk)),
+    palmWidthMm: Number((ref.palm * size * Math.sqrt(1 / fk)).toFixed(1)),
+    indexLengthMm: Number((ref.index * size * fk).toFixed(1)),
+    middleLengthMm: Number((ref.middle * size * fk).toFixed(1)),
+    thumbIndexSpanMm: Number((ref.span * size * fk).toFixed(1)),
+    spreadMm: 1,
+    samples: 18,
+    calibrated: false,
+  };
+  const points = fingersScaled(templateHand(who.lengthMm), fk);
   const hand = {
     lengthMm: who.lengthMm,
-    length: dist(points[0]!, points[12]!),
-    knuckles: dist(points[5]!, points[17]!),
-    index: dist(points[5]!, points[8]!),
+    length: m.handLengthMm,
+    knuckles: m.palmWidthMm,
+    index: m.indexLengthMm,
     points,
     tone: who.tone,
   };
-  const f = fit(
-    {
-      handLengthMm: hand.length,
-      palmWidthMm: hand.knuckles,
-      indexLengthMm: hand.index,
-      middleLengthMm: dist(points[9]!, points[12]!),
-      thumbIndexSpanMm: dist(points[4]!, points[8]!),
-      spreadMm: 1,
-      samples: 18,
-      calibrated: false,
-    },
-    {
-      tip: 'steel',
-      hold: who.hold,
-      fingers: who.fingers,
-      throwStyle: who.throwStyle,
-      moisture: 'normal',
-      gripFeel: who.gripFeel,
-      thickness: 'auto',
-    },
-  );
+  const f = fit(m, {
+    tip: 'steel',
+    hold: who.hold,
+    fingers: who.fingers,
+    throwStyle: who.throwStyle,
+    moisture: 'normal',
+    gripFeel: who.gripFeel,
+    thickness: 'auto',
+  });
   const scored = pool.map((v) => {
     const shape = variantBarrel(v);
     return { v, shape, overlap: silhouetteOverlap(f.barrel, shape) };

@@ -322,6 +322,10 @@ const nl = {
   'why.grip_moisture': '{moisture} handen: {effect} stap grip.',
   'why.grip_current': 'Je huidige grip ({current} van 5) voelt {feel}.',
   'why.balance_hold': 'Je pakt hem {hold}: {balance}.',
+  'why.shape_compact':
+    'Je vingers zijn kort voor je hand of je grip is compact (ze dekken {spreadPct}% van de barrel): een bom- of torpedovorm geeft je één duidelijk grippunt.',
+  'why.shape_long':
+    'Je vingers liggen over {spreadPct}% van de barrel: een rechte barrel geeft ze overal houvast.',
   'why.balance_current': 'Je huidige dart voelt goed: richting {balance}.',
   'r.ideal.title': 'Je ideale barrel',
   'r.ideal.lead':
@@ -789,6 +793,10 @@ const en: Record<Key, string> = {
   'why.grip_moisture': '{moisture} hands: {effect} grip step.',
   'why.grip_current': 'Your current grip ({current} of 5) feels {feel}.',
   'why.balance_hold': 'You hold it {hold}: {balance}.',
+  'why.shape_compact':
+    'Your fingers are short for your hand or your grip is compact (they cover {spreadPct}% of the barrel): a bomb or torpedo gives you one clear grip point.',
+  'why.shape_long':
+    'Your fingers cover {spreadPct}% of the barrel: a straight barrel gives them grip all along.',
   'why.balance_current': 'Your current dart feels right: towards {balance}.',
   'r.ideal.title': 'Your ideal barrel',
   'r.ideal.lead':
