@@ -363,8 +363,7 @@ export const de: Partial<Record<Key, string>> = {
   'region.all': 'Alle Länder',
   'region.search': 'Land suchen',
   'buy.title': 'Speichere deinen Fit',
-  'buy.sub':
-    'Hinterlasse deine E-Mail-Adresse. Wir speichern deine Messung und melden uns, sobald ein Dart kommt, der noch besser zu dir passt.',
+  'buy.sub': 'Wir mailen dir nur, wenn ein noch besser passender Dart auf den Markt kommt!',
   'buy.save': 'Speichern und weiter zu {shop}',
   'buy.skip': 'Nein danke, direkt zu {shop}',
   'buy.sent': 'Schau in {email} nach und tippe auf den Link zum Bestätigen.',

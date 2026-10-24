@@ -132,7 +132,6 @@ function open(href: string, fitId: string | undefined, shop: string) {
       msg,
       save,
       skip,
-      h('p', { class: 'buy-fine' }, t('r.alert.fine')),
     ),
   );
   document.body.append(dialog);

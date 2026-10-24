@@ -516,8 +516,7 @@ const nl = {
   'region.all': 'Alle landen',
   'region.search': 'Zoek een land',
   'buy.title': 'Bewaar je fit',
-  'buy.sub':
-    'Laat je e-mailadres achter. Dan bewaren we je meting en mailen we je zodra er een dart binnenkomt die nog beter bij je past.',
+  'buy.sub': 'We mailen je alleen wanneer een nog beter passende dart op de markt komt!',
   'buy.save': 'Bewaar en ga naar {shop}',
   'buy.skip': 'Nee, direct naar {shop}',
   'buy.sent': 'Check {email} en tik op de link om te bevestigen.',
@@ -1038,8 +1037,7 @@ const en: Record<Key, string> = {
   'region.all': 'All countries',
   'region.search': 'Search a country',
   'buy.title': 'Save your fit',
-  'buy.sub':
-    "Leave your email. We'll keep your measurement and let you know when an even better fitting dart arrives.",
+  'buy.sub': 'We only email you when an even better fitting dart comes on the market!',
   'buy.save': 'Save and go to {shop}',
   'buy.skip': 'No thanks, straight to {shop}',
   'buy.sent': 'Check {email} and tap the link to confirm.',
