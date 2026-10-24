@@ -10,6 +10,8 @@ export interface Session {
   currentName?: string;
   /** Price class to open the result on; 'any' = the class of the best overall fit. */
   priceClass?: 'budget' | 'standard' | 'premium' | 'any';
+  /** Buying for someone else: no scan, the questions ask about "the player". */
+  gift?: boolean;
 }
 
 const KEY = 'df_session';

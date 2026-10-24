@@ -131,7 +131,8 @@ export function handShapeNudge(
   lengthMm: number,
   cfg: EngineConfig = defaultConfig,
 ): { delta: Record<Shape, number>; lean: 'compact' | 'long' | 'neutral'; spread: number } | null {
-  if (!m || m.estimatedFrom) return null;
+  // Proportions from a scan or from the hand type; not from height or reference estimates.
+  if (!m || (m.estimatedFrom && m.proportions !== 'handType')) return null;
   const H = cfg.handShape;
   const ratio = m.middleLengthMm / m.palmWidthMm;
   const z = clamp((H.ratioRef - ratio) / (H.ratioRef * H.ratioCv), -H.zClamp, H.zClamp);
@@ -216,6 +217,31 @@ export function fit(
         params: { heightCm: H, handLengthMm: Math.round(m.handLengthMm), expectedMm: Math.round(exp.mu) },
       });
     }
+  }
+  // Hand type in words (gift buyers, no scan): shapes the proportions the scan would have measured.
+  const ht = answers.handType;
+  if (ht && ht !== 'average' && (!m || m.estimatedFrom || m.proportions === 'reference')) {
+    const base: Measurements = m ?? {
+      handLengthMm: ref.handLength.mu,
+      palmWidthMm: ref.palmWidth.mu,
+      indexLengthMm: 78,
+      middleLengthMm: ref.middleLength.mu,
+      thumbIndexSpanMm: 120,
+      spreadMm: ref.handLength.sigma,
+      samples: 0,
+      calibrated: false,
+      estimatedFrom: 'reference',
+    };
+    const half = (cfg.handType[ht] * cfg.handShape.ratioCv) / 2;
+    const r1 = (x: number) => Number(x.toFixed(1));
+    m = {
+      ...base,
+      middleLengthMm: r1(base.middleLengthMm * (1 - half)),
+      indexLengthMm: r1(base.indexLengthMm * (1 - half)),
+      palmWidthMm: r1(base.palmWidthMm * (1 + half)),
+      proportions: 'handType',
+    };
+    reasons.push({ code: 'hand_type', dim: 'confidence', params: { type: ht } });
   }
   const traj = trajectory(answers, m, cfg);
   const style = effectiveThrowStyle(answers, traj, cfg);

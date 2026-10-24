@@ -4,8 +4,8 @@ import { h, mount } from './h';
 import { getLang, LANGS, t } from './i18n';
 import { COUNTRIES, getCountry, hasChosenCountry } from './region';
 import { openRegionPicker } from './views/region-picker';
-import { installBuyGate } from './views/buy-gate';
-import { route, start, render } from './router';
+import { route, start, render, go } from './router';
+import { clearSession, update } from './store';
 import { DEMO, refreshCatalogue } from './api';
 import { homeView } from './views/home';
 import { scanView } from './views/scan';
@@ -22,6 +22,12 @@ import { signinView, meView } from './views/account';
 route('/', homeView);
 route('/scan', scanView);
 route('/manual', manualView);
+// Buying a gift: no scan; the questionnaire asks about the player instead.
+route('/gift', () => {
+  clearSession();
+  update({ gift: true });
+  go('/questions');
+});
 route('/hand', handView);
 route('/questions', questionsView);
 route('/fitting', fittingView);
@@ -112,7 +118,6 @@ function refreshAll() {
 layout();
 start(() => {});
 // First visit: ask where they shop (the browser's guess is pre-selected).
-installBuyGate();
 if (!hasChosenCountry()) openRegionPicker(refreshAll, true);
 void refreshCatalogue();
 

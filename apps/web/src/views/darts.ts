@@ -1,4 +1,3 @@
-import { buyLink } from './buy-gate';
 import { h } from '../h';
 import { num, t, type Key } from '../i18n';
 import { shopLink, variants } from '../api';
@@ -56,14 +55,11 @@ export function dartsView(root: HTMLElement) {
         h(
           'li',
           { class: 'card' },
-          buyLink(
-            h(
-              'a',
-              { href: shopLink(v), target: '_blank', rel: 'noopener sponsored' },
-              dartMedia(v),
-              h('h2', null, dartName(v)),
-            ),
-            null,
+          h(
+            'a',
+            { href: shopLink(v), target: '_blank', rel: 'noopener sponsored' },
+            dartMedia(v),
+            h('h2', null, dartName(v)),
           ),
           h(
             'p',

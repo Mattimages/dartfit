@@ -1,4 +1,4 @@
-import type { Answers } from '@dartfit/engine';
+import type { Answers, HandType } from '@dartfit/engine';
 import { h } from '../h';
 import { t, type Key } from '../i18n';
 import { go } from '../router';
@@ -59,9 +59,22 @@ const DEFAULTS: Answers = {
   thickness: 'auto',
 };
 
+const HAND_TYPES: HandType[] = ['slender', 'average', 'stubby'];
+
 export function questionsView(root: HTMLElement) {
   const s = session();
   const a: Answers = { ...DEFAULTS, ...(s.answers ?? {}) };
+  // Buying for someone else: the questions are about "the player", and "not sure" is fine.
+  const gift = !!s.gift;
+  const q = (key: Key) => {
+    if (!gift) return t(key);
+    const g = `${key}.gift` as Key;
+    const out = t(g);
+    return out === g ? t(key) : out;
+  };
+  // No scanned proportions (gift, height only, ruler): ask what kind of hand it is.
+  const m = s.measurements;
+  const askHand = !m || !!m.estimatedFrom || m.proportions === 'reference';
 
   // Grip: a slider, so the knurling on the live dart follows your thumb.
   const gripVal = h('output', { class: 'grip-val', for: 'gripFeel' }, String(a.gripFeel));
@@ -82,8 +95,8 @@ export function questionsView(root: HTMLElement) {
   const grip = h(
     'fieldset',
     { class: 'field' },
-    h('legend', null, t('q.grip')),
-    h('p', { class: 'hint' }, t('q.grip.hint')),
+    h('legend', null, q('q.grip')),
+    h('p', { class: 'hint' }, q('q.grip.hint')),
     h(
       'div',
       { class: 'grip-row' },
@@ -123,36 +136,67 @@ export function questionsView(root: HTMLElement) {
   const body = h(
     'fieldset',
     { class: 'field' },
-    h('legend', null, t('q.body')),
-    h('p', { class: 'hint' }, t('q.body.why')),
+    h('legend', null, q('q.body')),
+    h('p', { class: 'hint' }, q('q.body.why')),
     s.measurements?.unscaled ? h('p', { class: 'unscaled-warn', role: 'note' }, t('q.body.unscaled')) : null,
     h('label', { class: 'visually-hidden', for: 'height' }, t('q.body.height')),
     h('div', { class: 'mm-input' }, heightIn, h('span', { 'aria-hidden': 'true' }, 'cm')),
-    h('label', { class: 'label', for: 'forearm', style: 'margin-top:1.25rem' }, t('q.body.forearm')),
-    h('p', { class: 'hint' }, t('q.body.forearm.hint')),
-    h('div', { class: 'mm-input small-input' }, forearmIn, h('span', { 'aria-hidden': 'true' }, 'cm')),
+    // A gift buyer won't know the forearm.
+    gift
+      ? null
+      : h('label', { class: 'label', for: 'forearm', style: 'margin-top:1.25rem' }, t('q.body.forearm')),
+    gift ? null : h('p', { class: 'hint' }, t('q.body.forearm.hint')),
+    gift
+      ? null
+      : h('div', { class: 'mm-input small-input' }, forearmIn, h('span', { 'aria-hidden': 'true' }, 'cm')),
   );
+
+  // Hand type in words: long and slender, average, short and stubby (or not sure).
+  const handStep = h(
+    'div',
+    null,
+    tiles(
+      'handType',
+      q('q.hand'),
+      opts('q.hand', [...HAND_TYPES, 'unsure']),
+      a.handType ?? (gift ? 'unsure' : 'average'),
+      2,
+    ),
+    h('p', { class: 'hint' }, q('q.hand.hint')),
+  );
+  const unsure = (): Opt => ({ value: 'unsure', label: t('q.hand.unsure') });
 
   /** One question per screen. `auto` steps move on by themselves when tapped. */
   const steps: Array<{ el: HTMLElement; auto: boolean; focus?: Focus }> = [
     { el: body, auto: false },
+    ...(askHand ? [{ el: handStep, auto: true }] : []),
     {
-      el: tiles('hold', t('q.hold'), opts('q.hold', ['front', 'middle', 'rear']), a.hold),
+      el: tiles(
+        'hold',
+        q('q.hold'),
+        [...opts('q.hold', ['front', 'middle', 'rear']), ...(gift ? [unsure()] : [])],
+        gift && !s.answers ? 'unsure' : a.hold,
+        gift ? 2 : 3,
+      ),
       auto: true,
       focus: 'hold',
     },
     {
       el: tiles(
         'fingers',
-        t('q.fingers'),
-        ['2', '3', '4'].map((v) => ({ value: v, label: t('q.fingers.unit', { n: v }) })),
-        String(a.fingers),
+        q('q.fingers'),
+        [
+          ...['2', '3', '4'].map((v) => ({ value: v, label: t('q.fingers.unit', { n: v }) })),
+          ...(gift ? [unsure()] : []),
+        ],
+        gift && !s.answers ? 'unsure' : String(a.fingers),
+        gift ? 2 : 3,
       ),
       auto: true,
       focus: 'fingers',
     },
     {
-      el: tiles('throwStyle', t('q.throw'), opts('q.throw', ['flat', 'arc', 'unsure']), a.throwStyle),
+      el: tiles('throwStyle', q('q.throw'), opts('q.throw', ['flat', 'arc', 'unsure']), a.throwStyle),
       auto: true,
       focus: 'throwStyle',
     },
@@ -178,7 +222,10 @@ export function questionsView(root: HTMLElement) {
   // The live dart follows whatever is selected right now (or the defaults for questions not reached).
   const refresh = () => {
     const fd = new FormData(form as HTMLFormElement);
-    const get = (k: string, d: string | number) => String(fd.get(k) ?? d);
+    const get = (key: string, d: string | number) => {
+      const v = String(fd.get(key) ?? d);
+      return v === 'unsure' && key !== 'throwStyle' ? String(d) : v;
+    };
     const now: Answers = {
       tip: 'steel',
       hold: get('hold', a.hold) as Answers['hold'],
@@ -245,12 +292,15 @@ export function questionsView(root: HTMLElement) {
   form.addEventListener('submit', (e) => {
     e.preventDefault();
     const fd = new FormData(form as HTMLFormElement);
-    const val = (k: string) => String(fd.get(k) ?? '');
+    const val = (key: string) => String(fd.get(key) ?? '');
+    // "Not sure" (gift) falls back to the most common answer.
+    const or = (key: string, d: string | number) =>
+      val(key) === 'unsure' || !val(key) ? String(d) : val(key);
     const answers: Answers = {
       // Steel tip only: the site fits sisal-board darts.
       tip: 'steel',
-      hold: val('hold') as Answers['hold'],
-      fingers: Number(val('fingers')) as Answers['fingers'],
+      hold: or('hold', DEFAULTS.hold) as Answers['hold'],
+      fingers: Number(or('fingers', DEFAULTS.fingers)) as Answers['fingers'],
       throwStyle: val('throwStyle') as Answers['throwStyle'],
       moisture: 'normal',
       gripFeel: Number(val('gripFeel')) as Answers['gripFeel'],
@@ -266,6 +316,8 @@ export function questionsView(root: HTMLElement) {
       return;
     }
     if (hgt) answers.heightCm = hgt;
+    const ht = val('handType') as HandType;
+    if (askHand && HAND_TYPES.includes(ht)) answers.handType = ht;
     if (fa) answers.forearmCm = fa;
     // No current-dart or price-class questions: every price class is shown on the result.
     update({ answers, currentName: undefined, priceClass: 'any' });

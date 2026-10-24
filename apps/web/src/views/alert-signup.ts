@@ -1,10 +1,9 @@
 import { h } from '../h';
 import { t } from '../i18n';
 import { DEMO, requestLogin, setOptins } from '../api';
-import { markSigned } from './buy-gate';
 
 /**
- * "Keep me posted" box at the end of a result. Double opt-in: the server emails a confirmation
+ * "Keep me posted" box at the start of a result. Double opt-in: the server emails a confirmation
  * link, and only that link turns alerts on (and saves the fit to the address). An alert goes out
  * only when a new dart becomes this person's best match.
  */
@@ -95,7 +94,6 @@ export function alertSignup(fitId: string | undefined, opts: { saved: boolean; j
         confirmsAge16: true,
       });
       box.classList.add('sent');
-      markSigned();
       msg.textContent = t('r.alert.sent', { email: email.value.trim() });
     } catch {
       send.removeAttribute('disabled');

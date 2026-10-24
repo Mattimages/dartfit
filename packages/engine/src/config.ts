@@ -5,7 +5,7 @@
  *   tuned     — fitted from user feedback (none yet at launch)
  * A unit test fails if a numeric leaf has no provenance entry.
  */
-export const ENGINE_VERSION = '3.3.0';
+export const ENGINE_VERSION = '3.4.0';
 
 export const config = {
   reference: {
@@ -101,6 +101,9 @@ export const config = {
     diameterFlex: { down: 0.3, up: 0.7 },
     diameterSigma: 0.35,
   },
+  // Hand type picked in words (no scan): how many SD of finger-to-palm proportion it stands for.
+  // Half of it shortens or lengthens the fingers, half widens or narrows the palm.
+  handType: { slender: -1.5, stubby: 1.5 },
   physics: {
     // Alloy density in g/cm³.
     density: { w80: 15.05, w85: 16.05, w90: 17.05, w925: 17.5, w95: 18.05, w97: 18.55, brass: 8.5 },
@@ -377,6 +380,14 @@ export const provenance: Record<string, Prov> = {
     note: 'Four fingers spread along the barrel suit straight or scalloped.',
   },
   'handShape.floor': { p: 'heuristic', note: 'No shape drops to zero.' },
+  'handType.slender': {
+    p: 'heuristic',
+    note: '"Long and slender" read as 1.5 SD longer fingers for the palm (about the 93rd percentile). Words are vague, so not further.',
+  },
+  'handType.stubby': {
+    p: 'heuristic',
+    note: '"Short and stubby" read as 1.5 SD shorter fingers for the palm, mirror of slender.',
+  },
   'handShape.solverPull': {
     p: 'heuristic',
     note: 'Weight of the preferred-shape profile in the ideal-barrel solver, against mass and balance.',

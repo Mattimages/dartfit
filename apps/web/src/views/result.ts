@@ -1,4 +1,3 @@
-import { buyLink, markSigned } from './buy-gate';
 import {
   silhouetteOverlap,
   tierBoundsUsd,
@@ -29,19 +28,15 @@ const priceText = (usd: number) => `≈ €${approxEur(usd)}`;
 
 function offerLink(o: Offer, fitId: string | null, primary: boolean): HTMLElement {
   const href = DEMO || !fitId ? o.goUrl : `${o.goUrl}?fit=${encodeURIComponent(fitId)}`;
-  return buyLink(
+  return h(
+    'a',
+    { class: primary ? 'btn' : 'btn ghost', href, target: '_blank', rel: 'noopener sponsored' },
     h(
-      'a',
-      { class: primary ? 'btn' : 'btn ghost', href, target: '_blank', rel: 'noopener sponsored' },
-      h(
-        'span',
-        null,
-        o.kind === 'search' ? t('r.search', { shop: o.retailerName }) : t('r.buy', { shop: o.retailerName }),
-      ),
-      o.price !== null && o.currency === 'USD' ? h('span', { class: 'price' }, priceText(o.price)) : null,
+      'span',
+      null,
+      o.kind === 'search' ? t('r.search', { shop: o.retailerName }) : t('r.buy', { shop: o.retailerName }),
     ),
-    fitId,
-    o.retailerName,
+    o.price !== null && o.currency === 'USD' ? h('span', { class: 'price' }, priceText(o.price)) : null,
   );
 }
 
@@ -208,8 +203,6 @@ export async function resultView(root: HTMLElement, params: Record<string, strin
     return go('/questions');
   }
   const f = r.fit;
-  // Signed in, or just confirmed the alert mail: buy buttons go straight to the shop.
-  if (r.saved || query?.get('alerts') === '1') markSigned();
   const picks = r.recommendation.picks as FullPick[];
   const best = picks[0];
   const lang = getLang();
@@ -344,6 +337,8 @@ export async function resultView(root: HTMLElement, params: Record<string, strin
     : null;
   const parts: Array<HTMLElement | null> = [
     unscaled,
+    // Email sign-up first, then the darts.
+    alertSignup(r.id ?? undefined, { saved: !!r.saved, justConfirmed: query?.get('alerts') === '1' }),
     hero ??
       (v && best
         ? h(
@@ -412,7 +407,6 @@ export async function resultView(root: HTMLElement, params: Record<string, strin
       whatIf.length ? more(t('r.whatif'), h('ul', { class: 'whatif' }, ...whatIf)) : null,
     ),
     partnerBanner(),
-    alertSignup(r.id ?? undefined, { saved: !!r.saved, justConfirmed: query?.get('alerts') === '1' }),
     h(
       'section',
       { class: 'r-actions' },

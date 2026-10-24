@@ -268,7 +268,13 @@ describe('priceTiers', () => {
 
 describe('match breakdown: shape, style, total', () => {
   it('splits the score into shape and style, and the total is the usual score', async () => {
-    const { fit: runFit, recommend, matchBreakdown, matchPctOf, config: cfg } = await import('../src/index.js');
+    const {
+      fit: runFit,
+      recommend,
+      matchBreakdown,
+      matchPctOf,
+      config: cfg,
+    } = await import('../src/index.js');
     const { baseAnswers, hand } = await import('./helpers.js');
     const { loadCatalogue } = await import('@dartfit/catalogue');
     const f = runFit(hand(186), baseAnswers);

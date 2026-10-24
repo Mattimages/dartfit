@@ -66,7 +66,14 @@ export async function fittingView(root: HTMLElement) {
 
   const title = h('h1', { class: 'visually-hidden' }, t('fit.title'));
   const status = h('p', { class: 'visually-hidden', 'aria-live': 'polite' }, t('fit.title'));
-  const holder = h('div', { class: 'fit-film' }, waiting());
+  const holder = h('div', { class: 'fit-film' });
+  // The board only shows when the fit takes a moment; once shown, it lands all three darts.
+  const loader = waiting();
+  let shownAt = 0;
+  const showLoader = setTimeout(() => {
+    holder.append(loader);
+    shownAt = performance.now();
+  }, 250);
   const cta = h('a', { class: 'btn block fit-cta', hidden: true }, t('fit.see'));
   const skip = h('a', { class: 'btn link fit-skip', hidden: true }, t('fit.skip'));
   const err = h('p', { class: 'error', role: 'alert', hidden: true }, t('q.error'));
@@ -76,10 +83,12 @@ export async function fittingView(root: HTMLElement) {
   try {
     result = await createFit(m, a);
   } catch {
+    clearTimeout(showLoader);
     holder.replaceChildren();
     err.hidden = false;
     return;
   }
+  clearTimeout(showLoader);
   const f = result.fit;
   const target = `#/fit/${result.id ?? 'local'}`;
   cta.setAttribute('href', target);
@@ -106,6 +115,11 @@ export async function fittingView(root: HTMLElement) {
   const c = castFor(f, pool, hand, who, { best, tiers: result.tiers ?? {} }, 2);
   if (!c) return go(target.slice(1));
 
+  if (shownAt) {
+    await wait(Math.max(0, 1450 - (performance.now() - shownAt)));
+    loader.classList.add('out');
+    await wait(300);
+  }
   const film = fitFilm(c);
   holder.replaceChildren(film.el);
   skip.hidden = false;

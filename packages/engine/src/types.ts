@@ -22,8 +22,13 @@ export interface Measurements {
   samples: number;
   /** True when a tape-measure calibration has been applied (see scripts/calibrate.ts). */
   calibrated: boolean;
-  /** Set when these numbers were estimated (from height) rather than measured. */
-  estimatedFrom?: 'height';
+  /** Set when these numbers were estimated (from height, or the reference hand) rather than measured. */
+  estimatedFrom?: 'height' | 'reference';
+  /**
+   * Where the proportions come from when they were not scanned: `reference` (ruler: one length,
+   * typical proportions) or `handType` (the hand type the player or gift buyer picked).
+   */
+  proportions?: 'reference' | 'handType';
   /**
    * Scanned without a bank card: the proportions are measured, the size is not. The numbers are
    * in reference scale (hand length = reference mean); the fit rescales them to the player's
@@ -69,7 +74,11 @@ export interface Answers {
   heightCm?: number;
   /** Forearm length in cm, elbow crease to wrist crease (optional): the throwing lever. */
   forearmCm?: number;
+  /** Without a scan: the hand described in words. Only used when the proportions were not scanned. */
+  handType?: HandType;
 }
+
+export type HandType = 'slender' | 'average' | 'stubby';
 
 /** A target value with uncertainty. `band` is the range we tell the user to try. */
 export interface Estimate {

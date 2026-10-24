@@ -510,8 +510,48 @@ const bar = (y = 16, h = 8) =>
   s('rect', { class: 'ico-bar', x: 16, y: y - h / 2, width: 30, height: h, rx: 2 });
 const tipLine = s('path', { class: 'ico-line', d: 'M4,16L16,16' });
 
+/** A hand from above, fingers to the right: palm height and finger length set the type. */
+function handIcon(palmH: number, fingerL: number, fingerW: number, cls = 'ico-bar'): SVGElement {
+  const palmW = 20;
+  const x0 = 32 - (palmW + fingerL) / 2;
+  const top = 16 - palmH / 2;
+  const gap = (palmH - 4 * fingerW) / 3;
+  const parts: SVGElement[] = [
+    s('rect', { class: cls, x: x0, y: top, width: palmW, height: palmH, rx: 3 }),
+    // Thumb, angled down from the palm.
+    s('rect', {
+      class: cls,
+      x: x0 + 6,
+      y: top + palmH - fingerW / 2,
+      width: fingerL * 0.55,
+      height: fingerW,
+      rx: fingerW / 2,
+      transform: `rotate(35 ${x0 + 6} ${top + palmH})`,
+    }),
+  ];
+  for (let i = 0; i < 4; i++) {
+    // Middle fingers a little longer than the index and ring, the little finger shortest.
+    const l = fingerL * [0.9, 1, 0.95, 0.75][i]!;
+    const y = top + i * (fingerW + gap);
+    parts.push(
+      s('rect', { class: cls, x: x0 + palmW - 2, y, width: l + 2, height: fingerW, rx: fingerW / 2 }),
+    );
+  }
+  return ico(...parts);
+}
+
 export function pictogram(kind: string, value: string): SVGElement | null {
+  // "Not sure" on any question but the throw (which has its own picture): a question mark.
+  if (value === 'unsure' && kind !== 'throwStyle')
+    return ico(
+      s('path', { class: 'ico-path', d: 'M26,11Q26,5 32,5Q38,5 38,10.5Q38,14 32,17L32,21' }),
+      s('circle', { class: 'ico-accent', cx: 32, cy: 26.5, r: 2 }),
+    );
   switch (kind) {
+    case 'handType':
+      if (value === 'slender') return handIcon(14, 22, 2.6);
+      if (value === 'stubby') return handIcon(22, 11, 4.6);
+      return handIcon(18, 16, 3.6);
     case 'tip':
       return value === 'soft'
         ? ico(

@@ -298,3 +298,38 @@ describe('v3.3: scanned without a card (proportions only)', () => {
     expect(none.confidenceScore).toBeLessThan(card.confidenceScore);
   });
 });
+
+describe('v3.4: hand type in words (no scan)', () => {
+  const shapeOf = (f: ReturnType<typeof fit>) => f.reasons.map((r) => r.code);
+
+  it('short and stubby leans compact, long and slender leans long, from height alone', () => {
+    const stub = fit(undefined, { ...baseAnswers, heightCm: 180, handType: 'stubby' });
+    const slim = fit(undefined, { ...baseAnswers, heightCm: 180, handType: 'slender' });
+    expect(shapeOf(stub)).toContain('hand_type');
+    expect(shapeOf(stub)).toContain('shape_compact');
+    expect(stub.barrel.shape).toBe('bomb');
+    expect(slim.barrel.shape).toBe('straight');
+    expect(slim.barrel.diameterMm).toBeLessThan(stub.barrel.diameterMm);
+  });
+
+  it('works without a height (reference hand) and stays an estimate', () => {
+    const f = fit(undefined, { ...baseAnswers, handType: 'stubby' });
+    expect(f.reasons.find((r) => r.code === 'hand_type')?.params.type).toBe('stubby');
+    const scanned = fit(hand(185, { middleLengthMm: 81, palmWidthMm: 82 }), baseAnswers);
+    expect(f.confidenceScore).toBeLessThan(scanned.confidenceScore);
+  });
+
+  it('average changes nothing, and a scanned hand ignores the words', () => {
+    const plain = fit(undefined, { ...baseAnswers, heightCm: 180 });
+    const avg = fit(undefined, { ...baseAnswers, heightCm: 180, handType: 'average' });
+    expect(avg.barrel).toEqual(plain.barrel);
+    const m = hand(190);
+    expect(fit(m, { ...baseAnswers, handType: 'stubby' }).barrel).toEqual(fit(m, baseAnswers).barrel);
+  });
+
+  it('reshapes a ruler measurement (length kept)', () => {
+    const ruler = { ...hand(190), proportions: 'reference' as const };
+    const f = fit(ruler, { ...baseAnswers, handType: 'stubby' });
+    expect(shapeOf(f)).toContain('hand_type');
+  });
+});

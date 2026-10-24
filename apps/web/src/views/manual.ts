@@ -47,8 +47,10 @@ export function manualView(root: HTMLElement) {
         spreadMm: 4,
         samples: 3,
         calibrated: false,
+        proportions: 'reference',
       },
       landmarksMm: undefined,
+      gift: false,
     });
     go('/questions');
   });

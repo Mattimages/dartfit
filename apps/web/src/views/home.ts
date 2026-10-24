@@ -1,3 +1,4 @@
+import { giftIcon, noCardIcon } from '../draw/icons';
 import type { Variant } from '@dartfit/engine';
 import { h } from '../h';
 import { num, t, type Key } from '../i18n';
@@ -116,7 +117,22 @@ export function homeView(root: HTMLElement) {
         'div',
         { class: 'hero-cta' },
         h('a', { class: 'btn block', href: '#/scan', onclick: start }, t('land.cta')),
-        h('a', { class: 'btn link', href: '#/manual', onclick: start }, t('land.cta.manual')),
+        h(
+          'div',
+          { class: 'alt-starts' },
+          h(
+            'a',
+            { class: 'btn ghost ico-btn', href: '#/scan?nocard=1', onclick: start },
+            noCardIcon(),
+            h('span', null, t('start.nocard')),
+          ),
+          h(
+            'a',
+            { class: 'btn ghost ico-btn', href: '#/gift' },
+            giftIcon(),
+            h('span', null, t('start.gift')),
+          ),
+        ),
       ),
     ),
 

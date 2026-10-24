@@ -1,8 +1,9 @@
+import { giftIcon, noCardIcon } from '../draw/icons';
 import { checkHandFrame, type Landmark, type Pt } from '@dartfit/engine';
 import { h, s } from '../h';
 import { t, type Key } from '../i18n';
 import { go } from '../router';
-import { update } from '../store';
+import { session, update } from '../store';
 import { loadDetector } from '../scan/detector';
 import { CARD_GUIDE, Scanner, measureStill, type Status } from '../scan/scanner';
 
@@ -128,10 +129,12 @@ async function askOrientation() {
 
 const NO_CAMERA = import.meta.env.VITE_NO_CAMERA === '1';
 
-export function scanView(root: HTMLElement) {
+export function scanView(root: HTMLElement, _params?: Record<string, string>, query?: URLSearchParams) {
   let stream: MediaStream | null = null;
   let scanner: Scanner | null = null;
   let disposed = false;
+  // Scanning your own hand: not a gift any more.
+  if (session().gift) update({ gift: false });
 
   const status = h('p', { class: 'status', role: 'status', 'aria-live': 'polite' });
   const bar = h('span');
@@ -151,7 +154,18 @@ export function scanView(root: HTMLElement) {
 
   const startBtn = h('button', { class: 'btn', type: 'button' }, t('scan.camera'));
   // No card at hand: proportions only, with a clear warning first.
-  const noCardBtn = h('button', { class: 'btn link', type: 'button' }, t('scan.nocard'));
+  const noCardBtn = h(
+    'button',
+    { class: 'btn ghost ico-btn', type: 'button' },
+    noCardIcon(),
+    h('span', null, t('start.nocard')),
+  );
+  const giftBtn = h(
+    'a',
+    { class: 'btn ghost ico-btn', href: '#/gift' },
+    giftIcon(),
+    h('span', null, t('start.gift')),
+  );
   const noCardGo = h('button', { class: 'btn', type: 'button' }, t('scan.nocard.go'));
   const noCardBack = h('button', { class: 'btn ghost', type: 'button' }, t('scan.nocard.back'));
   const noCardBox = h(
@@ -183,7 +197,7 @@ export function scanView(root: HTMLElement) {
         h('figure', { class: 'sheet narrow' }, setupDiagram()),
         h('div', { class: 'actions' }, startBtn, photoBtn, photoInput),
         h('p', { class: 'small' }, t('scan.photo.hint')),
-        noCardBtn,
+        h('div', { class: 'alt-starts' }, noCardBtn, giftBtn),
         h('a', { class: 'btn link', href: '#/manual' }, t('scan.manual')),
         h('p', { class: 'small' }, t('scan.privacy')),
       );
@@ -342,6 +356,11 @@ export function scanView(root: HTMLElement) {
     intro.hidden = false;
     noCardBtn.focus();
   });
+  // From "No bank card?" on the home page: straight to the warning.
+  if (query?.get('nocard') === '1' && !NO_CAMERA) {
+    intro.hidden = true;
+    noCardBox.hidden = false;
+  }
   noCardGo.addEventListener('click', () => {
     noCard = true;
     noCardBox.hidden = true;

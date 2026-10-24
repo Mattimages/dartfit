@@ -3555,16 +3555,22 @@ a.card {
 .bw-dart {
   transform-box: view-box;
   transform-origin: 0 0;
+  /* Hidden until thrown, even where fill-mode on SVG is flaky (Safari): no flash in the bull. */
+  opacity: 0;
   animation:
-    bw-throw 0.42s cubic-bezier(0.5, 0, 0.9, 0.4) 0.35s both,
+    bw-throw 0.42s cubic-bezier(0.5, 0, 0.9, 0.4) 0.35s forwards,
     bw-wobble 0.5s ease-out 0.77s;
 }
 @keyframes bw-throw {
-  from {
+  0% {
     transform: translate(120px, -70px) rotate(-18deg) scale(1.6);
     opacity: 0;
   }
   30% {
+    opacity: 1;
+  }
+  100% {
+    transform: none;
     opacity: 1;
   }
 }
@@ -3709,7 +3715,24 @@ a.card {
   overflow: visible;
 }
 .fw-fly {
+  opacity: 0;
   animation: fw-throw 2.4s cubic-bezier(0.5, 0, 0.9, 0.4) infinite both;
+}
+.fit-wait.out {
+  animation: fw-out 0.3s ease forwards;
+}
+@keyframes fw-out {
+  to {
+    opacity: 0;
+  }
+}
+.fit-film > .hs-fit {
+  animation: fw-in 0.35s ease both;
+}
+@keyframes fw-in {
+  from {
+    opacity: 0;
+  }
 }
 .fw-dart-1 .fw-fly {
   animation-delay: 0.45s;
@@ -3753,6 +3776,7 @@ a.card {
 @media (prefers-reduced-motion: reduce) {
   .fw-fly {
     animation: none;
+    opacity: 1;
   }
 }
 
@@ -4021,89 +4045,44 @@ a.card {
   font-weight: 600;
   letter-spacing: -0.015em;
 }
-
-/* ── Buy gate: email sign-in on the first tap of a buy button ───────── */
-.buy-dialog {
-  width: min(26rem, calc(100vw - 2rem));
-  padding: 0;
-  border: 0;
-  border-radius: var(--r-stage);
-  background: var(--ground);
-  color: var(--ink);
-  box-shadow: 0 30px 80px -20px rgb(15 27 45 / 0.45);
-}
-.buy-dialog::backdrop {
-  background: rgb(15 27 45 / 0.55);
-  -webkit-backdrop-filter: blur(4px);
-  backdrop-filter: blur(4px);
-}
-.buy-dialog[open] {
-  animation: rp-in 0.25s var(--ease);
-}
-.buy {
-  position: relative;
-  display: grid;
-  gap: var(--s3);
-  padding: var(--s5);
-}
-.buy h2 {
-  margin: 0;
-  padding-right: 2.5rem;
-  font-size: 1.5rem;
-  font-weight: 650;
-  letter-spacing: -0.03em;
-}
-.buy-sub {
-  margin: 0;
-  color: var(--ink-2);
-  text-wrap: pretty;
-}
-.buy .check {
-  font-size: 0.9rem;
-}
-.buy-msg {
-  margin: 0;
-  font-weight: 550;
-}
-.buy-msg:empty {
-  display: none;
-}
-.buy-msg.error {
-  color: var(--red);
-}
-.buy .btn.link {
-  justify-self: center;
-}
-.buy-fine {
-  margin: 0;
-  font-size: 0.8rem;
-  color: var(--ink-3, var(--ink-2));
-}
-.toast {
-  position: fixed;
-  left: 50%;
-  bottom: calc(var(--s5) + env(safe-area-inset-bottom, 0px));
-  z-index: 50;
-  width: max-content;
-  max-width: calc(100vw - 2rem);
-  padding: var(--s3) var(--s4);
-  border-radius: var(--r-ctl);
-  background: var(--ink);
-  color: var(--ground);
-  font-weight: 550;
-  transform: translateX(-50%);
-  box-shadow: 0 12px 30px -10px rgb(15 27 45 / 0.5);
-  transition:
-    opacity 0.4s,
-    transform 0.4s;
-}
-.toast.out {
-  opacity: 0;
-  transform: translate(-50%, 8px);
-}
 .price-line.alt-price {
   margin: 0;
 }
 .price-line.alt-price b {
   font-size: 1.125rem;
+}
+
+/* Icon buttons: "No bank card?" and "Buying a gift?" */
+.alt-starts {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--s2);
+}
+.ico-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  min-height: 3rem;
+  padding-inline: 0.75rem;
+  white-space: nowrap;
+}
+.btn-ico {
+  flex: none;
+  width: 1.25rem;
+  height: 1.25rem;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.6;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.btn-ico-slash {
+  stroke: var(--red);
+  stroke-width: 2;
+}
+@media (max-width: 340px) {
+  .alt-starts {
+    grid-template-columns: 1fr;
+  }
 }

@@ -10,6 +10,8 @@ export const MeasurementsSchema = z.object({
   samples: z.number().int().min(3).max(500),
   calibrated: z.boolean(),
   unscaled: z.boolean().optional(),
+  /** Ruler entry: one length, typical proportions (the hand type may reshape them). */
+  proportions: z.enum(['reference']).optional(),
 });
 
 export const AnswersSchema = z.object({
@@ -20,6 +22,8 @@ export const AnswersSchema = z.object({
   moisture: z.enum(['dry', 'normal', 'sweaty']),
   gripFeel: z.union([z.literal(1), z.literal(2), z.literal(3), z.literal(4), z.literal(5)]),
   thickness: z.enum(['slim', 'standard', 'chunky', 'auto']),
+  /** Without a scan: the hand in words. */
+  handType: z.enum(['slender', 'average', 'stubby']).optional(),
   current: z
     .object({
       /** Picked from the catalogue: the server fills the specs from its own data. */
