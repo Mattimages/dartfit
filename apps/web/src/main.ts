@@ -4,6 +4,7 @@ import { h, mount } from './h';
 import { getLang, LANGS, t } from './i18n';
 import { COUNTRIES, getCountry, hasChosenCountry } from './region';
 import { openRegionPicker } from './views/region-picker';
+import { installBuyGate } from './views/buy-gate';
 import { route, start, render } from './router';
 import { DEMO, refreshCatalogue } from './api';
 import { homeView } from './views/home';
@@ -111,6 +112,7 @@ function refreshAll() {
 layout();
 start(() => {});
 // First visit: ask where they shop (the browser's guess is pre-selected).
+installBuyGate();
 if (!hasChosenCountry()) openRegionPicker(refreshAll, true);
 void refreshCatalogue();
 

@@ -87,9 +87,9 @@ describe('fit', () => {
     const r = await request(app).post('/api/fit').send({ measurements, answers, lang: 'nl' }).expect(200);
     expect(r.body.fit.weight.band).toEqual([21, 23]);
     expect(r.body.recommendation.picks[0].role).toBe('best');
-    expect(r.body.recommendation.picks[0].offers.map((o: { retailer: string }) => o.retailer)).toContain(
-      'bol',
-    );
+    expect(r.body.recommendation.picks[0].offers.map((o: { retailer: string }) => o.retailer)).toEqual([
+      'amazon_nl',
+    ]);
     expect(r.body.proTwin.pro.name).toBeTruthy();
     const row = (
       await db.query<{ measurements: object }>('SELECT measurements FROM fits WHERE id=$1', [r.body.id])
@@ -113,8 +113,8 @@ describe('fit', () => {
     expect(r.body.country).toBe('DE');
     const shops = r.body.recommendation.picks[0].offers.map((o: { retailer: string }) => o.retailer);
     // Darts specialists first, then the big marketplaces; never more than three.
-    expect(shops[0]).toBe('dartscorner_eu');
-    expect(shops).toContain('amazon_de');
+    // Buy buttons are Amazon only: the visitor's tagged store.
+    expect(shops).toEqual(['amazon_de']);
     expect(shops.length).toBeLessThanOrEqual(3);
   });
 
@@ -197,10 +197,10 @@ describe('click-outs', () => {
   it('logs the click and redirects to a search at the local shop', async () => {
     const fit = await request(app).post('/api/fit').send({ answers }).expect(200);
     const offer = fit.body.recommendation.picks[0].offers.find(
-      (o: { retailer: string }) => o.retailer === 'bol',
+      (o: { retailer: string }) => o.retailer === 'amazon_nl',
     );
     const r = await request(app).get(`${offer.goUrl}?fit=${fit.body.id}`).expect(302);
-    expect(r.headers.location).toMatch(/^https:\/\/www\.bol\.com\/nl\/nl\/s\/\?searchtext=/);
+    expect(r.headers.location).toMatch(/^https:\/\/www\.amazon\.nl\/s\?k=/);
     const clicks = await db.query('SELECT * FROM clicks WHERE fit_id=$1', [fit.body.id]);
     expect(clicks).toHaveLength(1);
   });
@@ -233,8 +233,10 @@ describe('click-outs', () => {
     expect(offers.every((o: { retailer: string }) => ['darting_us', 'amazon_us'].includes(o.retailer))).toBe(
       true,
     );
-    // Darting.com first (the specialist), Amazon.com after it.
-    expect(r.body.recommendation.picks[0].offers[0].retailer).toBe('darting_us');
+    // Buy buttons are Amazon only; Darting.com stays as the US partner card.
+    expect(r.body.recommendation.picks[0].offers.map((o: { retailer: string }) => o.retailer)).toEqual([
+      'amazon_us',
+    ]);
     const go = await request(app).get('/go/partner%3Adarting').expect(302);
     expect(go.headers.location).toMatch(/^https:\/\/www\.darting\.com\/\?AFFBanId=10025/);
   });

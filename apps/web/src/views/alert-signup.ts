@@ -1,6 +1,7 @@
 import { h } from '../h';
 import { t } from '../i18n';
 import { DEMO, requestLogin, setOptins } from '../api';
+import { markSigned } from './buy-gate';
 
 /**
  * "Keep me posted" box at the end of a result. Double opt-in: the server emails a confirmation
@@ -94,6 +95,7 @@ export function alertSignup(fitId: string | undefined, opts: { saved: boolean; j
         confirmsAge16: true,
       });
       box.classList.add('sent');
+      markSigned();
       msg.textContent = t('r.alert.sent', { email: email.value.trim() });
     } catch {
       send.removeAttribute('disabled');

@@ -1,5 +1,9 @@
 {
   "_note": "Shops per country. Only retailers with an affiliate programme are ever linked (affiliateEnv); in production the env var must be set. Lower priority shows first. Every template and rotation ID must be checked in the network dashboard before launch.",
+  "buyButtons": [
+    "amazon"
+  ],
+  "_buyButtonsNote": "Which affiliate types get buy buttons (owner's decision 24 Oct: Amazon only). The other shops stay configured; add their type here to show them again.",
   "countries": [
     "AT",
     "BE",

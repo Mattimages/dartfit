@@ -362,6 +362,12 @@ export const de: Partial<Record<Key, string>> = {
   'region.popular': 'Beliebt',
   'region.all': 'Alle Länder',
   'region.search': 'Land suchen',
+  'buy.title': 'Speichere deinen Fit',
+  'buy.sub':
+    'Hinterlasse deine E-Mail-Adresse. Wir speichern deine Messung und melden uns, sobald ein Dart kommt, der noch besser zu dir passt.',
+  'buy.save': 'Speichern und weiter zu {shop}',
+  'buy.skip': 'Nein danke, direkt zu {shop}',
+  'buy.sent': 'Schau in {email} nach und tippe auf den Link zum Bestätigen.',
   'region.close': 'Schließen',
   'fit.pThrow': 'Dein Wurf',
   'fit.est': 'aus Größe geschätzt',

@@ -1,10 +1,11 @@
 /** Prints the validated catalogue as JSON (used by the web build to bundle it). */
 import { loadCatalogue } from './index.js';
 
-const { variants, pros, retailers, photos } = loadCatalogue();
+const { variants, pros, retailers, photos, buyButtons } = loadCatalogue();
 // Only what the browser needs to build shop links (no notes, no env names beyond what is public).
 const shops = retailers
   .filter((r) => r.affiliateType && r.kind === 'search')
+  .filter((r) => !buyButtons || buyButtons.includes(r.affiliateType ?? ''))
   .map(({ id, name, countries, searchTemplate, priority }) => ({
     id,
     name,

@@ -1,3 +1,4 @@
+import { buyLink, markSigned } from './buy-gate';
 import {
   silhouetteOverlap,
   tierBoundsUsd,
@@ -28,15 +29,19 @@ const priceText = (usd: number) => `≈ €${approxEur(usd)}`;
 
 function offerLink(o: Offer, fitId: string | null, primary: boolean): HTMLElement {
   const href = DEMO || !fitId ? o.goUrl : `${o.goUrl}?fit=${encodeURIComponent(fitId)}`;
-  return h(
-    'a',
-    { class: primary ? 'btn' : 'btn ghost', href, target: '_blank', rel: 'noopener sponsored' },
+  return buyLink(
     h(
-      'span',
-      null,
-      o.kind === 'search' ? t('r.search', { shop: o.retailerName }) : t('r.buy', { shop: o.retailerName }),
+      'a',
+      { class: primary ? 'btn' : 'btn ghost', href, target: '_blank', rel: 'noopener sponsored' },
+      h(
+        'span',
+        null,
+        o.kind === 'search' ? t('r.search', { shop: o.retailerName }) : t('r.buy', { shop: o.retailerName }),
+      ),
+      o.price !== null && o.currency === 'USD' ? h('span', { class: 'price' }, priceText(o.price)) : null,
     ),
-    o.price !== null && o.currency === 'USD' ? h('span', { class: 'price' }, priceText(o.price)) : null,
+    fitId,
+    o.retailerName,
   );
 }
 
@@ -195,6 +200,8 @@ export async function resultView(root: HTMLElement, params: Record<string, strin
     return go('/questions');
   }
   const f = r.fit;
+  // Signed in, or just confirmed the alert mail: buy buttons go straight to the shop.
+  if (r.saved || query?.get('alerts') === '1') markSigned();
   const picks = r.recommendation.picks as FullPick[];
   const best = picks[0];
   const lang = getLang();

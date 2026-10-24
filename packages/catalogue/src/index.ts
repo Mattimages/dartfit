@@ -208,16 +208,24 @@ export function validatePros(raw: unknown, variants: Variant[]): { pros: Pro[]; 
   return { pros: parsed.data, issues };
 }
 
-let cache: { variants: Variant[]; pros: Pro[]; retailers: Retailer[]; photos: Photo[] } | null = null;
+let cache: {
+  variants: Variant[];
+  pros: Pro[];
+  retailers: Retailer[];
+  photos: Photo[];
+  /** Affiliate types that get buy buttons (null: every affiliate shop). */
+  buyButtons: string[] | null;
+} | null = null;
 
 /** Load and validate the bundled catalogue. Throws when any row is invalid. */
 export function loadCatalogue() {
   if (cache) return cache;
   const { variants, issues } = validateVariants(parseCsv(readFileSync(join(DATA, 'variants.csv'), 'utf8')));
   const prosRes = validatePros(JSON.parse(readFileSync(join(DATA, 'pros.json'), 'utf8')), variants);
-  const retailers = z
-    .array(Retailer)
-    .parse(JSON.parse(readFileSync(join(DATA, 'retailers.json'), 'utf8')).retailers);
+  const retailerFile = JSON.parse(readFileSync(join(DATA, 'retailers.json'), 'utf8'));
+  const retailers = z.array(Retailer).parse(retailerFile.retailers);
+  /** Affiliate types that get buy buttons; the other shops stay configured but unlinked. */
+  const buyButtons = z.array(z.string()).optional().parse(retailerFile.buyButtons) ?? null;
   const photoRes = validatePhotos(parseCsv(readFileSync(join(DATA, 'photos.csv'), 'utf8')), variants);
   const all = [...issues, ...prosRes.issues, ...photoRes.issues];
   if (all.length)
@@ -230,6 +238,6 @@ export function loadCatalogue() {
     const o = flagged.get(v.id);
     return o ? { ...v, specCheck: { listedG: o.listedG, modelG: o.modelG } } : v;
   });
-  cache = { variants: checked, pros: prosRes.pros, retailers, photos: photoRes.photos };
+  cache = { variants: checked, pros: prosRes.pros, retailers, photos: photoRes.photos, buyButtons };
   return cache;
 }

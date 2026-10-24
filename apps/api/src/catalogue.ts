@@ -135,8 +135,13 @@ export function affiliateReady(env: Env, r: Retailer): boolean {
  * exists), then verified product pages. Affiliate shops only.
  */
 export async function offersFor(db: Db, env: Env, variant: Variant, country: string): Promise<Offer[]> {
-  const { retailers } = loadCatalogue();
-  const ready = new Set(retailers.filter((r) => affiliateReady(env, r)).map((r) => r.id));
+  const { retailers, buyButtons } = loadCatalogue();
+  const ready = new Set(
+    retailers
+      .filter((r) => affiliateReady(env, r))
+      .filter((r) => !buyButtons || buyButtons.includes(r.affiliateType ?? ''))
+      .map((r) => r.id),
+  );
   const local: Offer[] = retailers
     .filter((r) => r.kind === 'search' && r.countries.includes(country) && ready.has(r.id))
     .sort((a, b) => (a.priority ?? 9) - (b.priority ?? 9))
