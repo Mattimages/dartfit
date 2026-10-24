@@ -125,6 +125,7 @@ export function questionsView(root: HTMLElement) {
     { class: 'field' },
     h('legend', null, t('q.body')),
     h('p', { class: 'hint' }, t('q.body.why')),
+    s.measurements?.unscaled ? h('p', { class: 'unscaled-warn', role: 'note' }, t('q.body.unscaled')) : null,
     h('label', { class: 'visually-hidden', for: 'height' }, t('q.body.height')),
     h('div', { class: 'mm-input' }, heightIn, h('span', { 'aria-hidden': 'true' }, 'cm')),
     h('label', { class: 'label', for: 'forearm', style: 'margin-top:1.25rem' }, t('q.body.forearm')),

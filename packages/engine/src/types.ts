@@ -24,6 +24,12 @@ export interface Measurements {
   calibrated: boolean;
   /** Set when these numbers were estimated (from height) rather than measured. */
   estimatedFrom?: 'height';
+  /**
+   * Scanned without a bank card: the proportions are measured, the size is not. The numbers are
+   * in reference scale (hand length = reference mean); the fit rescales them to the player's
+   * height when known and widens the spread.
+   */
+  unscaled?: boolean;
 }
 
 export type GripFeelCurrent = 'too_smooth' | 'right' | 'too_sharp';

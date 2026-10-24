@@ -150,6 +150,17 @@ export function scanView(root: HTMLElement) {
   const tapBtn = h('button', { class: 'btn ghost', type: 'button', hidden: true }, t('scan.tap_fallback'));
 
   const startBtn = h('button', { class: 'btn', type: 'button' }, t('scan.camera'));
+  // No card at hand: proportions only, with a clear warning first.
+  const noCardBtn = h('button', { class: 'btn link', type: 'button' }, t('scan.nocard'));
+  const noCardGo = h('button', { class: 'btn', type: 'button' }, t('scan.nocard.go'));
+  const noCardBack = h('button', { class: 'btn ghost', type: 'button' }, t('scan.nocard.back'));
+  const noCardBox = h(
+    'div',
+    { class: 'nocard', hidden: true, role: 'region', 'aria-labelledby': 'nocard-title' },
+    h('h2', { id: 'nocard-title' }, t('scan.nocard.title')),
+    h('p', null, t('scan.nocard.warn')),
+    h('div', { class: 'actions' }, noCardGo, noCardBack),
+  );
   const photoInput = h('input', {
     type: 'file',
     accept: 'image/*',
@@ -172,6 +183,7 @@ export function scanView(root: HTMLElement) {
         h('figure', { class: 'sheet narrow' }, setupDiagram()),
         h('div', { class: 'actions' }, startBtn, photoBtn, photoInput),
         h('p', { class: 'small' }, t('scan.photo.hint')),
+        noCardBtn,
         h('a', { class: 'btn link', href: '#/manual' }, t('scan.manual')),
         h('p', { class: 'small' }, t('scan.privacy')),
       );
@@ -182,6 +194,7 @@ export function scanView(root: HTMLElement) {
       { class: 'stack scan-page' },
       h('h1', null, t('scan.title')),
       intro,
+      noCardBox,
       camera,
       meter,
       status,
@@ -318,6 +331,22 @@ export function scanView(root: HTMLElement) {
   tapBtn.addEventListener('click', enterTapMode);
 
   // ── Start ───────────────────────────────────────────────────────────
+  let noCard = false;
+  noCardBtn.addEventListener('click', () => {
+    intro.hidden = true;
+    noCardBox.hidden = false;
+    noCardGo.focus();
+  });
+  noCardBack.addEventListener('click', () => {
+    noCardBox.hidden = true;
+    intro.hidden = false;
+    noCardBtn.focus();
+  });
+  noCardGo.addEventListener('click', () => {
+    noCard = true;
+    noCardBox.hidden = true;
+    startBtn.click();
+  });
   startBtn.addEventListener('click', async () => {
     startBtn.setAttribute('disabled', '');
     await askOrientation();
@@ -329,6 +358,8 @@ export function scanView(root: HTMLElement) {
     } catch {
       say('scan.no_camera');
       startBtn.removeAttribute('disabled');
+      noCardBox.hidden = true;
+      intro.hidden = false;
       return;
     }
     if (disposed) return stream.getTracks().forEach((tr) => tr.stop());
@@ -343,7 +374,10 @@ export function scanView(root: HTMLElement) {
         ? r(null)
         : video.addEventListener('loadedmetadata', () => r(null), { once: true }),
     );
-    placeGuide();
+    if (noCard) {
+      guide.hidden = true;
+      camera.classList.add('nocard-live');
+    } else placeGuide();
     let detector;
     try {
       detector = await loadDetector();
@@ -354,29 +388,34 @@ export function scanView(root: HTMLElement) {
     if (disposed) return;
     // Which backend runs is for debugging only, so it lives on the element, not on screen.
     camera.dataset.detector = detector.kind;
-    scanner = new Scanner(video, detector, {
-      status: (s: Status, progress: number) => {
-        bar.style.width = `${Math.round(progress * 100)}%`;
-        guide.classList.toggle(
-          'ok',
-          s === 'measuring' || s === 'done' || s === 'overlap' || s === 'phone_tilt',
-        );
-        if (s === 'measuring')
-          say('scan.status.measuring', { n: Math.round(progress * 18), total: 18 }, true);
-        else if (s === 'done') say('scan.status.done', {}, true);
-        else say(`scan.status.${s}` as Key);
-        tapBtn.hidden = s !== 'tap_needed';
+    scanner = new Scanner(
+      video,
+      detector,
+      {
+        status: (s: Status, progress: number) => {
+          bar.style.width = `${Math.round(progress * 100)}%`;
+          guide.classList.toggle(
+            'ok',
+            s === 'measuring' || s === 'done' || s === 'overlap' || s === 'phone_tilt',
+          );
+          if (s === 'measuring')
+            say('scan.status.measuring', { n: Math.round(progress * 18), total: 18 }, true);
+          else if (s === 'done') say('scan.status.done', {}, true);
+          else say(`scan.status.${s}` as Key);
+          tapBtn.hidden = s !== 'tap_needed';
+        },
+        landmarks: (lm) => {
+          lastLm = lm;
+          drawOverlay();
+        },
+        card: () => {},
+        done: (r) => {
+          update({ measurements: r.measurements, landmarksMm: r.landmarksMm });
+          go('/hand');
+        },
       },
-      landmarks: (lm) => {
-        lastLm = lm;
-        drawOverlay();
-      },
-      card: () => {},
-      done: (r) => {
-        update({ measurements: r.measurements, landmarksMm: r.landmarksMm });
-        go('/hand');
-      },
-    });
+      noCard,
+    );
     scanner.start();
   });
 

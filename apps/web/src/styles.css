@@ -3969,3 +3969,55 @@ a.card {
   min-height: 3.25rem;
   padding-block: 0.35rem;
 }
+
+/* ── Scanning without a card ─────────────────────────────────────────── */
+.nocard {
+  display: grid;
+  gap: var(--s3);
+  padding: var(--s5);
+  border-radius: var(--r-card);
+  border: 1px solid #f0b8bf;
+  background: #fff4f5;
+  text-align: left;
+}
+.nocard h2 {
+  margin: 0;
+  font-size: 1.25rem;
+  font-weight: 650;
+  letter-spacing: -0.02em;
+}
+.nocard p {
+  margin: 0;
+}
+.unscaled-warn {
+  margin: 0;
+  padding: var(--s3) var(--s4);
+  border-radius: var(--r-ctl);
+  border: 1px solid #f0b8bf;
+  background: #fff4f5;
+  color: var(--ink);
+  font-size: 0.92rem;
+}
+.unscaled-warn::before {
+  content: '!';
+  display: inline-grid;
+  place-items: center;
+  width: 1.2rem;
+  height: 1.2rem;
+  margin-right: 0.5rem;
+  border-radius: 50%;
+  background: var(--red);
+  color: #fff;
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+.unscaled-note {
+  display: grid;
+  gap: var(--s3);
+}
+.unscaled-ratio {
+  margin: 0;
+  font-size: 1.1rem;
+  font-weight: 600;
+  letter-spacing: -0.015em;
+}

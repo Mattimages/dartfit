@@ -30,6 +30,26 @@ export const de: Partial<Record<Key, string>> = {
   'scan.no_camera': 'Die Kamera lässt sich nicht öffnen. Erlaube sie im Browser oder miss selbst.',
   'scan.no_model': 'Die Handerkennung lädt nicht. Prüfe deine Verbindung oder miss selbst.',
   'scan.manual': 'Lieber mit dem Lineal messen',
+  'scan.nocard': 'Keine Bankkarte zur Hand?',
+  'scan.nocard.title': 'Ohne Karte scannen',
+  'scan.nocard.warn':
+    'Ohne Karte wissen wir nicht, wie groß deine Hand ist, nur wie sie gebaut ist: wie lang deine Finger im Verhältnis zur Handfläche sind. Die Größe schätzen wir aus deiner Körpergröße oder aus einer durchschnittlichen Hand. Dein Ergebnis wird dadurch deutlich ungenauer: Gewicht und Länge deines Darts können spürbar danebenliegen.',
+  'scan.nocard.go': 'Trotzdem ohne Karte scannen',
+  'scan.nocard.back': 'Ich hole eine Karte',
+  'analyse.unscaled':
+    'Ohne Karte gemessen: Wir wissen, wie deine Hand gebaut ist, aber nicht, wie groß sie ist. Im nächsten Schritt schätzen wir das aus deiner Körpergröße. Das ist deutlich ungenauer als mit Karte.',
+  'analyse.ratio.long': 'Deine Finger sind {n}% länger als üblich für deine Handfläche.',
+  'analyse.ratio.short': 'Deine Finger sind {n}% kürzer als üblich für deine Handfläche.',
+  'analyse.ratio.avg': 'Deine Finger sind für deine Handfläche durchschnittlich lang.',
+  'q.body.unscaled':
+    'Du hast ohne Karte gescannt. Gib deine Körpergröße ein: Damit schätzen wir, wie groß deine Hand ist.',
+  'r.unscaled':
+    'Ohne Karte gescannt, also deutlich ungenauer. Mit einer Bankkarte messen wir die echte Größe deiner Hand.',
+  'r.unscaled.again': 'Noch einmal mit Karte scannen',
+  'why.hand_unscaled':
+    'Ohne Karte gescannt: Wir kennen die Proportionen deiner Hand, nicht ihre Größe. Wir gehen von einer durchschnittlichen Hand aus ({handLengthMm} mm).',
+  'why.hand_unscaled_height':
+    'Ohne Karte gescannt: Die Größe deiner Hand ({handLengthMm} mm) ist aus deiner Körpergröße ({heightCm} cm) geschätzt.',
   'scan.card_here': 'Karte hierhin legen',
   'scan.status.no_hand': 'Lege deine Hand flach ins Bild',
   'scan.status.out_of_frame': 'Ein Teil deiner Hand ist außerhalb des Bildes',

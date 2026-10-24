@@ -86,6 +86,26 @@ const nl = {
     'We kunnen de camera niet openen. Geef toestemming in je browser, of vul je maat zelf in.',
   'scan.no_model': 'De handherkenning laadt niet. Controleer je verbinding, of vul je maat zelf in.',
   'scan.manual': 'Meet liever met een liniaal',
+  'scan.nocard': 'Geen bankpas bij de hand?',
+  'scan.nocard.title': 'Scannen zonder pas',
+  'scan.nocard.warn':
+    'Zonder pas weten we niet hoe groot je hand is, alleen hoe hij is gebouwd: hoe lang je vingers zijn ten opzichte van je handpalm. De grootte schatten we uit je lengte, of uit een gemiddelde hand. Je uitkomst wordt daardoor veel minder precies: het gewicht en de lengte van je dart kunnen er flink naast zitten.',
+  'scan.nocard.go': 'Toch scannen zonder pas',
+  'scan.nocard.back': 'Ik pak een pas',
+  'analyse.unscaled':
+    'Gemeten zonder pas: we weten hoe je hand is gebouwd, maar niet hoe groot hij is. In de volgende stap gebruiken we je lengte om dat te schatten. Dit is veel minder precies dan met een pas.',
+  'analyse.ratio.long': 'Je vingers zijn {n}% langer dan gemiddeld voor je handpalm.',
+  'analyse.ratio.short': 'Je vingers zijn {n}% korter dan gemiddeld voor je handpalm.',
+  'analyse.ratio.avg': 'Je vingers hebben een gemiddelde lengte voor je handpalm.',
+  'q.body.unscaled':
+    'Je hebt zonder pas gescand. Vul je lengte in: daarmee schatten we hoe groot je hand is.',
+  'r.unscaled':
+    'Gescand zonder pas, dus veel minder precies. Met een bankpas meten we de grootte van je hand echt.',
+  'r.unscaled.again': 'Opnieuw scannen met een pas',
+  'why.hand_unscaled':
+    'Gescand zonder pas: we kennen de verhoudingen van je hand, niet de grootte. We gaan uit van een gemiddelde hand ({handLengthMm} mm).',
+  'why.hand_unscaled_height':
+    'Gescand zonder pas: de grootte van je hand ({handLengthMm} mm) is geschat uit je lengte ({heightCm} cm).',
   'scan.card_here': 'Leg je pas hier',
   'scan.status.no_hand': 'Leg je hand plat in beeld',
   'scan.status.out_of_frame': 'Je hand valt deels buiten beeld',
@@ -585,6 +605,26 @@ const en: Record<Key, string> = {
   'scan.no_camera': 'We can’t open the camera. Allow it in your browser, or enter your size yourself.',
   'scan.no_model': 'Hand recognition won’t load. Check your connection, or enter your size yourself.',
   'scan.manual': 'Measure with a ruler instead',
+  'scan.nocard': 'No bank card at hand?',
+  'scan.nocard.title': 'Scan without a card',
+  'scan.nocard.warn':
+    "Without a card we can't tell how big your hand is, only how it's built: how long your fingers are compared with your palm. We estimate the size from your height, or from an average hand. That makes your result much less precise: the weight and length we suggest can be well off.",
+  'scan.nocard.go': 'Scan without a card anyway',
+  'scan.nocard.back': "I'll get a card",
+  'analyse.unscaled':
+    'Measured without a card: we know how your hand is built, but not how big it is. In the next step we use your height to estimate that. This is much less precise than with a card.',
+  'analyse.ratio.long': 'Your fingers are {n}% longer than average for your palm.',
+  'analyse.ratio.short': 'Your fingers are {n}% shorter than average for your palm.',
+  'analyse.ratio.avg': 'Your fingers are of average length for your palm.',
+  'q.body.unscaled':
+    'You scanned without a card. Enter your height: we use it to estimate how big your hand is.',
+  'r.unscaled':
+    "Scanned without a card, so much less precise. With a bank card we measure your hand's real size.",
+  'r.unscaled.again': 'Scan again with a card',
+  'why.hand_unscaled':
+    "Scanned without a card: we know your hand's proportions, not its size. We assume an average hand ({handLengthMm} mm).",
+  'why.hand_unscaled_height':
+    'Scanned without a card: your hand size ({handLengthMm} mm) is estimated from your height ({heightCm} cm).',
   'scan.card_here': 'Put your card here',
   'scan.status.no_hand': 'Lay your hand flat in view',
   'scan.status.out_of_frame': 'Part of your hand is out of view',

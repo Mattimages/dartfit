@@ -5,7 +5,7 @@
  *   tuned     — fitted from user feedback (none yet at launch)
  * A unit test fails if a numeric leaf has no provenance entry.
  */
-export const ENGINE_VERSION = '3.2.0';
+export const ENGINE_VERSION = '3.3.0';
 
 export const config = {
   reference: {

@@ -317,7 +317,18 @@ export async function resultView(root: HTMLElement, params: Record<string, strin
     }
   });
 
+  // Scanned without a card: say so first, with the way to a precise result.
+  const unscaled = f.reasons.some((x) => x.code === 'hand_unscaled' || x.code === 'hand_unscaled_height')
+    ? h(
+        'p',
+        { class: 'unscaled-warn', role: 'note' },
+        t('r.unscaled'),
+        ' ',
+        h('a', { href: '#/scan' }, t('r.unscaled.again')),
+      )
+    : null;
   const parts: Array<HTMLElement | null> = [
+    unscaled,
     hero ??
       (v && best
         ? h(

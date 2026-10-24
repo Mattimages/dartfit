@@ -180,7 +180,27 @@ export function fit(
   // No scan but a height: estimate the hand from it (wide spread, so it weighs little).
   let m = measurements;
   const H = answers.heightCm;
-  if (!m && H) {
+  if (m?.unscaled) {
+    // Scanned without a card: the proportions are real, the size is not. Size the hand from the
+    // player's height (or the reference hand) and carry that uncertainty in the spread.
+    const target = H ? handFromHeight(H, cfg) : ref.handLength;
+    const k = target.mu / m.handLengthMm;
+    const r1 = (x: number) => Number(x.toFixed(1));
+    m = {
+      ...m,
+      handLengthMm: r1(m.handLengthMm * k),
+      palmWidthMm: r1(m.palmWidthMm * k),
+      indexLengthMm: r1(m.indexLengthMm * k),
+      middleLengthMm: r1(m.middleLengthMm * k),
+      thumbIndexSpanMm: r1(m.thumbIndexSpanMm * k),
+      spreadMm: Math.max(m.spreadMm, target.sigma),
+    };
+    reasons.push({
+      code: H ? 'hand_unscaled_height' : 'hand_unscaled',
+      dim: 'confidence',
+      params: { handLengthMm: Math.round(m.handLengthMm), ...(H ? { heightCm: H } : {}) },
+    });
+  } else if (!m && H) {
     m = measurementsFromHeight(H, cfg);
     reasons.push({
       code: 'hand_from_height',
@@ -493,7 +513,7 @@ export function fit(
 
   // ── Confidence ─────────────────────────────────────────────────────
   const C = cfg.confidence;
-  const measured = m !== undefined && !m.estimatedFrom;
+  const measured = m !== undefined && !m.estimatedFrom && !m.unscaled;
   let score: number = C.base;
   if (measured) score += C.handMeasured;
   if (measured && m && m.spreadMm <= C.lowSpreadMm) score += C.lowSpread;

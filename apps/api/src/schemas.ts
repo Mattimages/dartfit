@@ -9,6 +9,7 @@ export const MeasurementsSchema = z.object({
   spreadMm: z.number().min(0).max(30),
   samples: z.number().int().min(3).max(500),
   calibrated: z.boolean(),
+  unscaled: z.boolean().optional(),
 });
 
 export const AnswersSchema = z.object({

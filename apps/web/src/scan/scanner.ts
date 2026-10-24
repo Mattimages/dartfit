@@ -12,6 +12,7 @@ import {
   calibration,
   cardHomography,
   checkHandFrame,
+  config,
   detectCard,
   handDimensionsFromMm,
   handOnCard,
@@ -22,6 +23,7 @@ import {
   type CardDetection,
   type Dims,
   type Gate,
+  type Homography,
   type Landmark,
   type Measurements,
   type Pt,
@@ -56,6 +58,32 @@ export interface ScanView {
 export const CARD_GUIDE = { x: 0.2, y: 0.05, w: 0.6 } as const;
 
 const NEEDED = 18;
+/** Pixels as they are: without a card there is no scale, only proportions. */
+const PIXELS: Homography = [1, 0, 0, 0, 1, 0, 0, 0, 1];
+
+/**
+ * A scan without a card: measured in pixels, then set to the reference hand length, so the
+ * proportions are real and the size is a placeholder the fit replaces (height or average).
+ */
+export function unscaledResult(m: Measurements, px: Pt[][]): ScanResult {
+  const k = config.reference.handLength.mu / m.handLengthMm;
+  const r1 = (x: number) => Number(x.toFixed(1));
+  const lm = medianLandmarks(px).map((p) => ({ x: p.x * k, y: p.y * k }));
+  return {
+    measurements: {
+      handLengthMm: r1(m.handLengthMm * k),
+      palmWidthMm: r1(m.palmWidthMm * k),
+      indexLengthMm: r1(m.indexLengthMm * k),
+      middleLengthMm: r1(m.middleLengthMm * k),
+      thumbIndexSpanMm: r1(m.thumbIndexSpanMm * k),
+      spreadMm: Number((m.spreadMm * k).toFixed(2)),
+      samples: m.samples,
+      calibrated: false,
+      unscaled: true,
+    },
+    landmarksMm: lm,
+  };
+}
 const TAP_AFTER_MS = 8000;
 const MAX_TILT_DEG = 14;
 
@@ -78,6 +106,8 @@ export class Scanner {
     private video: HTMLVideoElement,
     private detector: HandDetector,
     private view: ScanView,
+    /** No card: measure proportions only (much less precise; the size comes from height). */
+    private noCard = false,
   ) {}
 
   start() {
@@ -147,9 +177,32 @@ export class Scanner {
       this.recent.push(hand);
       if (this.recent.length > 30) this.recent.shift();
 
-      if (this.frameNo % 3 === 0 || !this.card) this.card = this.findCard();
       const w = this.video.videoWidth;
       const h = this.video.videoHeight;
+      if (this.noCard) {
+        if (
+          this.tilt &&
+          (Math.abs(this.tilt.beta) > MAX_TILT_DEG || Math.abs(this.tilt.gamma) > MAX_TILT_DEG)
+        ) {
+          this.view.status('phone_tilt', this.frames.length / NEEDED);
+          continue;
+        }
+        const px = landmarksToMm(hand, w, h, PIXELS);
+        this.frames.push(handDimensionsFromMm(px));
+        this.framesMm.push(px);
+        this.view.status('measuring', this.frames.length / NEEDED);
+        if (this.frames.length >= NEEDED) {
+          const m = aggregate(this.frames, false);
+          if (m) {
+            this.finish(unscaledResult(m, this.framesMm));
+            return;
+          }
+          this.frames = this.frames.slice(-NEEDED / 2);
+          this.framesMm = this.framesMm.slice(-NEEDED / 2);
+        }
+        continue;
+      }
+      if (this.frameNo % 3 === 0 || !this.card) this.card = this.findCard();
       if (!this.card) {
         this.view.card(null);
         const tap = now - started > TAP_AFTER_MS && now - this.handOkSince > 2000;

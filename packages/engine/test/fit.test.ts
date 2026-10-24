@@ -273,3 +273,28 @@ describe('v3.2: the hand shapes the barrel', () => {
     expect(est.reasons.some((r) => r.code.startsWith('shape_'))).toBe(false);
   });
 });
+
+describe('v3.3: scanned without a card (proportions only)', () => {
+  // A stubby hand at reference scale, as the no-card scan delivers it.
+  const unscaled = { ...hand(185, { middleLengthMm: 77, palmWidthMm: 83 }), unscaled: true, spreadMm: 1 };
+
+  it('takes the size from height and keeps the measured proportions', () => {
+    const f = fit(unscaled, { ...baseAnswers, heightCm: 196 });
+    const r = f.reasons.find((x) => x.code === 'hand_unscaled_height');
+    expect(r?.params.handLengthMm).toBe(Math.round(196 * 10 * 0.1075));
+    // Proportions are real, so the stubby hand still leans to a compact shape.
+    expect(f.reasons.some((x) => x.code === 'shape_compact')).toBe(true);
+  });
+
+  it('without a height it assumes the reference hand, and says so', () => {
+    const f = fit(unscaled, baseAnswers);
+    expect(f.reasons.find((x) => x.code === 'hand_unscaled')?.params.handLengthMm).toBe(185);
+  });
+
+  it('is less certain than a card scan of the same hand: wider weight band, lower confidence', () => {
+    const card = fit({ ...unscaled, unscaled: false }, baseAnswers);
+    const none = fit(unscaled, baseAnswers);
+    expect(none.weight.sigma).toBeGreaterThan(card.weight.sigma);
+    expect(none.confidenceScore).toBeLessThan(card.confidenceScore);
+  });
+});
