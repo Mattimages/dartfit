@@ -314,6 +314,7 @@ const nl = {
 
   'method.title': 'Hoe DartFit werkt',
   'privacy.title': 'Privacy',
+  'footer.guides': 'Gidsen',
   'footer.disclosure': 'Winkellinks kunnen ons commissie opleveren. Dat verandert de ranglijst nooit.',
   'footer.privacy': 'Privacy',
   'footer.method': 'Methode',
@@ -854,6 +855,7 @@ const en: Record<Key, string> = {
 
   'method.title': 'How DartFit works',
   'privacy.title': 'Privacy',
+  'footer.guides': 'Guides',
   'footer.disclosure': 'Shop links may earn us a commission. It never changes the ranking.',
   'footer.privacy': 'Privacy',
   'footer.method': 'Method',

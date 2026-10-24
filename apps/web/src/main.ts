@@ -102,6 +102,7 @@ function layout() {
       h(
         'div',
         { class: 'links small' },
+        h('a', { href: `/${getLang()}/` }, t('footer.guides')),
         h('a', { href: '#/method' }, t('footer.method')),
         h('a', { href: '#/privacy' }, t('footer.privacy')),
         h('a', { href: '#/darts' }, t('nav.darts')),

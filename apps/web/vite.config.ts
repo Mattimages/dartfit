@@ -5,6 +5,8 @@ import { createRequire } from 'node:module';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
+import { buildGuides, GUIDES_CSS, statsFromCsv } from './seo/render';
+
 const here = dirname(fileURLToPath(import.meta.url));
 const require = createRequire(import.meta.url);
 
@@ -96,6 +98,28 @@ function catalogueModule(): Plugin {
   };
 }
 
+/**
+ * Guide pages for search engines and AI assistants: real HTML at /nl/…, /en/…, /de/…, plus
+ * sitemap.xml, robots.txt and llms.txt. Catalogue facts in the text come from the live catalogue.
+ */
+function guides(): Plugin {
+  return {
+    name: 'dartfit-guides',
+    apply: 'build',
+    generateBundle() {
+      const data = join(here, '..', '..', 'packages', 'catalogue', 'data');
+      const pros = (JSON.parse(readFileSync(join(data, 'pros.json'), 'utf8')) as unknown[]).length;
+      const stats = statsFromCsv(readFileSync(join(data, 'variants.csv'), 'utf8'), pros);
+      const base = (process.env.SITE_URL ?? 'https://dartfit.vercel.app').replace(/\/$/, '');
+      for (const [fileName, source] of Object.entries(buildGuides(stats, base)))
+        this.emitFile({ type: 'asset', fileName, source });
+      this.emitFile({ type: 'asset', fileName: 'guides/guides.css', source: GUIDES_CSS });
+      const font = join(pkgDir('@fontsource-variable/geist'), 'files', 'geist-latin-wght-normal.woff2');
+      this.emitFile({ type: 'asset', fileName: 'guides/geist.woff2', source: readFileSync(font) });
+    },
+  };
+}
+
 export default defineConfig(({ mode }) => ({
   // The demo build runs from any folder (e.g. a static host or a hosted page): relative paths.
   base: mode === 'demo' ? './' : '/',
@@ -104,7 +128,11 @@ export default defineConfig(({ mode }) => ({
       mode !== 'demo' && existsSync(join(here, 'public', 'models', 'hand_landmarker.task')),
     ),
   },
-  plugins: [mediapipeAssets(), catalogueModule(), ...(mode === 'demo' ? [demoTrim('dist-demo')] : [])],
+  plugins: [
+    mediapipeAssets(),
+    catalogueModule(),
+    ...(mode === 'demo' ? [demoTrim('dist-demo')] : [guides()]),
+  ],
   resolve: {
     alias: {
       '@dartfit/engine': join(here, '..', '..', 'packages', 'engine', 'src', 'index.ts'),

@@ -336,6 +336,7 @@ export const de: Partial<Record<Key, string>> = {
   'word.arc': 'im Bogen',
   'word.unsure': 'unbekannt',
 
+  'footer.guides': 'Ratgeber',
   'footer.disclosure': 'Shop-Links können uns eine Provision bringen. Das ändert nie die Rangfolge.',
   'footer.privacy': 'Datenschutz',
   'footer.method': 'Methode',
