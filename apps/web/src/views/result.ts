@@ -337,10 +337,6 @@ export async function resultView(root: HTMLElement, params: Record<string, strin
     : null;
   const parts: Array<HTMLElement | null> = [
     unscaled,
-    // The sign-up is asked at the start of the fitting film; here only its confirmation.
-    query?.get('alerts') === '1'
-      ? alertSignup(r.id ?? undefined, { saved: !!r.saved, justConfirmed: true })
-      : null,
     hero ??
       (v && best
         ? h(
@@ -409,6 +405,8 @@ export async function resultView(root: HTMLElement, params: Record<string, strin
       whatIf.length ? more(t('r.whatif'), h('ul', { class: 'whatif' }, ...whatIf)) : null,
     ),
     partnerBanner(),
+    // Keep me posted: at the end of the result.
+    alertSignup(r.id ?? undefined, { saved: !!r.saved, justConfirmed: query?.get('alerts') === '1' }),
     h(
       'section',
       { class: 'r-actions' },

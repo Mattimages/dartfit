@@ -12,8 +12,6 @@ export interface Session {
   priceClass?: 'budget' | 'standard' | 'premium' | 'any';
   /** Buying for someone else: no scan, the questions ask about "the player". */
   gift?: boolean;
-  /** The email sign-up was shown at the start of a fitting film this visit. */
-  alertsAsked?: boolean;
 }
 
 const KEY = 'df_session';

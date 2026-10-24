@@ -22,7 +22,7 @@ const nl = {
   'fit.s.best': 'Jouw beste match',
   'fit.win': 'Bullseye!',
   'fit.checkout': 'Precies {n}!',
-  'hs.twin': 'Gooit hetzelfde type: {name}',
+  'hs.twin': 'Je gooit als: {name}',
   'fit.win.total': '{n}% match',
   'fit.see': 'Bekijk jouw darts',
   'fit.skip': 'Sla over',
@@ -239,7 +239,7 @@ const nl = {
     'Onze catalogus heeft nog geen dart die echt dicht bij je fit zit. Gebruik de maten hierboven in de winkel.',
   'r.none':
     'We hebben nog geen {tip} in de catalogus. De maten hierboven gelden wel; neem ze mee naar de winkel.',
-  'r.twin': 'Gooit hetzelfde type',
+  'r.twin': 'Je gooit als',
   'r.twin.exact': 'Zijn eigen dart: {dart}',
   'r.twin.line': 'Uit zijn signature-lijn: {dart}',
   'r.twin.note':
@@ -564,7 +564,7 @@ const en: Record<Key, string> = {
   'fit.s.best': 'Your best match',
   'fit.win': 'Bullseye!',
   'fit.checkout': 'Checkout: {n}!',
-  'hs.twin': 'Throws the same type: {name}',
+  'hs.twin': 'You throw like: {name}',
   'fit.win.total': '{n}% match',
   'fit.see': 'See my darts',
   'fit.skip': 'Skip',
@@ -778,7 +778,7 @@ const en: Record<Key, string> = {
   'r.thin':
     'Our catalogue has no dart that sits really close to your fit yet. Take the sizes above to a shop.',
   'r.none': 'We have no {tip} in the catalogue yet. The sizes above still apply; take them to a shop.',
-  'r.twin': 'Throws the same type',
+  'r.twin': 'You throw like',
   'r.twin.exact': 'His own dart: {dart}',
   'r.twin.line': 'From his signature range: {dart}',
   'r.twin.note':
