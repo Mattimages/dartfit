@@ -220,6 +220,21 @@ describe('click-outs', () => {
       ).toBe(true);
   });
 
+  it('US visitors get Darting.com as their shop, and the partner banner redirects', async () => {
+    const r = await request(app)
+      .post('/api/fit')
+      .set('x-vercel-ip-country', 'US')
+      .send({ answers })
+      .expect(200);
+    const offers = r.body.recommendation.picks.flatMap(
+      (p: { offers: Array<{ retailer: string }> }) => p.offers,
+    );
+    expect(offers.length).toBeGreaterThan(0);
+    expect(offers.every((o: { retailer: string }) => o.retailer === 'darting_us')).toBe(true);
+    const go = await request(app).get('/go/partner%3Adarting').expect(302);
+    expect(go.headers.location).toMatch(/^https:\/\/www\.darting\.com\/\?AFFBanId=10025/);
+  });
+
   it('404s an unknown offer', async () => {
     await request(app).get('/go/nope').expect(404);
   });

@@ -3755,3 +3755,37 @@ a.card {
     animation: none;
   }
 }
+
+/* Partner banner (one country only, e.g. Darting.com in the US). */
+.partner {
+  display: grid;
+  gap: 0.25rem;
+  padding: var(--s5);
+  border-radius: var(--r-card);
+  border: 1px solid var(--line);
+  background: radial-gradient(90% 120% at 100% 0%, rgb(31 95 214 / 0.12), transparent 60%), var(--ground);
+  color: var(--ink);
+  text-decoration: none;
+}
+.partner-tag {
+  justify-self: start;
+  padding: 0.1rem 0.5rem;
+  border-radius: 999px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: var(--ink-2);
+  background: var(--stage);
+}
+.partner-name {
+  font-size: 1.35rem;
+  font-weight: 650;
+  letter-spacing: -0.03em;
+}
+.partner-sub {
+  color: var(--ink-2);
+}
+.partner-go {
+  margin-top: var(--s2);
+  font-weight: 600;
+  color: var(--red);
+}

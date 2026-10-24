@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { loadCatalogue } from '@dartfit/catalogue';
-import { affiliate, affiliateReady } from '../src/catalogue.js';
+import { affiliate, affiliateReady, PARTNER_BANNERS } from '../src/catalogue.js';
 import { loadEnv } from '../src/env.js';
 
 const env = loadEnv({
@@ -9,6 +9,7 @@ const env = loadEnv({
   EBAY_CAMPAIGN_ID: '5338000000',
   DARTSCORNER_DEEPLINK: 'https://track.example/t?a=1&url={url}',
   BOL_PARTNER_SITE_ID: '12345',
+  DARTING_AFF_ID: '4311',
 });
 const shop = (id: string) => loadCatalogue().retailers.find((r) => r.id === id)!;
 
@@ -34,6 +35,14 @@ describe('affiliate tagging', () => {
     expect(affiliate(env, 'bol', 'https://www.bol.com/nl/nl/s/?searchtext=x')).toMatch(
       /^https:\/\/partner\.bol\.com\/click\/click\?.*s=12345/,
     );
+  });
+  it('Darting.com (US): the affiliate ID rides on the link; the banner keeps its banner ID', () => {
+    const u = new URL(affiliate(env, 'darting_us', 'https://www.darting.com/'));
+    expect(u.searchParams.get('AffId')).toBe('4311');
+    const b = new URL(affiliate(env, 'darting_us', PARTNER_BANNERS['partner:darting']!.url));
+    expect(b.searchParams.get('AffId')).toBe('4311');
+    expect(b.searchParams.get('AFFBanId')).toBe('10025');
+    expect(shop('darting_us').countries).toEqual(['US']);
   });
   it('untagged and unchanged when no ID is set', () => {
     expect(affiliate(env, 'amazon_de', 'https://www.amazon.de/s?k=x')).toBe('https://www.amazon.de/s?k=x');

@@ -21,6 +21,7 @@ Mobile site: measure the throwing hand next to a bank card, fit darts to it, lin
 - The hand detector heals itself (`scan/detector.ts`): after repeated errors, or 10 s without a hand while frames come in, it is rebuilt (a stuck first load used to need a page reload).
 - A result ends with "keep me posted" (`apps/web/src/views/alert-signup.ts`): double opt-in through `/api/auth/request` with `purpose: 'alerts'`, and an alert goes out only when a new dart becomes that person's best match (`jobs.ts`). Mail needs `SMTP_URL`; without it messages only land in the `outbox` table.
 - The hand drawing (`draw/art.ts`) is traced from the 21 landmarks; skin tone comes from CSS custom properties (`SKIN_TONES`), and the landing film picks a new one each loop.
+- US visitors (country `US`) get Darting.com as their shop (`darting_us`, affiliate ID in `DARTING_AFF_ID`, added as `AffId`) and a Darting.com partner card on the home and result pages (`views/partner.ts`, link `/go/partner:darting` with `AFFBanId=10025`). Built in our own markup: never paste partner banner scripts (CSP, privacy). Darting links go to the homepage until its search URL is confirmed.
 - Country (shops) and language are separate; see `apps/web/src/region.ts`. German lives in `i18n.de.ts` and falls back to English.
 - Copy lives in `apps/web/src/i18n.ts`, NL and EN side by side. Write plain Dutch; no "je/u" mixing (use je).
 

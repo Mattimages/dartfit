@@ -177,6 +177,11 @@ export async function offersFor(db: Db, env: Env, variant: Variant, country: str
   return [...local, ...product];
 }
 
+/** Banner links by id; AFFBanId tells Darting.com which banner the click came from. */
+export const PARTNER_BANNERS: Record<string, { retailer: string; url: string }> = {
+  'partner:darting': { retailer: 'darting_us', url: 'https://www.darting.com/?AFFBanId=10025' },
+};
+
 /** Resolve an offer id to its outbound URL, with affiliate tagging when configured. */
 export async function resolveOffer(
   db: Db,
@@ -184,6 +189,13 @@ export async function resolveOffer(
   offerId: string,
 ): Promise<{ url: string; variantId: string; retailer: string } | null> {
   const { retailers } = loadCatalogue();
+  // Partner banners (shown to one country only): a fixed landing page, tagged like any offer.
+  const banner = PARTNER_BANNERS[offerId];
+  if (banner) {
+    const r = retailers.find((x) => x.id === banner.retailer);
+    if (!r || !affiliateReady(env, r)) return null;
+    return { url: affiliate(env, r.id, banner.url), variantId: 'banner', retailer: r.id };
+  }
   if (offerId.startsWith('search:')) {
     const [, retailerId, variantId] = offerId.split(':');
     const r = retailers.find((x) => x.id === retailerId && x.kind === 'search');
@@ -236,6 +248,12 @@ export function affiliate(env: Env, retailer: string, url: string): string {
       x.searchParams.set('toolid', '10001');
       x.searchParams.set('customid', 'dartfit');
       x.searchParams.set('mkevt', '1');
+      return x.toString();
+    }
+    case 'affid': {
+      // Darting.com's in-house programme: the affiliate ID rides on any link into the shop.
+      const x = new URL(url);
+      x.searchParams.set('AffId', id);
       return x.toString();
     }
     case 'deeplink':

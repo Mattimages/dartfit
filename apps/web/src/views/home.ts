@@ -7,6 +7,7 @@ import { approxEur, PRICE_CLASS_EUR } from '../money';
 import { dartMedia, photoUrl } from '../media';
 import { dartName } from './words';
 import { heroScan } from './hero-scan';
+import { partnerBanner } from './partner';
 
 type Tier = 'budget' | 'standard' | 'premium';
 
@@ -203,6 +204,8 @@ export function homeView(root: HTMLElement) {
           ),
       ),
     ),
+
+    partnerBanner() ?? '',
 
     h(
       'section',

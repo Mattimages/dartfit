@@ -22,6 +22,7 @@ export const EnvSchema = z
     BOL_PARTNER_SITE_ID: z.string().optional(),
     AMAZON_TAG_NL: z.string().optional(),
     AMAZON_TAG_DE: z.string().optional(),
+    DARTING_AFF_ID: z.string().optional(),
     AMAZON_TAG_UK: z.string().optional(),
     DEFAULT_COUNTRY: z.string().length(2).default('NL'),
     RUN_WORKER: bool.default(true),

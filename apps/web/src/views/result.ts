@@ -19,6 +19,7 @@ import { matchPct } from '../score';
 import { dartMedia } from '../media';
 import { alertSignup } from './alert-signup';
 import { matchSplit } from './match-split';
+import { partnerBanner } from './partner';
 
 const k = (s: string) => s as Key;
 type FullPick = RecPick & { offers: Offer[] };
@@ -384,6 +385,7 @@ export async function resultView(root: HTMLElement, params: Record<string, strin
       more(t('r.setup.title'), setup),
       whatIf.length ? more(t('r.whatif'), h('ul', { class: 'whatif' }, ...whatIf)) : null,
     ),
+    partnerBanner(),
     alertSignup(r.id ?? undefined, { saved: !!r.saved, justConfirmed: query?.get('alerts') === '1' }),
     h(
       'section',

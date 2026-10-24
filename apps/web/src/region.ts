@@ -4,7 +4,7 @@
  */
 import { getLang } from './i18n';
 
-/** EU member states plus the UK, Switzerland and Norway, with their names in their own language. */
+/** EU member states plus the UK, Switzerland, Norway and the US, with their names in their own language. */
 export const COUNTRIES: Array<{ code: string; name: string }> = [
   { code: 'AT', name: 'Österreich' },
   { code: 'BE', name: 'België / Belgique' },
@@ -36,6 +36,7 @@ export const COUNTRIES: Array<{ code: string; name: string }> = [
   { code: 'SE', name: 'Sverige' },
   { code: 'CH', name: 'Schweiz / Suisse' },
   { code: 'GB', name: 'United Kingdom' },
+  { code: 'US', name: 'United States' },
 ];
 const known = new Set(COUNTRIES.map((c) => c.code));
 

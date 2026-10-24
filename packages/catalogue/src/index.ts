@@ -48,7 +48,7 @@ export const Retailer = z.object({
   searchTemplate: z.string().optional(),
   affiliateEnv: z.string().nullable(),
   /** How the outbound link is tagged: bol partner link, Amazon tag, eBay Partner Network, or a network deeplink template. */
-  affiliateType: z.enum(['bol', 'amazon', 'ebay', 'deeplink']).nullable().optional(),
+  affiliateType: z.enum(['bol', 'amazon', 'ebay', 'deeplink', 'affid']).nullable().optional(),
   ebayRotation: z.string().optional(),
   /** Lower shows first: darts specialists, then big marketplaces. */
   priority: z.number().optional(),
