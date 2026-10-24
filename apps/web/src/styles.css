@@ -3479,24 +3479,6 @@ a.card {
   position: relative;
   overflow: hidden;
 }
-.fit-wait::after {
-  content: '';
-  position: absolute;
-  left: 50%;
-  top: 50%;
-  width: 3rem;
-  height: 3rem;
-  margin: -1.5rem 0 0 -1.5rem;
-  border-radius: 50%;
-  border: 3px solid rgb(255 255 255 / 0.15);
-  border-top-color: #e3122c;
-  animation: fit-spin 0.8s linear infinite;
-}
-@keyframes fit-spin {
-  to {
-    transform: rotate(360deg);
-  }
-}
 .fit-cta {
   animation: fit-cta-in 0.45s var(--ease);
 }
@@ -3712,4 +3694,64 @@ a.card {
 }
 .scan-page > h1 {
   text-align: center;
+}
+
+/* Waiting: three darts land on a board, one after another, on a loop. */
+.fit-wait {
+  display: grid;
+  place-content: center;
+  justify-items: center;
+  gap: var(--s4);
+}
+.fw-board {
+  width: min(58vw, 14rem);
+  height: auto;
+  overflow: visible;
+}
+.fw-fly {
+  animation: fw-throw 2.4s cubic-bezier(0.5, 0, 0.9, 0.4) infinite both;
+}
+.fw-dart-1 .fw-fly {
+  animation-delay: 0.45s;
+}
+.fw-dart-2 .fw-fly {
+  animation-delay: 0.9s;
+}
+@keyframes fw-throw {
+  0% {
+    transform: translate(110px, -60px) rotate(-16deg) scale(1.5);
+    opacity: 0;
+  }
+  10% {
+    opacity: 1;
+  }
+  17% {
+    transform: none;
+    opacity: 1;
+  }
+  20% {
+    transform: rotate(4deg);
+  }
+  24% {
+    transform: none;
+  }
+  85% {
+    transform: none;
+    opacity: 1;
+  }
+  100% {
+    transform: none;
+    opacity: 0;
+  }
+}
+.fw-text {
+  margin: 0;
+  color: #c9d4e3;
+  font-weight: 550;
+  letter-spacing: -0.01em;
+}
+@media (prefers-reduced-motion: reduce) {
+  .fw-fly {
+    animation: none;
+  }
 }

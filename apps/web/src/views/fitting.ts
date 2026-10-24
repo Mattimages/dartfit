@@ -4,7 +4,7 @@
  * bullseye, and your price options stacking up. Every number comes from your fit. Reduced motion
  * skips straight to the result.
  */
-import { h, reducedMotion } from '../h';
+import { h, reducedMotion, s } from '../h';
 import { t } from '../i18n';
 import { go } from '../router';
 import { session } from '../store';
@@ -14,6 +14,50 @@ import { castFor, fitFilm } from './hero-scan';
 
 const wait = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
+/** While the fit is calculated: three darts land on a board, one after another, on a loop. */
+function waiting(): HTMLElement {
+  const board = s('svg', { viewBox: '-60 -60 120 120', class: 'fw-board', 'aria-hidden': 'true' });
+  [
+    [48, 'bw-black'],
+    [46, 'bw-red'],
+    [43, 'bw-cream'],
+    [30, 'bw-green'],
+    [27.5, 'bw-cream'],
+    [8, 'bw-green'],
+    [3.6, 'bw-red'],
+  ].forEach(([r, cls]) => board.append(s('circle', { r: r!, class: String(cls) })));
+  for (let i = 0; i < 20; i++) {
+    const a = (i * Math.PI) / 10;
+    board.append(
+      s('line', {
+        x1: 8 * Math.cos(a),
+        y1: 8 * Math.sin(a),
+        x2: 46 * Math.cos(a),
+        y2: 46 * Math.sin(a),
+        class: 'bw-wire',
+      }),
+    );
+  }
+  // Where the three darts land: treble 20, then a bit off, then the bull.
+  [
+    [-4, -36],
+    [9, -12],
+    [0, 0],
+  ].forEach(([x, y], i) => {
+    const g = s('g', { class: `fw-dart fw-dart-${i}`, transform: `translate(${x} ${y})` });
+    const inner = s('g', { class: 'fw-fly' });
+    inner.append(
+      s('path', { d: 'M0,0L8,-2.4L8,2.4Z', class: 'bw-tip' }),
+      s('rect', { x: 8, y: -3.2, width: 17, height: 6.4, rx: 2.4, class: 'bw-barrel' }),
+      s('rect', { x: 25, y: -1.3, width: 11, height: 2.6, class: 'bw-shaft' }),
+      s('path', { d: 'M31,0L44,-10L49,-10L44,0L49,10L44,10Z', class: 'bw-flight' }),
+    );
+    g.append(inner);
+    board.append(g);
+  });
+  return h('div', { class: 'fit-wait' }, board, h('p', { class: 'fw-text' }, t('fit.working')));
+}
+
 export async function fittingView(root: HTMLElement) {
   const s0 = session();
   if (!s0.answers) return go('/questions');
@@ -22,7 +66,7 @@ export async function fittingView(root: HTMLElement) {
 
   const title = h('h1', { class: 'visually-hidden' }, t('fit.title'));
   const status = h('p', { class: 'visually-hidden', 'aria-live': 'polite' }, t('fit.title'));
-  const holder = h('div', { class: 'fit-film' }, h('div', { class: 'fit-wait', 'aria-hidden': 'true' }));
+  const holder = h('div', { class: 'fit-film' }, waiting());
   const cta = h('a', { class: 'btn block fit-cta', hidden: true }, t('fit.see'));
   const skip = h('a', { class: 'btn link fit-skip', hidden: true }, t('fit.skip'));
   const err = h('p', { class: 'error', role: 'alert', hidden: true }, t('q.error'));
@@ -58,8 +102,8 @@ export async function fittingView(root: HTMLElement) {
   };
   const who = { hold: a.hold, fingers: a.fingers, throwStyle: a.throwStyle, gripFeel: a.gripFeel };
   const pool = variants().filter((v) => v.tip === f.tip && !v.specCheck);
-  // Five darts in the carousel: four near misses rising to your best match.
-  const c = castFor(f, pool, hand, who, { best, tiers: result.tiers ?? {} }, 4);
+  // Three darts in the carousel: two near misses rising to your best match.
+  const c = castFor(f, pool, hand, who, { best, tiers: result.tiers ?? {} }, 2);
   if (!c) return go(target.slice(1));
 
   const film = fitFilm(c);

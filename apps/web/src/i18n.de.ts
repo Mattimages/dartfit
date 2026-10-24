@@ -165,6 +165,7 @@ export const de: Partial<Record<Key, string>> = {
   'fit.win.total': '{n}% Match',
   'fit.see': 'Meine Darts ansehen',
   'fit.skip': 'Überspringen',
+  'fit.working': 'Dein Dart wird berechnet…',
   'hs.ideal': 'dein Ideal',
   'hs.overlap': 'Deckung',
   'hs.match': 'Match',
