@@ -491,6 +491,11 @@ const nl = {
   'region.country': 'Land',
   'region.lang': 'Taal',
   'region.note': 'Je land bepaalt in welke winkels we zoeken.',
+  'region.welcome': 'Waar koop je je darts?',
+  'region.popular': 'Veel gekozen',
+  'region.all': 'Alle landen',
+  'region.search': 'Zoek een land',
+  'region.close': 'Sluiten',
   'fit.pThrow': 'Jouw worp',
   'fit.est': 'geschat uit lengte',
 };
@@ -982,6 +987,11 @@ const en: Record<Key, string> = {
   'region.country': 'Country',
   'region.lang': 'Language',
   'region.note': 'Your country decides which shops we search.',
+  'region.welcome': 'Where do you buy your darts?',
+  'region.popular': 'Popular',
+  'region.all': 'All countries',
+  'region.search': 'Search a country',
+  'region.close': 'Close',
   'fit.pThrow': 'Your throw',
   'fit.est': 'estimated from height',
 };

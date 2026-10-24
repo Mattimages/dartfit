@@ -54,6 +54,14 @@ let country: string = (() => {
 })();
 
 export const getCountry = () => country;
+/** True once the player picked a country (or kept the guess) in the picker. */
+export function hasChosenCountry(): boolean {
+  try {
+    return !!localStorage.getItem('df_country');
+  } catch {
+    return true; // no storage: never nag
+  }
+}
 export function setCountry(c: string) {
   if (!known.has(c)) return;
   country = c;

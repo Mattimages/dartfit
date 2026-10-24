@@ -338,6 +338,11 @@ export const de: Partial<Record<Key, string>> = {
   'region.country': 'Land',
   'region.lang': 'Sprache',
   'region.note': 'Dein Land bestimmt, in welchen Shops wir suchen.',
+  'region.welcome': 'Wo kaufst du deine Darts?',
+  'region.popular': 'Beliebt',
+  'region.all': 'Alle Länder',
+  'region.search': 'Land suchen',
+  'region.close': 'Schließen',
   'fit.pThrow': 'Dein Wurf',
   'fit.est': 'aus Größe geschätzt',
 };

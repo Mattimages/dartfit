@@ -1,8 +1,9 @@
 import '@fontsource-variable/geist/wght.css';
 import './styles.css';
 import { h, mount } from './h';
-import { getLang, LANGS, setLang, t, type Lang } from './i18n';
-import { COUNTRIES, getCountry, setCountry } from './region';
+import { getLang, LANGS, t } from './i18n';
+import { COUNTRIES, getCountry, hasChosenCountry } from './region';
+import { openRegionPicker } from './views/region-picker';
 import { route, start, render } from './router';
 import { DEMO, refreshCatalogue } from './api';
 import { homeView } from './views/home';
@@ -52,54 +53,26 @@ export function mark(): SVGElement {
 function layout() {
   const app = document.getElementById('app');
   if (!app) return;
-  // Country (which shops) and language, in one small panel.
-  const countrySel = h(
-    'select',
-    { id: 'region-country', 'aria-label': t('region.country') },
-    ...COUNTRIES.map((c) => h('option', { value: c.code, selected: c.code === getCountry() }, c.name)),
-  ) as HTMLSelectElement;
-  const langSel = h(
-    'select',
-    { id: 'region-lang', 'aria-label': t('region.lang') },
-    ...LANGS.map((l) => h('option', { value: l.id, selected: l.id === getLang() }, l.name)),
-  ) as HTMLSelectElement;
-  const apply = () => {
-    setCountry(countrySel.value);
-    setLang(langSel.value as Lang);
-    layout();
-    void render();
-  };
-  countrySel.addEventListener('change', apply);
-  langSel.addEventListener('change', apply);
+  // Country (which shops) and language: the globe opens the picker.
   const langBtn = h(
-    'details',
-    { class: 'region' },
-    // Shows the language only (a globe and "NL"); the shop country is inside, with its name.
+    'button',
+    {
+      type: 'button',
+      class: 'region-btn',
+      'aria-haspopup': 'dialog',
+      'aria-label': `${t('region.label')}: ${COUNTRIES.find((c) => c.code === getCountry())?.name ?? getCountry()}, ${LANGS.find((l) => l.id === getLang())?.name ?? getLang()}`,
+    },
     h(
-      'summary',
-      {
-        'aria-label': `${t('region.label')}: ${COUNTRIES.find((c) => c.code === getCountry())?.name ?? getCountry()}, ${LANGS.find((l) => l.id === getLang())?.name ?? getLang()}`,
-      },
-      h(
-        'svg',
-        { class: 'globe', viewBox: '0 0 16 16', 'aria-hidden': 'true' },
-        h('circle', { cx: 8, cy: 8, r: 6.5 }),
-        h('path', {
-          d: 'M1.5 8h13M8 1.5c2 2 2.8 4.2 2.8 6.5S10 12.5 8 14.5M8 1.5C6 3.5 5.2 5.7 5.2 8S6 12.5 8 14.5',
-        }),
-      ),
-      getLang().toUpperCase(),
+      'svg',
+      { class: 'globe', viewBox: '0 0 16 16', 'aria-hidden': 'true' },
+      h('circle', { cx: 8, cy: 8, r: 6.5 }),
+      h('path', {
+        d: 'M1.5 8h13M8 1.5c2 2 2.8 4.2 2.8 6.5S10 12.5 8 14.5M8 1.5C6 3.5 5.2 5.7 5.2 8S6 12.5 8 14.5',
+      }),
     ),
-    h(
-      'div',
-      { class: 'region-panel' },
-      h('label', { for: 'region-country' }, t('region.country')),
-      countrySel,
-      h('label', { for: 'region-lang' }, t('region.lang')),
-      langSel,
-      h('p', { class: 'small' }, t('region.note')),
-    ),
+    getCountry(),
   );
+  langBtn.addEventListener('click', () => openRegionPicker(refreshAll));
   mount(
     app,
     h(
@@ -130,8 +103,15 @@ function layout() {
   );
 }
 
+function refreshAll() {
+  layout();
+  void render();
+}
+
 layout();
 start(() => {});
+// First visit: ask where they shop (the browser's guess is pre-selected).
+if (!hasChosenCountry()) openRegionPicker(refreshAll, true);
 void refreshCatalogue();
 
 if (!DEMO && 'serviceWorker' in navigator && import.meta.env.PROD) {
