@@ -1,6 +1,7 @@
 import { h } from '../h';
 import { t } from '../i18n';
 import { DEMO, requestLogin, setOptins } from '../api';
+import { session, update } from '../store';
 
 /**
  * "Keep me posted" box at the start of a result. Double opt-in: the server emails a confirmation
@@ -25,6 +26,13 @@ export function alertSignup(
   if (opts.justConfirmed) {
     box.classList.add('done');
     box.append(title, h('p', null, t('r.alert.on')));
+    return box;
+  }
+
+  // Signed up earlier this visit (at the start of the film): no second form.
+  if (session().alertsSent && !opts.onDone) {
+    box.classList.add('done');
+    box.append(title, h('p', null, t('r.alert.pending')));
     return box;
   }
 
@@ -90,6 +98,7 @@ export function alertSignup(
     }
     if (DEMO) {
       msg.textContent = t('r.alert.demo');
+      update({ alertsSent: true });
       finish();
       return;
     }
@@ -105,6 +114,7 @@ export function alertSignup(
       });
       box.classList.add('sent');
       msg.textContent = t('r.alert.sent', { email: email.value.trim() });
+      update({ alertsSent: true });
       finish();
     } catch {
       send.removeAttribute('disabled');

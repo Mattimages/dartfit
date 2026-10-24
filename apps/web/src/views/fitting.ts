@@ -7,7 +7,8 @@
 import { h, reducedMotion, s } from '../h';
 import { t } from '../i18n';
 import { go } from '../router';
-import { session } from '../store';
+import { session, update } from '../store';
+import { alertSignup } from './alert-signup';
 import { createFit, variants } from '../api';
 import { templateHand } from '../draw/art';
 import { castFor, fitFilm } from './hero-scan';
@@ -75,13 +76,33 @@ export async function fittingView(root: HTMLElement) {
     holder.append(loader);
     shownAt = performance.now();
   };
-  const showLoader = setTimeout(showLoaderNow, 250);
+  let showLoader = setTimeout(showLoaderNow, 250);
   const cta = h('a', { class: 'btn block fit-cta', hidden: true }, t('fit.see'));
   const skip = h('a', { class: 'btn link fit-skip', hidden: true }, t('fit.skip'));
   const err = h('p', { class: 'error', role: 'alert', hidden: true }, t('q.error'));
   root.append(h('section', { class: 'fit-screen' }, title, status, holder, cta, skip, err));
 
+  // The fit is calculated while the player looks at the email sign-up.
   const fitP = createFit(m, a);
+  fitP.catch(() => {});
+
+  // First: the email sign-up (once per visit). The film starts when they sign up or say "not now".
+  if (!s0.alertsAsked) {
+    clearTimeout(showLoader);
+    update({ alertsAsked: true });
+    await new Promise<void>((done) => {
+      const box = alertSignup(
+        fitP.then((r) => r.id ?? undefined).catch(() => undefined),
+        { saved: false, justConfirmed: false, onDone: done },
+      );
+      box.classList.add('fit-alert');
+      holder.replaceChildren(box);
+      box.querySelector<HTMLInputElement>('input[type=email]')?.focus({ preventScroll: true });
+    });
+    if (location.hash !== '#/fitting') return;
+    holder.replaceChildren();
+    showLoader = setTimeout(showLoaderNow, 250);
+  }
 
   let result;
   try {

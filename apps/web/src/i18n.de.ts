@@ -367,6 +367,7 @@ export const de: Partial<Record<Key, string>> = {
   'start.nocard': 'Keine Bankkarte?',
   'start.gift': 'Kaufst du für jemand anderen?',
   'r.alert.later': 'Jetzt nicht, zeig meine Darts',
+  'r.alert.pending': 'Du bist angemeldet. Schau in dein Postfach und tippe auf den Link zum Bestätigen.',
   'q.hand': 'Was für Hände hast du?',
   'q.hand.gift': 'Was für Hände hat der Spieler?',
   'q.hand.hint': 'Schau dir deine Finger neben der Handfläche an.',
