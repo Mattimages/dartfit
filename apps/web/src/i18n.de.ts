@@ -296,12 +296,10 @@ export const de: Partial<Record<Key, string>> = {
   'r.alert.age': 'Ich bin 16 Jahre oder älter',
   'r.alert.fine':
     'Wir schreiben nur, wenn ein Dart besser passt als dein aktueller bester Treffer. Abmelden mit einem Klick.',
-  'r.alert.sent': 'Fast geschafft. Schau in {email} nach und tippe auf den Link zur Bestätigung.',
   'r.alert.on': 'Ist aktiv. Wir schreiben dir, sobald ein Dart dazukommt, der noch besser zu dir passt.',
   'r.alert.bad': 'Gib eine gültige E-Mail-Adresse ein.',
   'r.alert.needage': 'Bestätige, dass du 16 Jahre oder älter bist.',
   'r.alert.error': 'Das hat nicht geklappt. Versuch es gleich noch einmal.',
-  'r.alert.demo': 'Auf der echten Seite bekämst du jetzt eine Bestätigungsmail.',
   'why.shape_compact':
     'Deine Finger sind kurz für deine Hand oder dein Griff ist kompakt (sie bedecken {spreadPct}% des Barrels): eine Bomben- oder Torpedoform gibt dir einen klaren Griffpunkt.',
   'why.shape_long':
@@ -367,7 +365,6 @@ export const de: Partial<Record<Key, string>> = {
   'start.nocard': 'Keine Bankkarte?',
   'start.gift': 'Kaufst du für jemand anderen?',
   'r.alert.later': 'Jetzt nicht, zeig meine Darts',
-  'r.alert.pending': 'Du bist angemeldet. Schau in dein Postfach und tippe auf den Link zum Bestätigen.',
   'q.hand': 'Was für Hände hast du?',
   'q.hand.gift': 'Was für Hände hat der Spieler?',
   'q.hand.hint': 'Schau dir deine Finger neben der Handfläche an.',

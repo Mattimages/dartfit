@@ -4,9 +4,9 @@ import { DEMO, requestLogin, setOptins } from '../api';
 import { session, update } from '../store';
 
 /**
- * "Keep me posted" box at the start of a result. Double opt-in: the server emails a confirmation
- * link, and only that link turns alerts on (and saves the fit to the address). An alert goes out
- * only when a new dart becomes this person's best match.
+ * "Keep me posted" box (start of the fitting film, end of a result). Direct opt-in: the address
+ * is subscribed at once, no confirmation link. An alert goes out only when a new dart becomes this
+ * person's best match, with a one-click unsubscribe.
  */
 export function alertSignup(
   fitId: string | undefined | Promise<string | undefined>,
@@ -32,7 +32,7 @@ export function alertSignup(
   // Signed up earlier this visit (at the start of the film): no second form.
   if (session().alertsSent && !opts.onDone) {
     box.classList.add('done');
-    box.append(title, h('p', null, t('r.alert.pending')));
+    box.append(title, h('p', null, t('r.alert.on')));
     return box;
   }
 
@@ -97,7 +97,7 @@ export function alertSignup(
       return;
     }
     if (DEMO) {
-      msg.textContent = t('r.alert.demo');
+      msg.textContent = t('r.alert.on');
       update({ alertsSent: true });
       finish();
       return;
@@ -113,7 +113,7 @@ export function alertSignup(
         confirmsAge16: true,
       });
       box.classList.add('sent');
-      msg.textContent = t('r.alert.sent', { email: email.value.trim() });
+      msg.textContent = t('r.alert.on');
       update({ alertsSent: true });
       finish();
     } catch {

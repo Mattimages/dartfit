@@ -402,14 +402,30 @@ export function createApp(deps: AppDeps) {
     wrap(async (req, res) => {
       const body = parse(LoginRequest, req.body, res);
       if (!body) return;
+      // "Keep me posted" is a direct opt-in (owner's decision 24 Oct: no confirmation link).
+      // It never signs anyone in, and it only attaches the fit to a brand-new address, so typing
+      // someone else's email can't touch their account; every alert has a one-click unsubscribe.
+      if (body.purpose === 'alerts') {
+        let user = (await db.query<{ id: string }>('SELECT id FROM users WHERE email=$1', [body.email]))[0];
+        const isNew = !user;
+        if (!user) {
+          user = { id: randomUUID() };
+          await db.query('INSERT INTO users(id, email, lang) VALUES ($1,$2,$3)', [
+            user.id,
+            body.email,
+            body.lang,
+          ]);
+        }
+        await setOptins(user.id, { alertsEmail: true }, body.consentVersion, true);
+        if (isNew && body.fitId)
+          await db.query('UPDATE fits SET user_id=$1 WHERE id=$2 AND user_id IS NULL', [user.id, body.fitId]);
+        return res.json({ ok: true });
+      }
       const recent = await db.query(
         `SELECT 1 FROM login_tokens WHERE email=$1 AND expires_at > now() - interval '40 minutes'`,
         [body.email],
       );
       // Same answer either way, so the endpoint does not reveal who has an account.
-      // The result page's "keep me posted" box is an alert opt-in by definition.
-      const alerts = body.purpose === 'alerts';
-      if (alerts) body.alertsEmail = true;
       if (recent.length < 3) {
         const token = randomToken();
         await db.query(
@@ -427,12 +443,11 @@ export function createApp(deps: AppDeps) {
             }),
           ],
         );
-        const k = alerts ? 'confirm' : 'login';
         await mailer.send({
           to: body.email,
           kind: 'login',
-          subject: t(body.lang, `${k}.subject`),
-          text: t(body.lang, `${k}.body`, { url: `${env.PUBLIC_URL}/api/auth/verify?token=${token}` }),
+          subject: t(body.lang, 'login.subject'),
+          text: t(body.lang, 'login.body', { url: `${env.PUBLIC_URL}/api/auth/verify?token=${token}` }),
         });
       }
       res.json({ ok: true });
