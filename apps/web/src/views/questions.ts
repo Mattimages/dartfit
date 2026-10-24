@@ -152,18 +152,15 @@ export function questionsView(root: HTMLElement) {
   );
 
   // Hand type in words: long and slender, average, short and stubby (or not sure).
-  const handStep = h(
-    'div',
-    null,
-    tiles(
-      'handType',
-      q('q.hand'),
-      opts('q.hand', [...HAND_TYPES, 'unsure']),
-      a.handType ?? (gift ? 'unsure' : 'average'),
-      2,
-    ),
-    h('p', { class: 'hint' }, q('q.hand.hint')),
+  const handStep = tiles(
+    'handType',
+    q('q.hand'),
+    opts('q.hand', [...HAND_TYPES, 'unsure']),
+    a.handType ?? (gift ? 'unsure' : 'average'),
+    2,
   );
+  // Hint under the question, above the tiles, like the other steps.
+  handStep.querySelector('legend')?.after(h('p', { class: 'hint' }, q('q.hand.hint')));
   const unsure = (): Opt => ({ value: 'unsure', label: t('q.hand.unsure') });
 
   /** One question per screen. `auto` steps move on by themselves when tapped. */

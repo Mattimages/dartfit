@@ -1,6 +1,6 @@
 import { h } from '../h';
 import { num, t, type Key } from '../i18n';
-import { shopLink, variants } from '../api';
+import { shopFor, shopLink, variants } from '../api';
 import { approxEur } from '../money';
 import { dartMedia, photoUrl, viewToggle } from '../media';
 import { dartName } from './words';
@@ -69,6 +69,21 @@ export function dartsView(root: HTMLElement) {
             v.priceUsd ? h('span', { class: 'eur' }, `≈ €${approxEur(v.priceUsd)}`) : null,
           ),
           v.specCheck ? h('p', { class: 'flag small' }, t('darts.check')) : null,
+          (() => {
+            const shop = shopFor(v);
+            return shop
+              ? h(
+                  'a',
+                  {
+                    class: 'btn ghost buy-small',
+                    href: shop.url,
+                    target: '_blank',
+                    rel: 'noopener sponsored',
+                  },
+                  t('r.search', { shop: shop.name }),
+                )
+              : null;
+          })(),
         ),
       ),
     );

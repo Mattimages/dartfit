@@ -52,7 +52,14 @@ function altCard(r: FitResult, p: FullPick): HTMLElement {
     h(
       'div',
       { class: 'meta' },
-      h('span', { class: 'small' }, t(k(`r.role.${p.role}`))),
+      // The section is already called "Ook goed": name the price class instead.
+      h(
+        'span',
+        { class: 'small' },
+        p.role === 'alternative' && tierOf(v.priceUsd)
+          ? t(k(`r.tier.${tierOf(v.priceUsd)}`))
+          : t(k(`r.role.${p.role}`)),
+      ),
       h('b', { class: `q-${p.quality}` }, `${matchPct(p.cost)}%`),
     ),
     dartMedia(v),
@@ -412,13 +419,8 @@ export async function resultView(root: HTMLElement, params: Record<string, strin
       { class: 'r-actions' },
       DEMO ? null : copyBtn,
       h('a', { class: 'btn ghost block', href: '#/' }, t('r.again')),
-      h(
-        'p',
-        { class: 'disclosure' },
-        t('r.disclosure.short'),
-        ' ',
-        h('a', { href: '#/method' }, t('r.method')),
-      ),
+      // The commission line is in the footer; here only how we rank.
+      h('p', { class: 'disclosure' }, h('a', { href: '#/method' }, t('r.method'))),
     ),
   ];
   root.append(...parts.filter((x): x is HTMLElement => x !== null));

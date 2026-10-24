@@ -635,10 +635,10 @@ input:focus-visible {
 }
 .ico-bar,
 .ico-fill {
-  fill: #9aa3ae;
+  fill: #737c8c;
 }
 .ico-line {
-  stroke: #9aa3ae;
+  stroke: #737c8c;
   stroke-width: 2;
   fill: none;
   stroke-linecap: round;
@@ -4265,4 +4265,37 @@ a.card {
 .hs-end .hs-name {
   opacity: 0;
   transition: opacity 0.3s ease;
+}
+
+/* Critique pass 24 Oct. */
+/* The two side doors under the main button: lighter than it, still clearly buttons. */
+.alt-starts .ico-btn {
+  background: var(--stage);
+  border-color: transparent;
+  box-shadow: none;
+}
+.alt-starts .ico-btn:hover {
+  background: var(--stage-2);
+  border-color: transparent;
+}
+/* Checkout: nothing from the film shows through behind the board. */
+.bw.bc {
+  background: radial-gradient(60% 50% at 50% 45%, rgb(10 18 31 / 0.9), rgb(10 18 31 / 0.98));
+}
+/* A buy button on every card in the darts list. */
+.buy-small {
+  width: 100%;
+  min-height: 2.75rem;
+  margin-top: var(--s2);
+  padding-inline: var(--s3);
+  font-size: 0.9rem;
+  line-height: 1.2;
+  text-align: center;
+}
+.disclosure:has(> a:only-child) {
+  text-align: center;
+}
+.hs-stage:has(> .bw) .hs-modelbox {
+  opacity: 0;
+  transition: opacity 0.2s ease;
 }

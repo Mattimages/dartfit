@@ -95,7 +95,7 @@ export function homeView(root: HTMLElement) {
         'p',
         { class: 'tier-meta' },
         `${num(v.weightG)} g`,
-        eur(v) ? h('span', { class: 'eur' }, `€${eur(v)}`) : null,
+        eur(v) ? h('span', { class: 'eur' }, `≈ €${eur(v)}`) : null,
       ),
     );
   };
@@ -214,7 +214,7 @@ export function homeView(root: HTMLElement) {
                 'p',
                 { class: 'specline' },
                 h('span', null, `${num(v.weightG)} g`),
-                eur(v) ? h('span', { class: 'eur' }, `€${eur(v)}`) : null,
+                eur(v) ? h('span', { class: 'eur' }, `≈ €${eur(v)}`) : null,
               ),
             ),
           ),

@@ -104,6 +104,13 @@ function demoOffers(v: Variant): Offer[] {
 }
 
 /** The first affiliate shop link for any dart in the chosen country. In the live site it goes via /go (logged and tagged). */
+/** The first shop for this country: link and name, for a buy button. */
+export function shopFor(v: Variant): { url: string; name: string } | null {
+  const first = demoOffers(v)[0];
+  if (!first) return null;
+  return { url: DEMO ? first.goUrl : `/go/${encodeURIComponent(first.id)}`, name: first.retailerName };
+}
+
 export function shopLink(v: Variant): string | null {
   const first = demoOffers(v)[0];
   if (!first) return null;

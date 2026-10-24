@@ -186,9 +186,10 @@ export function scanView(root: HTMLElement, _params?: Record<string, string>, qu
   const intro = NO_CAMERA
     ? h(
         'div',
-        { class: 'stack' },
+        { class: 'stack scan-intro' },
         h('p', { class: 'lead' }, t('scan.unavailable')),
         h('div', { class: 'actions' }, h('a', { class: 'btn', href: '#/manual' }, t('scan.manual'))),
+        h('div', { class: 'alt-starts' }, giftBtn),
       )
     : h(
         'div',

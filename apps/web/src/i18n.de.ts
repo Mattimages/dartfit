@@ -287,9 +287,9 @@ export const de: Partial<Record<Key, string>> = {
   'r.split.total': 'Gesamt',
   'r.split.shape.sub': 'Gewicht, Länge, Dicke',
   'r.split.style.sub': 'Typ, Grip, Balance',
-  'r.alert.title': 'Unsere Datenbank wird regelmäßig aktualisiert',
+  'r.alert.title': 'Verpasse keinen besseren Dart',
   'r.alert.sub':
-    'Gib deine E-Mail-Adresse ein, und wir sagen dir Bescheid, wenn ein Dart dazukommt, der noch besser zu dir passt!',
+    'Speichere deine Messung und erfahre, wenn ein Dart dazukommt, der noch besser zu dir passt. Wir erweitern unsere Datenbank laufend.',
   'r.alert.email': 'E-Mail-Adresse',
   'r.alert.placeholder': 'du@beispiel.de',
   'r.alert.send': 'Halte mich auf dem Laufenden',
@@ -336,7 +336,7 @@ export const de: Partial<Record<Key, string>> = {
   'word.arc': 'im Bogen',
   'word.unsure': 'unbekannt',
 
-  'footer.disclosure': 'Shop-Links können uns eine Provision bringen.',
+  'footer.disclosure': 'Shop-Links können uns eine Provision bringen. Das ändert nie die Rangfolge.',
   'footer.privacy': 'Datenschutz',
   'footer.method': 'Methode',
   'error.generic': 'Etwas ist schiefgegangen. Versuche es erneut.',
