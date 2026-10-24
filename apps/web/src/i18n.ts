@@ -518,6 +518,9 @@ const nl = {
   'start.nocard': 'Geen bankpas?',
   'start.gift': 'Koop je voor iemand anders?',
   'r.alert.later': 'Nu niet, laat mijn darts zien',
+  'r.alert.check':
+    'Staat aan! Bevestig je e-mail via de link in je inbox om je account te bewaren. Dan hoef je je hand niet opnieuw te meten.',
+  'r.alert.confirmed': 'Bevestigd. Je account is bewaard en je alerts staan aan.',
   'q.hand': 'Wat voor handen heb je?',
   'q.hand.gift': 'Wat voor handen heeft de speler?',
   'q.hand.hint': 'Kijk naar je vingers naast je handpalm.',
@@ -1054,6 +1057,9 @@ const en: Record<Key, string> = {
   'start.nocard': 'No bank card?',
   'start.gift': 'Buying for someone else?',
   'r.alert.later': 'Not now, show my darts',
+  'r.alert.check':
+    "You're in! Confirm your email with the link in your inbox to keep your account, so you don't have to measure your hand again.",
+  'r.alert.confirmed': 'Confirmed. Your account is saved and your alerts are on.',
   'q.hand': 'What kind of hands do you have?',
   'q.hand.gift': 'What kind of hands does the player have?',
   'q.hand.hint': 'Look at your fingers next to your palm.',

@@ -419,6 +419,36 @@ export function createApp(deps: AppDeps) {
         await setOptins(user.id, { alertsEmail: true }, body.consentVersion, true);
         if (isNew && body.fitId)
           await db.query('UPDATE fits SET user_id=$1 WHERE id=$2 AND user_id IS NULL', [user.id, body.fitId]);
+        // Optional: confirm the address to keep the account (signed in, fit saved, no re-measuring).
+        // At most 3 such links per address per hour (24-hour links issued within the last hour).
+        const sent = await db.query(
+          `SELECT 1 FROM login_tokens WHERE email=$1 AND expires_at > now() + interval '23 hours'`,
+          [body.email],
+        );
+        if (sent.length < 3) {
+          const token = randomToken();
+          await db.query(
+            `INSERT INTO login_tokens(token_hash, email, payload, expires_at) VALUES ($1,$2,$3, now() + interval '24 hours')`,
+            [
+              sha256(token),
+              body.email,
+              JSON.stringify({
+                fitId: body.fitId,
+                lang: body.lang,
+                alertsEmail: true,
+                feedbackEmail: false,
+                consentVersion: body.consentVersion,
+                purpose: 'alerts',
+              }),
+            ],
+          );
+          await mailer.send({
+            to: body.email,
+            kind: 'login',
+            subject: t(body.lang, 'confirm.subject'),
+            text: t(body.lang, 'confirm.body', { url: `${env.PUBLIC_URL}/api/auth/verify?token=${token}` }),
+          });
+        }
         return res.json({ ok: true });
       }
       const recent = await db.query(

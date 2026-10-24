@@ -299,7 +299,10 @@ describe('accounts, saving and alerts (Phase 4 end-to-end)', () => {
       .post('/api/auth/request')
       .send({ email: mail, fitId: fit.body.id, purpose: 'alerts', confirmsAge16: true, lang: 'en' })
       .expect(200);
-    expect(await outbox(mail)).toHaveLength(0);
+    // One optional mail: confirm to keep the account; alerts are already on without it.
+    const sent = await outbox(mail);
+    expect(sent).toHaveLength(1);
+    expect(sent[0]!.subject).toBe('Confirm your email and keep your DartFit account');
     const [u] = await db.query<{ id: string; alerts_email: boolean }>(
       'SELECT id, alerts_email FROM users WHERE email=$1',
       [mail],
@@ -307,8 +310,12 @@ describe('accounts, saving and alerts (Phase 4 end-to-end)', () => {
     expect(u!.alerts_email).toBe(true);
     const [f] = await db.query<{ user_id: string }>('SELECT user_id FROM fits WHERE id=$1', [fit.body.id]);
     expect(f!.user_id).toBe(u!.id);
-    // Not signed in by typing an address.
+    // Not signed in by typing an address; the link does that.
     expect((await other.get('/api/me').expect(200)).body.user).toBeNull();
+    const token = sent[0]!.body_text.match(/token=([\w-]+)/)![1];
+    const r = await other.get(`/api/auth/verify?token=${token}`).expect(302);
+    expect(r.headers.location).toBe(`/#/fit/${fit.body.id}?saved=1&alerts=1`);
+    expect((await other.get('/api/me').expect(200)).body.user.email).toBe(mail);
   });
 
   it('"keep me posted" with an existing address does not move fits into that account', async () => {

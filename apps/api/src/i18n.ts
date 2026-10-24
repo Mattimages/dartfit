@@ -5,9 +5,9 @@ const strings: Record<Lang, Record<string, string>> = {
     'login.subject': 'Je inloglink voor DartFit',
     'login.body':
       'Klik binnen 20 minuten op deze link om in te loggen en je fit te bewaren:\n{url}\n\nHeb je dit niet aangevraagd? Dan kun je deze mail negeren.',
-    'confirm.subject': 'Bevestig je dart-alert',
+    'confirm.subject': 'Bevestig je e-mail en bewaar je DartFit-account',
     'confirm.body':
-      'Tik binnen 20 minuten op deze link. Daarna mailen we je zodra er een dart binnenkomt die nog beter bij je hand past:\n{url}\n\nHeb je dit niet aangevraagd? Dan kun je deze mail negeren.',
+      'Je dart-alerts staan aan. Tik op deze link om je e-mail te bevestigen en je account te bewaren. Dan hoef je je hand niet opnieuw te meten:\n{url}\n\nDe link werkt 24 uur. Heb je dit niet aangevraagd? Negeer deze mail dan, of meld je af via de link in elke alert.',
     'alert.subject': 'Er is een dart die nog beter bij je past: {name}',
     'alert.body':
       'Nieuw in onze database: {name}. Hij past beter bij je hand dan je vorige beste match (fit: {quality}).\n\nBekijk hem naast je andere opties:\n{url}',
@@ -24,9 +24,9 @@ const strings: Record<Lang, Record<string, string>> = {
     'login.subject': 'Your DartFit sign-in link',
     'login.body':
       'Use this link within 20 minutes to sign in and keep your fit:\n{url}\n\nDidn’t ask for this? You can ignore this email.',
-    'confirm.subject': 'Confirm your dart alert',
+    'confirm.subject': 'Confirm your email and keep your DartFit account',
     'confirm.body':
-      'Use this link within 20 minutes. After that we’ll email you when a dart arrives that fits your hand even better:\n{url}\n\nDidn’t ask for this? You can ignore this email.',
+      'Your dart alerts are on. Tap this link to confirm your email and keep your account, so you don’t have to measure your hand again:\n{url}\n\nThe link works for 24 hours. Didn’t ask for this? Ignore this email, or unsubscribe with the link in any alert.',
     'alert.subject': 'A dart that fits you even better: {name}',
     'alert.body':
       'New in our database: {name}. It fits your hand better than your previous best match (fit: {quality}).\n\nSee it next to your other options:\n{url}',

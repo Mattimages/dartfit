@@ -25,14 +25,14 @@ export function alertSignup(
 
   if (opts.justConfirmed) {
     box.classList.add('done');
-    box.append(title, h('p', null, t('r.alert.on')));
+    box.append(title, h('p', null, t('r.alert.confirmed')));
     return box;
   }
 
   // Signed up earlier this visit (at the start of the film): no second form.
   if (session().alertsSent && !opts.onDone) {
     box.classList.add('done');
-    box.append(title, h('p', null, t('r.alert.on')));
+    box.append(title, h('p', null, t('r.alert.check')));
     return box;
   }
 
@@ -97,7 +97,7 @@ export function alertSignup(
       return;
     }
     if (DEMO) {
-      msg.textContent = t('r.alert.on');
+      msg.textContent = t('r.alert.check');
       update({ alertsSent: true });
       finish();
       return;
@@ -113,7 +113,7 @@ export function alertSignup(
         confirmsAge16: true,
       });
       box.classList.add('sent');
-      msg.textContent = t('r.alert.on');
+      msg.textContent = t('r.alert.check');
       update({ alertsSent: true });
       finish();
     } catch {

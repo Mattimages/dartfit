@@ -365,6 +365,9 @@ export const de: Partial<Record<Key, string>> = {
   'start.nocard': 'Keine Bankkarte?',
   'start.gift': 'Kaufst du für jemand anderen?',
   'r.alert.later': 'Jetzt nicht, zeig meine Darts',
+  'r.alert.check':
+    'Du bist dabei! Bestätige deine E-Mail über den Link in deinem Postfach, damit dein Konto gespeichert bleibt. Dann musst du deine Hand nicht noch einmal messen.',
+  'r.alert.confirmed': 'Bestätigt. Dein Konto ist gespeichert und deine Alerts sind an.',
   'q.hand': 'Was für Hände hast du?',
   'q.hand.gift': 'Was für Hände hat der Spieler?',
   'q.hand.hint': 'Schau dir deine Finger neben der Handfläche an.',
