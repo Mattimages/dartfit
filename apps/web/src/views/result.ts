@@ -69,6 +69,14 @@ function altCard(r: FitResult, p: FullPick): HTMLElement {
       h('span', null, `${num(v.lengthMm)} mm`),
       h('span', null, `Ø ${num(v.diameterMm, 1)}`),
     ),
+    v.priceUsd
+      ? h(
+          'p',
+          { class: 'price-line alt-price' },
+          h('b', null, priceText(v.priceUsd)),
+          h('span', null, t('r.guide')),
+        )
+      : null,
     o ? offerLink(o, r.id, false) : null,
   );
 }

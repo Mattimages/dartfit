@@ -4101,3 +4101,9 @@ a.card {
   opacity: 0;
   transform: translate(-50%, 8px);
 }
+.price-line.alt-price {
+  margin: 0;
+}
+.price-line.alt-price b {
+  font-size: 1.125rem;
+}
