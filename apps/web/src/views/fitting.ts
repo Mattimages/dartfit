@@ -1,9 +1,8 @@
 /**
- * The calculation, as a film: the same story as the landing page, told about you. Your hand (the
- * scanned landmarks or your size), your measurements, your hold and grip answers on the live dart,
- * your ideal dart from the engine, two near misses and then your real best match, a bullseye, and
- * your price options stacking up. Every number comes from your fit. Reduced motion skips straight
- * to the result.
+ * The calculation, as a film in the landing page's style: your ideal dart from the engine, a
+ * carousel of real darts scored against it (shape, style, total) rising to your best match, a
+ * bullseye, and your price options stacking up. Every number comes from your fit. Reduced motion
+ * skips straight to the result.
  */
 import { h, reducedMotion } from '../h';
 import { t } from '../i18n';
@@ -59,7 +58,8 @@ export async function fittingView(root: HTMLElement) {
   };
   const who = { hold: a.hold, fingers: a.fingers, throwStyle: a.throwStyle, gripFeel: a.gripFeel };
   const pool = variants().filter((v) => v.tip === f.tip && !v.specCheck);
-  const c = castFor(f, pool, hand, who, { best, tiers: result.tiers ?? {} });
+  // Five darts in the carousel: four near misses rising to your best match.
+  const c = castFor(f, pool, hand, who, { best, tiers: result.tiers ?? {} }, 4);
   if (!c) return go(target.slice(1));
 
   const film = fitFilm(c);

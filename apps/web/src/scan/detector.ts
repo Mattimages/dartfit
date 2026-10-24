@@ -107,11 +107,58 @@ async function legacyBackend(): Promise<HandDetector> {
   };
 }
 
+const createBackend = async () => (await tasksBackend().catch(() => null)) ?? legacyBackend();
+
+/**
+ * Wraps a backend so a stuck one heals itself: after repeated errors, or a long run without any
+ * hand while frames keep coming, it is closed and created again (what a page reload used to fix).
+ */
+function selfHealing(first: HandDetector): HandDetector {
+  let inner = first;
+  let errors = 0;
+  let lastHit = performance.now();
+  let lastReset = performance.now();
+  let rebuilding: Promise<void> | null = null;
+  const rebuild = () => {
+    rebuilding ??= (async () => {
+      try {
+        inner.close();
+      } catch {
+        /* already closed */
+      }
+      inner = await createBackend();
+      errors = 0;
+      lastHit = lastReset = performance.now();
+    })().finally(() => (rebuilding = null));
+    return rebuilding;
+  };
+  return {
+    get kind() {
+      return inner.kind;
+    },
+    async detect(source, ts) {
+      if (rebuilding) return null;
+      const now = performance.now();
+      try {
+        const lm = await inner.detect(source, ts);
+        errors = 0;
+        if (lm) lastHit = now;
+        else if (now - lastHit > 10_000 && now - lastReset > 20_000) void rebuild();
+        return lm;
+      } catch {
+        if (++errors >= 10) void rebuild();
+        return null;
+      }
+    },
+    close: () => inner.close(),
+  };
+}
+
 let cached: Promise<HandDetector> | null = null;
 
 /** Load once per page; the second call returns the same detector. */
 export function loadDetector(): Promise<HandDetector> {
-  cached ??= (async () => (await tasksBackend().catch(() => null)) ?? legacyBackend())();
+  cached ??= createBackend().then(selfHealing);
   cached.catch(() => (cached = null));
   return cached;
 }

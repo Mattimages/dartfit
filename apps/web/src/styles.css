@@ -3686,3 +3686,30 @@ a.card {
 .bw {
   background: radial-gradient(60% 50% at 50% 45%, rgb(10 18 31 / 0.82), rgb(10 18 31 / 0.96));
 }
+
+/* Scan intro: one centred column. */
+.scan-intro {
+  justify-items: center;
+  text-align: center;
+}
+.scan-intro .lead {
+  max-width: 34ch;
+}
+.scan-intro .sheet.narrow {
+  width: 100%;
+  margin-inline: auto;
+}
+.scan-intro .actions {
+  justify-content: center;
+}
+/* The player's film skips the hand: it starts at their ideal dart. */
+.hs-fit .hs-hand,
+.hs-fit .hs-askbox {
+  display: none;
+}
+.hs-fit .hs-modelbox {
+  bottom: 38%;
+}
+.scan-page > h1 {
+  text-align: center;
+}

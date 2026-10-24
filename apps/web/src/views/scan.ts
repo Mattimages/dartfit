@@ -148,7 +148,6 @@ export function scanView(root: HTMLElement) {
   });
   const camera = h('div', { class: 'camera', hidden: true }, video, freeze, overlay, guide, tapLayer);
   const tapBtn = h('button', { class: 'btn ghost', type: 'button', hidden: true }, t('scan.tap_fallback'));
-  const detectorNote = h('p', { class: 'small' });
 
   const startBtn = h('button', { class: 'btn', type: 'button' }, t('scan.camera'));
   const photoInput = h('input', {
@@ -168,7 +167,7 @@ export function scanView(root: HTMLElement) {
       )
     : h(
         'div',
-        { class: 'stack' },
+        { class: 'stack scan-intro' },
         h('p', { class: 'lead' }, t('scan.setup')),
         h('figure', { class: 'sheet narrow' }, setupDiagram()),
         h('div', { class: 'actions' }, startBtn, photoBtn, photoInput),
@@ -180,14 +179,13 @@ export function scanView(root: HTMLElement) {
   root.append(
     h(
       'section',
-      { class: 'stack' },
+      { class: 'stack scan-page' },
       h('h1', null, t('scan.title')),
       intro,
       camera,
       meter,
       status,
       h('div', { class: 'actions' }, tapBtn),
-      detectorNote,
     ),
   );
   meter.hidden = true;
@@ -354,9 +352,8 @@ export function scanView(root: HTMLElement) {
       return;
     }
     if (disposed) return;
-    detectorNote.textContent = t('scan.detector', {
-      kind: detector.kind === 'tasks' ? 'MediaPipe Tasks' : 'MediaPipe Hands',
-    });
+    // Which backend runs is for debugging only, so it lives on the element, not on screen.
+    camera.dataset.detector = detector.kind;
     scanner = new Scanner(video, detector, {
       status: (s: Status, progress: number) => {
         bar.style.width = `${Math.round(progress * 100)}%`;

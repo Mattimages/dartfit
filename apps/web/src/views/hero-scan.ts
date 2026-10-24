@@ -180,6 +180,8 @@ export function castFor(
   hand: Cast['hand'],
   who: Who,
   pinned?: { best: ScoredVariant; tiers: Partial<Record<Tier, ScoredVariant | null>> },
+  /** How many darts come before the best match in the carousel. */
+  misses = 2,
 ): Cast | null {
   const split = (sv: ScoredVariant): Split => {
     const b = matchBreakdown(sv);
@@ -215,14 +217,29 @@ export function castFor(
   }
   if (!best) return null;
   const top = best;
-  // Two near misses from other brands: a clear miss, then a close one.
-  const near = (target: number, avoid: string[]) =>
-    scored
-      .filter((x) => !avoid.includes(x.v.brand) && x.m.total < top.m.total - 4)
-      .sort((a, b) => Math.abs(a.m.total - target) - Math.abs(b.m.total - target))[0];
-  const first = near(top.m.total - 22, [top.v.brand]);
-  const second = first && near(top.m.total - 10, [top.v.brand, first.v.brand]);
-  if (!first || !second) return null;
+  // Near misses from other brands, rising towards the best: a clear miss first, a close one last.
+  const used = new Set([top.v.id]);
+  const brands = [top.v.brand];
+  const ladder: Array<(typeof scored)[number]> = [];
+  for (let i = 0; i < misses; i++) {
+    const target = top.m.total - 24 + (18 * i) / Math.max(1, misses - 1);
+    const pickFrom = (avoidBrands: boolean) =>
+      scored
+        .filter(
+          (x) =>
+            !used.has(x.v.id) &&
+            x.m.total < top.m.total - 3 &&
+            (!avoidBrands || !brands.includes(x.v.brand)) &&
+            (ladder.length === 0 || x.m.total >= ladder[ladder.length - 1]!.m.total),
+        )
+        .sort((a, b) => Math.abs(a.m.total - target) - Math.abs(b.m.total - target))[0];
+    const next = pickFrom(true) ?? pickFrom(false);
+    if (!next) break;
+    ladder.push(next);
+    used.add(next.v.id);
+    brands.push(next.v.brand);
+  }
+  if (ladder.length < Math.min(2, misses)) return null;
   const bestTier = tierOf(top.v);
   const others = tierPicks
     .filter((x) => tierOf(x.v) !== bestTier && x.v.id !== top.v.id)
@@ -231,7 +248,7 @@ export function castFor(
   return {
     hand,
     ideal: { ...f.barrel },
-    barrels: [first, second, top],
+    barrels: [...ladder, top],
     options: [{ tier: bestTier, v: top.v, m: top.m, best: true }, ...others],
     who,
   };
@@ -579,47 +596,52 @@ async function play(root: HTMLElement, c: Cast, mode: 'hero' | 'fit' = 'hero'): 
   }
   root.dataset.started = '1';
 
-  // 1. Scan the hand.
-  setStep(label('scan'));
-  hand.classList.add('scanning');
-  await wait(1500);
-  if (!alive()) return false;
-  // 2. Draw the measurements one by one.
-  setStep(label('measure'));
-  for (const g of groups) {
-    g.classList.add('on');
-    await wait(520);
+  // The hero tells the whole story; after the questionnaire the player has just done all that,
+  // so their film starts at their ideal dart and spends its time on the score carousel.
+  if (mode === 'hero') {
+    // 1. Scan the hand.
+    setStep(label('scan'));
+    hand.classList.add('scanning');
+    await wait(1500);
     if (!alive()) return false;
+    // 2. Draw the measurements one by one.
+    setStep(label('measure'));
+    for (const g of groups) {
+      g.classList.add('on');
+      await wait(520);
+      if (!alive()) return false;
+    }
+    await wait(400);
+    // 3. Two questions get answered: where you hold it, and how much grip (knurling).
+    setStep(label('ask'));
+    root.classList.add('hs-ask');
+    if (!(await ask.run(wait, alive))) return false;
+    await wait(200);
+    root.classList.remove('hs-ask');
   }
-  await wait(400);
-  // 3. Two questions get answered: where you hold it, and how much grip (knurling).
-  setStep(label('ask'));
-  root.classList.add('hs-ask');
-  if (!(await ask.run(wait, alive))) return false;
-  await wait(200);
-  root.classList.remove('hs-ask');
   // 4. The measurements and answers become the ideal barrel.
   setStep(label('model'));
   root.classList.add('hs-build');
-  await wait(1300);
+  await wait(mode === 'fit' ? 900 : 1300);
   if (!alive()) return false;
-  // 5. Three real barrels over the ideal, each pausing to show the fit.
+  // 5. Real barrels over the ideal, each pausing to show the fit.
+  const fast = mode === 'fit';
   chip.classList.add('on');
   for (let i = 0; i <= last; i++) {
     setStep(t('hs.step.compare', { i: i + 1, n: last + 1 }));
     const g = model.cands[i]!;
     g.classList.add('on');
     await g.animate([{ transform: 'translateX(320px)' }, { transform: 'translateX(0)' }], {
-      duration: 520,
+      duration: fast ? 420 : 520,
       easing: 'cubic-bezier(0.2, 0.8, 0.2, 1)',
     }).finished;
     if (!alive()) return false;
-    await count(c.barrels[i]!.m, 520);
-    await wait(i === last ? 500 : 900);
+    await count(c.barrels[i]!.m, fast ? 420 : 520);
+    await wait(i === last ? 500 : fast ? 650 : 900);
     if (!alive()) return false;
     if (i < last) {
       await g.animate([{ transform: 'translateX(0)' }, { transform: 'translateX(-320px)' }], {
-        duration: 380,
+        duration: fast ? 320 : 380,
         easing: 'cubic-bezier(0.6, 0, 0.8, 0.2)',
       }).finished;
       g.classList.remove('on');

@@ -23,13 +23,14 @@ export const de: Partial<Record<Key, string>> = {
   'home.how3.s': 'Plus der Profi, der denselben Typ wirft.',
 
   'scan.title': 'Hand scannen',
-  'scan.setup': 'Hand flach, Finger gespreizt, Karte im Rahmen.',
+  'scan.setup':
+    'Leg deine Bankkarte auf den Tisch und deine Hand flach darunter, die Finger etwas gespreizt. Halte dein Handy gerade darüber, sodass die Karte im Rahmen liegt.',
   'scan.camera': 'Kamera starten',
   'scan.loading': 'Handerkennung lädt…',
   'scan.no_camera': 'Die Kamera lässt sich nicht öffnen. Erlaube sie im Browser oder miss selbst.',
   'scan.no_model': 'Die Handerkennung lädt nicht. Prüfe deine Verbindung oder miss selbst.',
-  'scan.manual': 'Lieber mit Lineal',
-  'scan.card_here': 'Karte hier',
+  'scan.manual': 'Lieber mit dem Lineal messen',
+  'scan.card_here': 'Karte hierhin legen',
   'scan.status.no_hand': 'Lege deine Hand flach ins Bild',
   'scan.status.out_of_frame': 'Ein Teil deiner Hand ist außerhalb des Bildes',
   'scan.status.fingers_closed': 'Spreize deine Finger etwas mehr',
@@ -50,9 +51,9 @@ export const de: Partial<Record<Key, string>> = {
   'scan.tap_count': '{n} von 4 Ecken',
   'scan.tap_failed':
     'Das hat nicht geklappt: Halte deine Hand ein paar Sekunden still im Bild und versuche es erneut.',
-  'scan.privacy': 'Bilder bleiben auf deinem Handy.',
+  'scan.privacy': 'Das Bild bleibt auf deinem Handy. Wir verwenden nur die Maße.',
   'scan.photo': 'Foto wählen',
-  'scan.photo.hint': 'Hand und Karte nebeneinander, von oben fotografiert.',
+  'scan.photo.hint': 'Lieber ein Foto? Mach es gerade von oben, mit Hand und Karte im Bild.',
   'scan.photo.unreadable': 'Dieses Foto können wir nicht öffnen. Versuche JPG oder PNG.',
   'scan.photo.badcorners':
     'Diese Ecken ergeben eine unmögliche Handgröße. Tippe die vier Kartenecken erneut an.',

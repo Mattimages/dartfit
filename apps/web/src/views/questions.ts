@@ -1,10 +1,8 @@
-import type { Answers, CurrentDart, Variant } from '@dartfit/engine';
+import type { Answers } from '@dartfit/engine';
 import { h } from '../h';
-import { num, t, type Key } from '../i18n';
+import { t, type Key } from '../i18n';
 import { go } from '../router';
 import { session, update } from '../store';
-import { variants } from '../api';
-import { dartName } from './words';
 import { pictogram } from '../draw/art';
 import { quizDart, type Focus } from './quiz-dart';
 
@@ -64,122 +62,6 @@ const DEFAULTS: Answers = {
 export function questionsView(root: HTMLElement) {
   const s = session();
   const a: Answers = { ...DEFAULTS, ...(s.answers ?? {}) };
-  let picked: Variant | null = a.current?.variantId
-    ? (variants().find((v) => v.id === a.current?.variantId) ?? null)
-    : null;
-
-  // ── Current dart: pick from the catalogue, or type the weight ───────
-  const search = h('input', {
-    type: 'search',
-    id: 'dart-search',
-    autocomplete: 'off',
-    placeholder: t('q.current.search'),
-  }) as HTMLInputElement;
-  const results = h('ul', { class: 'picker', role: 'listbox', 'aria-label': t('q.current.search') });
-  const pickedLine = h('p', { class: 'kicker' });
-  const clearPick = h('button', { class: 'btn link', type: 'button' }, t('q.current.clear'));
-  const weight = h('input', {
-    type: 'number',
-    id: 'cw',
-    inputmode: 'decimal',
-    min: 12,
-    max: 40,
-    step: 0.5,
-    placeholder: t('q.current.weight'),
-    value: a.current?.weightG ?? '',
-  }) as HTMLInputElement;
-
-  const feelBox = tiles(
-    'feel',
-    t('q.current.feel'),
-    opts('q.feel', ['too_light', 'right', 'too_heavy']),
-    a.current?.feel ?? 'right',
-    3,
-    false,
-  );
-  const manualBox = h(
-    'div',
-    null,
-    h('label', { class: 'visually-hidden', for: 'cw' }, t('q.current.weight')),
-    weight,
-  );
-  const pickBox = h(
-    'div',
-    { class: 'sub' },
-    h('label', { class: 'visually-hidden', for: 'dart-search' }, t('q.current.search')),
-    search,
-    results,
-  );
-  const pickedBox = h('div', { class: 'actions' }, pickedLine, clearPick);
-
-  const showPicked = () => {
-    pickedBox.hidden = !picked;
-    pickBox.hidden = !!picked;
-    manualBox.hidden = !!picked;
-    if (picked) pickedLine.textContent = `${dartName(picked)} · ${num(picked.weightG)} g`;
-  };
-
-  const renderResults = () => {
-    const q = search.value.trim().toLowerCase();
-    results.replaceChildren();
-    if (q.length < 2) return;
-    const hits = variants()
-      .filter((v) => `${v.brand} ${v.model} ${v.weightG}g`.toLowerCase().includes(q))
-      .slice(0, 6);
-    for (const v of hits) {
-      const b = h('button', { type: 'button', role: 'option' }, `${dartName(v)} · ${num(v.weightG)} g`);
-      b.addEventListener('click', () => {
-        picked = v;
-        a.current = {
-          ...(a.current ?? { feel: 'right' }),
-          variantId: v.id,
-          weightG: v.weightG,
-        } as CurrentDart;
-        search.value = '';
-        results.replaceChildren();
-        showPicked();
-      });
-      results.append(h('li', null, b));
-    }
-  };
-  search.addEventListener('input', renderResults);
-  clearPick.addEventListener('click', () => {
-    picked = null;
-    if (a.current) delete a.current.variantId;
-    showPicked();
-    search.focus();
-  });
-
-  const hasCurrent = !!a.current;
-  const currentBox = h('div', { class: 'sub', hidden: !hasCurrent }, pickedBox, pickBox, manualBox, feelBox);
-  const currentToggle = tiles(
-    'hasCurrent',
-    t('q.current'),
-    [
-      { value: 'no', label: t('q.current.none') },
-      { value: 'yes', label: t('q.current.yes') },
-    ],
-    hasCurrent ? 'yes' : 'no',
-    2,
-    false,
-  );
-  currentToggle.addEventListener('change', (e) => {
-    currentBox.hidden = (e.target as HTMLInputElement).value !== 'yes';
-  });
-
-  // ── Price class: which tab the result opens on (every class is always shown) ──
-  const budget = tiles(
-    'priceClass',
-    t('q.budget'),
-    [
-      { value: 'budget', label: t('q.pc.budget'), big: '€' },
-      { value: 'standard', label: t('q.pc.standard'), big: '€€' },
-      { value: 'premium', label: t('q.pc.premium'), big: '€€€' },
-      { value: 'any', label: t('q.pc.any'), big: '∞' },
-    ],
-    s.priceClass ?? 'any',
-    2,
-  );
 
   // Grip: a slider, so the knurling on the live dart follows your thumb.
   const gripVal = h('output', { class: 'grip-val', for: 'gripFeel' }, String(a.gripFeel));
@@ -274,8 +156,6 @@ export function questionsView(root: HTMLElement) {
       focus: 'throwStyle',
     },
     { el: grip, auto: false, focus: 'gripFeel' },
-    { el: h('div', null, currentToggle, currentBox), auto: false },
-    { el: budget, auto: false },
   ];
 
   const progress = h(
@@ -386,28 +266,11 @@ export function questionsView(root: HTMLElement) {
     }
     if (hgt) answers.heightCm = hgt;
     if (fa) answers.forearmCm = fa;
-    if (val('hasCurrent') === 'yes') {
-      const feel = (val('feel') || 'right') as CurrentDart['feel'];
-      if (picked) {
-        answers.current = { variantId: picked.id, weightG: picked.weightG, feel };
-      } else {
-        const w = Number(weight.value);
-        if (!Number.isFinite(w) || w < 12 || w > 40) {
-          show(steps.length - 2, false);
-          err.textContent = t('q.current.weight.range');
-          err.hidden = false;
-          weight.focus();
-          return;
-        }
-        answers.current = { weightG: w, feel };
-      }
-    }
-    const pc = val('priceClass') as NonNullable<ReturnType<typeof session>['priceClass']>;
-    update({ answers, currentName: picked ? dartName(picked) : undefined, priceClass: pc || 'any' });
+    // No current-dart or price-class questions: every price class is shown on the result.
+    update({ answers, currentName: undefined, priceClass: 'any' });
     go('/fitting');
   });
 
   root.append(h('section', null, h('h1', { class: 'visually-hidden' }, t('q.title')), form));
-  showPicked();
   show(0, false);
 }
