@@ -337,8 +337,10 @@ export async function resultView(root: HTMLElement, params: Record<string, strin
     : null;
   const parts: Array<HTMLElement | null> = [
     unscaled,
-    // Email sign-up first, then the darts.
-    alertSignup(r.id ?? undefined, { saved: !!r.saved, justConfirmed: query?.get('alerts') === '1' }),
+    // The sign-up is asked at the start of the fitting film; here only its confirmation.
+    query?.get('alerts') === '1'
+      ? alertSignup(r.id ?? undefined, { saved: !!r.saved, justConfirmed: true })
+      : null,
     hero ??
       (v && best
         ? h(

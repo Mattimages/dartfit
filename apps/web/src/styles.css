@@ -53,6 +53,8 @@
   box-sizing: border-box;
 }
 html {
+  /* 17px base: everything in rem reads a little bigger on a phone. */
+  font-size: 106.25%;
   -webkit-text-size-adjust: 100%;
   /* Fly-in animations must never widen the page on a phone. */
   overflow-x: hidden;
@@ -147,7 +149,7 @@ p {
   color: var(--ink-2);
 }
 .small {
-  font-size: 0.875rem;
+  font-size: 0.887rem;
   color: var(--ink-2);
 }
 .num {
@@ -233,7 +235,7 @@ body::before {
   border-radius: 999px;
   min-height: 32px;
   padding-inline: var(--s3);
-  font-size: 0.8rem;
+  font-size: 0.85rem;
   font-weight: 550;
   color: var(--ink);
   text-decoration: none;
@@ -251,14 +253,14 @@ main {
   padding-block: var(--s5) var(--s6);
   display: grid;
   gap: var(--s1);
-  font-size: 0.85rem;
+  font-size: 0.875rem;
   color: var(--ink-2);
 }
 .site-footer .links {
   display: flex;
   flex-wrap: wrap;
   gap: 0 var(--s4);
-  font-size: 0.875rem;
+  font-size: 0.887rem;
 }
 .site-footer .links a {
   display: inline-flex;
@@ -283,15 +285,15 @@ section + section {
   align-items: center;
   justify-content: center;
   gap: var(--s3);
-  min-height: 3.25rem;
+  min-height: 3.5rem;
   padding: 0 var(--s5);
   border-radius: 999px;
-  border: 1px solid var(--red);
+  border: 1.5px solid var(--red);
   background: var(--red);
   color: #fff;
   font: inherit;
-  font-weight: 550;
-  font-size: 1rem;
+  font-weight: 600;
+  font-size: 1.0625rem;
   letter-spacing: -0.01em;
   text-decoration: none;
   cursor: pointer;
@@ -313,22 +315,25 @@ section + section {
 .btn.ghost {
   background: var(--ground);
   color: var(--ink);
-  border-color: var(--line);
-  box-shadow: 0 1px 2px rgb(13 22 38 / 0.04);
+  /* A clear outline, so secondary buttons still read as buttons. */
+  border-color: var(--ink);
+  box-shadow: 0 1px 2px rgb(13 22 38 / 0.06);
 }
 .btn.ghost:hover {
-  background: var(--ground);
-  border-color: var(--ink-2);
+  background: var(--stage);
+  border-color: var(--ink);
 }
 .btn.link {
   border-color: transparent;
   background: transparent;
   box-shadow: none;
-  color: var(--ink-2);
+  color: var(--ink);
   padding-inline: var(--s3);
-  text-decoration: none;
-  font-weight: 500;
-  min-height: 44px;
+  text-decoration: underline;
+  text-decoration-thickness: 1.5px;
+  text-underline-offset: 4px;
+  font-weight: 550;
+  min-height: 48px;
 }
 .btn.link:hover {
   background: transparent;
@@ -704,7 +709,7 @@ input:focus-visible {
 }
 .section-head a {
   font-weight: 500;
-  font-size: 0.88rem;
+  font-size: 0.89rem;
   color: var(--ink-2);
   text-decoration: none;
   white-space: nowrap;
@@ -747,7 +752,7 @@ input:focus-visible {
   letter-spacing: -0.015em;
 }
 .steps .small {
-  font-size: 0.85rem;
+  font-size: 0.875rem;
 }
 
 /* ── Manual measuring ─────────────────────────────────────────────── */
@@ -878,7 +883,7 @@ input:focus-visible {
 .scale-ends {
   display: flex;
   justify-content: space-between;
-  font-size: 0.85rem;
+  font-size: 0.875rem;
   color: var(--ink-2);
   margin-top: var(--s2);
 }
@@ -963,7 +968,7 @@ input:focus-visible {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  font-size: 0.85rem;
+  font-size: 0.875rem;
   font-weight: 550;
   letter-spacing: -0.01em;
 }
@@ -975,7 +980,7 @@ input:focus-visible {
   padding-inline: 0.35rem;
   border-radius: 999px;
   background: var(--green-soft);
-  font-size: 0.72rem;
+  font-size: 0.81rem;
   font-weight: 600;
 }
 .panel-head .state:empty {
@@ -1015,7 +1020,7 @@ input:focus-visible {
   white-space: nowrap;
 }
 .reading b small {
-  font-size: 0.75rem;
+  font-size: 0.825rem;
   font-weight: 500;
   color: var(--ink-2);
   letter-spacing: 0;
@@ -1023,7 +1028,7 @@ input:focus-visible {
 .reading > span {
   display: block;
   margin-top: 2px;
-  font-size: 0.75rem;
+  font-size: 0.825rem;
   color: var(--ink-2);
   white-space: nowrap;
   overflow: hidden;
@@ -1171,14 +1176,14 @@ input:focus-visible {
   font-variant-numeric: tabular-nums;
 }
 .specs3 b small {
-  font-size: 0.8rem;
+  font-size: 0.85rem;
   font-weight: 500;
   color: var(--ink-2);
   letter-spacing: 0;
   margin-left: 3px;
 }
 .specs3 > div > span {
-  font-size: 0.75rem;
+  font-size: 0.825rem;
   color: var(--ink-2);
 }
 .offers {
@@ -1220,7 +1225,7 @@ input:focus-visible {
 }
 .twin .kicker {
   color: #9fabbf;
-  font-size: 0.82rem;
+  font-size: 0.86rem;
   font-weight: 500;
 }
 .twin h2 {
@@ -1231,7 +1236,7 @@ input:focus-visible {
 }
 .twin p {
   color: #c5cfdd;
-  font-size: 0.88rem;
+  font-size: 0.89rem;
 }
 .overlay-fig {
   display: grid;
@@ -1241,7 +1246,7 @@ input:focus-visible {
   display: flex;
   flex-wrap: wrap;
   gap: var(--s4);
-  font-size: 0.85rem;
+  font-size: 0.875rem;
   color: var(--ink-2);
 }
 .legend i {
@@ -1296,7 +1301,7 @@ input:focus-visible {
   justify-content: space-between;
   align-items: center;
   font-weight: 500;
-  font-size: 0.8rem;
+  font-size: 0.85rem;
   color: var(--ink-2);
 }
 .card .meta b {
@@ -1314,7 +1319,7 @@ input:focus-visible {
   display: flex;
   flex-wrap: wrap;
   gap: 0 var(--s3);
-  font-size: 0.8rem;
+  font-size: 0.85rem;
   color: var(--ink-2);
   font-variant-numeric: tabular-nums;
 }
@@ -1392,7 +1397,7 @@ details.more > div {
   overflow: visible;
 }
 .bandrow .why {
-  font-size: 0.85rem;
+  font-size: 0.875rem;
   color: var(--ink-2);
 }
 .track {
@@ -1446,12 +1451,12 @@ details.more > div {
   display: inline-block;
   border-radius: 999px;
   padding: 0.1rem 0.55rem;
-  font-size: 0.75rem;
+  font-size: 0.825rem;
   font-weight: 550;
   background: var(--stage);
 }
 .disclosure {
-  font-size: 0.8rem;
+  font-size: 0.85rem;
   color: var(--ink-2);
   text-align: center;
 }
@@ -1470,7 +1475,7 @@ details.more > div {
   max-width: 20rem;
 }
 .sheet figcaption {
-  font-size: 0.85rem;
+  font-size: 0.875rem;
   color: var(--ink-2);
   padding: var(--s2) var(--s1) 0;
 }
@@ -1585,7 +1590,7 @@ details.more > div {
   border: 2px dashed rgb(255 255 255 / 0.85);
   border-radius: 6px;
   color: #fff;
-  font-size: 0.85rem;
+  font-size: 0.875rem;
   display: flex;
   align-items: flex-end;
   justify-content: center;
@@ -1635,7 +1640,7 @@ details.more > div {
   padding: var(--s2) var(--s3);
 }
 .readout dt {
-  font-size: 0.85rem;
+  font-size: 0.875rem;
   color: var(--ink-2);
 }
 .readout dd {
@@ -1661,7 +1666,7 @@ details.more > div {
 }
 .chip {
   font: inherit;
-  font-size: 0.88rem;
+  font-size: 0.89rem;
   font-weight: 500;
   min-height: 40px;
   padding: 0 var(--s4);
@@ -1798,7 +1803,7 @@ code {
   letter-spacing: -0.015em;
 }
 .tab-sub {
-  font-size: 0.72rem;
+  font-size: 0.81rem;
   color: var(--ink-2);
   font-variant-numeric: tabular-nums;
 }
@@ -1826,7 +1831,7 @@ code {
 }
 .price-line span {
   color: var(--ink-2);
-  font-size: 0.875rem;
+  font-size: 0.887rem;
 }
 
 /* ── Country & language ───────────────────────────────────────────── */
@@ -1843,7 +1848,7 @@ code {
   border-radius: 999px;
   border: 1px solid var(--line);
   font-weight: 550;
-  font-size: 0.78rem;
+  font-size: 0.84rem;
   letter-spacing: 0.01em;
   font-variant-numeric: tabular-nums;
 }
@@ -1985,7 +1990,7 @@ code {
 }
 .view-toggle button {
   font: inherit;
-  font-size: 0.78rem;
+  font-size: 0.84rem;
   font-weight: 550;
   letter-spacing: -0.01em;
   min-height: 30px;
@@ -2047,7 +2052,7 @@ code {
   color: var(--green);
 }
 .overlap span {
-  font-size: 0.8rem;
+  font-size: 0.85rem;
   line-height: 1.2;
   color: var(--ink-2);
 }
@@ -2056,7 +2061,7 @@ code {
 }
 .match-view .legend {
   justify-content: center;
-  font-size: 0.78rem;
+  font-size: 0.84rem;
 }
 
 /* ── Landing ──────────────────────────────────────────────────────── */
@@ -2128,7 +2133,7 @@ code {
   gap: 0.35em;
   padding: 0.4rem 0.75rem;
   border-radius: 999px;
-  font-size: 0.82rem;
+  font-size: 0.86rem;
   font-weight: 550;
   font-variant-numeric: tabular-nums;
   background: rgb(255 255 255 / 0.85);
@@ -2164,7 +2169,7 @@ code {
 }
 .proof li {
   display: grid;
-  font-size: 0.8rem;
+  font-size: 0.85rem;
   color: var(--ink-2);
   line-height: 1.25;
 }
@@ -2236,7 +2241,7 @@ code {
   letter-spacing: -0.02em;
 }
 .tier-top span {
-  font-size: 0.82rem;
+  font-size: 0.86rem;
   color: var(--ink-2);
 }
 .tier-budget .tier-top b {
@@ -2253,7 +2258,7 @@ code {
 .tier-meta {
   display: flex;
   gap: var(--s3);
-  font-size: 0.85rem;
+  font-size: 0.875rem;
   color: var(--ink-2);
   font-variant-numeric: tabular-nums;
 }
@@ -2268,7 +2273,7 @@ code {
   font-size: 1rem;
 }
 .pro-card .small {
-  font-size: 0.78rem;
+  font-size: 0.84rem;
   line-height: 1.3;
 }
 .land-end {
@@ -2725,7 +2730,7 @@ a.card {
   align-items: center;
   padding: 0.15rem 0.6rem;
   border-radius: 999px;
-  font-size: 0.85rem;
+  font-size: 0.875rem;
   color: #fff;
 }
 .tier-budget .tier-top b {
@@ -2957,7 +2962,7 @@ a.card {
 }
 .alert-fine {
   margin: 0;
-  font-size: 0.8rem;
+  font-size: 0.85rem;
   color: rgb(255 255 255 / 0.6);
 }
 .alert-fine a {
@@ -3032,7 +3037,7 @@ a.card {
   border-left: 1px solid var(--line);
 }
 .ms-title {
-  font-size: 0.75rem;
+  font-size: 0.825rem;
   font-weight: 550;
   color: var(--ink-2);
 }
@@ -3050,7 +3055,7 @@ a.card {
   font-size: 1.75rem;
 }
 .ms-quality {
-  font-size: 0.75rem;
+  font-size: 0.825rem;
   font-weight: 550;
 }
 .ms-col.total.q-excellent .ms-pct,
@@ -3206,7 +3211,7 @@ a.card {
 
 /* Result page split: a short line under shape and style saying what they cover. */
 .ms-sub {
-  font-size: 0.72rem;
+  font-size: 0.81rem;
   line-height: 1.3;
   color: var(--ink-2);
 }
@@ -3795,7 +3800,7 @@ a.card {
   justify-self: start;
   padding: 0.1rem 0.5rem;
   border-radius: 999px;
-  font-size: 0.7rem;
+  font-size: 0.8rem;
   font-weight: 600;
   color: var(--ink-2);
   background: var(--stage);
@@ -3827,7 +3832,7 @@ a.card {
   color: var(--ink);
   font: inherit;
   font-weight: 550;
-  font-size: 0.78rem;
+  font-size: 0.84rem;
   letter-spacing: 0.01em;
   cursor: pointer;
 }
@@ -3922,7 +3927,7 @@ a.card {
 }
 .rp-group {
   margin: var(--s2) 0 0;
-  font-size: 0.75rem;
+  font-size: 0.825rem;
   font-weight: 600;
   color: var(--ink-2);
 }
@@ -3965,7 +3970,7 @@ a.card {
   height: 1.5rem;
   border-radius: 6px;
   background: var(--stage);
-  font-size: 0.72rem;
+  font-size: 0.81rem;
   font-weight: 650;
   letter-spacing: 0.02em;
 }
@@ -3987,7 +3992,7 @@ a.card {
 .rp-name {
   white-space: normal;
   line-height: 1.2;
-  font-size: 0.86rem;
+  font-size: 0.88rem;
 }
 .rp-country {
   min-height: 3.25rem;
@@ -4032,7 +4037,7 @@ a.card {
   border-radius: 50%;
   background: var(--red);
   color: #fff;
-  font-size: 0.75rem;
+  font-size: 0.825rem;
   font-weight: 700;
 }
 .unscaled-note {
@@ -4055,7 +4060,6 @@ a.card {
 /* Icon buttons: "No bank card?" and "Buying a gift?" */
 .alt-starts {
   display: grid;
-  grid-template-columns: 1fr 1fr;
   gap: var(--s2);
 }
 .ico-btn {
@@ -4063,14 +4067,13 @@ a.card {
   align-items: center;
   justify-content: center;
   gap: 0.5rem;
-  min-height: 3rem;
-  padding-inline: 0.75rem;
-  white-space: nowrap;
+  width: 100%;
+  padding-inline: 1rem;
 }
 .btn-ico {
   flex: none;
-  width: 1.25rem;
-  height: 1.25rem;
+  width: 1.5rem;
+  height: 1.5rem;
   fill: none;
   stroke: currentColor;
   stroke-width: 1.6;
@@ -4081,8 +4084,185 @@ a.card {
   stroke: var(--red);
   stroke-width: 2;
 }
-@media (max-width: 340px) {
-  .alt-starts {
-    grid-template-columns: 1fr;
+
+/* The sign-up as the first frame of the fitting film. */
+.fit-alert {
+  min-height: min(78svh, 40rem);
+  align-content: center;
+}
+.alert-signup .alert-later {
+  justify-self: center;
+  color: rgb(255 255 255 / 0.85);
+}
+.alert-signup .alert-later:hover {
+  color: #fff;
+}
+
+/* Film: the dart's name, big, under the barrels; and the pro who throws the same type. */
+.hs-name {
+  margin: 0.35rem 0 0;
+  display: grid;
+  gap: 0.1rem;
+  color: #fff;
+  font-size: clamp(1.5rem, 7vw, 2.1rem);
+  font-weight: 650;
+  line-height: 1.05;
+  letter-spacing: -0.035em;
+  text-wrap: balance;
+}
+.hs-name small {
+  font-size: 0.55em;
+  font-weight: 550;
+  letter-spacing: -0.01em;
+  color: #b9c6d8;
+}
+.hs-name.in {
+  animation: hs-name-in 0.35s var(--ease) both;
+}
+@keyframes hs-name-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
   }
+}
+.hs-twin {
+  position: absolute;
+  top: 12px;
+  left: 50%;
+  z-index: 3;
+  width: max-content;
+  max-width: calc(100% - 24px);
+  margin: 0;
+  text-align: center;
+  text-wrap: balance;
+  padding: 0.45rem 1rem;
+  border-radius: 16px;
+  background: rgb(10 18 31 / 0.75);
+  box-shadow: 0 0 0 1px rgb(255 255 255 / 0.22);
+  color: #fff;
+  font-size: 1.05rem;
+  font-weight: 600;
+  opacity: 0;
+  transform: translate(-50%, -6px);
+  transition:
+    opacity 0.4s ease,
+    transform 0.4s var(--ease);
+}
+.hs-twin-on .hs-twin {
+  opacity: 1;
+  transform: translate(-50%, 0);
+}
+.hs-twin-on .hs-step {
+  opacity: 0;
+}
+
+/* Checkout ending: a real board, darts that score exactly your match %. */
+.bc-board {
+  overflow: visible;
+}
+.bc-rim {
+  fill: #121212;
+}
+.bc-dark {
+  fill: #1b1b1b;
+}
+.bc-light {
+  fill: #f2e6c9;
+}
+.bc-red {
+  fill: #e3122c;
+}
+.bc-green {
+  fill: #0a8f5a;
+}
+.bc-num {
+  fill: #fff;
+  font-family: var(--font);
+  font-size: 4.6px;
+  font-weight: 650;
+  text-anchor: middle;
+}
+.bc-dart {
+  transform-box: view-box;
+  transform-origin: 0 0;
+  opacity: 0;
+  animation:
+    bc-throw 0.4s cubic-bezier(0.5, 0, 0.9, 0.4) forwards,
+    bc-wobble 0.5s ease-out;
+}
+@keyframes bc-throw {
+  0% {
+    transform: translate(calc(var(--x) + 110px), calc(var(--y) - 70px)) rotate(calc(var(--r) - 18deg))
+      scale(1.1);
+    opacity: 0;
+  }
+  30% {
+    opacity: 1;
+  }
+  100% {
+    transform: translate(var(--x), var(--y)) rotate(var(--r)) scale(0.62);
+    opacity: 1;
+  }
+}
+@keyframes bc-wobble {
+  0%,
+  100% {
+    transform: translate(var(--x), var(--y)) rotate(var(--r)) scale(0.62);
+  }
+  30% {
+    transform: translate(var(--x), var(--y)) rotate(calc(var(--r) + 5deg)) scale(0.62);
+  }
+  65% {
+    transform: translate(var(--x), var(--y)) rotate(calc(var(--r) - 3deg)) scale(0.62);
+  }
+}
+.bc .bw-hit {
+  width: min(70vw, 16rem);
+}
+.bc-chips {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 0.4rem;
+}
+.bc-chip {
+  display: grid;
+  justify-items: center;
+  min-width: 3.6rem;
+  padding: 0.35rem 0.6rem;
+  border-radius: 12px;
+  background: rgb(255 255 255 / 0.1);
+  box-shadow: 0 0 0 1px rgb(255 255 255 / 0.2);
+  color: #fff;
+  animation: bw-word 0.4s cubic-bezier(0.2, 1.6, 0.4, 1) both;
+}
+.bc-chip b {
+  font-size: 1.35rem;
+  font-weight: 650;
+  letter-spacing: -0.03em;
+}
+.bc-chip small {
+  font-size: 0.8rem;
+  color: #b9c6d8;
+  font-variant-numeric: tabular-nums;
+}
+@media (prefers-reduced-motion: reduce) {
+  .bc-dart {
+    animation: none;
+    opacity: 1;
+    transform: translate(var(--x), var(--y)) rotate(var(--r)) scale(0.62);
+  }
+}
+.alt-starts {
+  width: 100%;
+  justify-self: stretch;
+  align-self: stretch;
+}
+/* Anchored from the top so the big name and the pro line grow downwards, not into the score. */
+.hs-modelbox {
+  top: max(7.5rem, 27%);
+  bottom: auto;
+}
+.hs-end .hs-name {
+  opacity: 0;
+  transition: opacity 0.3s ease;
 }

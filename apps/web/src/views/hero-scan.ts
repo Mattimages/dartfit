@@ -7,12 +7,14 @@
  * Every number is real: the engine fits the hand, the barrels are catalogue darts and the
  * percentages are the engine's own match split (shape, style, total), as on the result page.
  */
+import { boardSvg, checkout, hitLabel, hitPoint, hitValue } from '../draw/checkout';
 import {
   fit,
   matchBreakdown,
   radiusAt,
   scoreVariant,
   priceTiers,
+  proTwin,
   recommend,
   tierBoundsUsd,
   variantBarrel,
@@ -24,6 +26,7 @@ import {
 } from '@dartfit/engine';
 import { handArt, SKIN_TONES, templateHand, type MmPoint } from '../draw/art';
 import { h } from '../h';
+import { pros, variants } from '../api';
 import { num, t } from '../i18n';
 import { approxEur } from '../money';
 import { photoUrl } from '../media';
@@ -54,6 +57,8 @@ interface Cast {
   options: Array<{ tier: Tier; v: Variant; m: Split; best: boolean }>;
   /** The answers the film fills in (hold, grip) and the live dart shows (fingers, throw). */
   who: Who;
+  /** The pro whose dart is closest to this fit ("throws the same type"). */
+  twin: string | null;
 }
 /** The answers the film shows. */
 export type Who = Pick<Answers, 'hold' | 'fingers' | 'throwStyle' | 'gripFeel'>;
@@ -251,6 +256,7 @@ export function castFor(
     barrels: [...ladder, top],
     options: [{ tier: bestTier, v: top.v, m: top.m, best: true }, ...others],
     who,
+    twin: proTwin(f, pros(), variants())?.pro.name ?? null,
   };
 }
 
@@ -344,10 +350,7 @@ function modelLayer(c: Cast) {
   );
   const cands = c.barrels.map((b) => {
     const g = s('g', { class: 'hs-cand' });
-    g.append(
-      s('path', { d: outline(b.shape) }),
-      s('text', { x: X0, y: 104, class: 'hs-cand-label' }, `${dartName(b.v)} · ${num(b.v.weightG)} g`),
-    );
+    g.append(s('path', { d: outline(b.shape) }));
     return g;
   });
   svg.append(point, shaft, ideal, ...cands, idealLabel);
@@ -547,6 +550,46 @@ function bullseye(total: number): HTMLElement {
   );
 }
 
+/**
+ * The ending of your own film: darts that score exactly your match % (98% = T20, D19), each
+ * landing with its score, then the total. Falls back to the bullseye when no checkout exists.
+ */
+function checkoutWin(total: number): { el: HTMLElement; ms: number } {
+  const hits = checkout(total);
+  if (!hits) return { el: bullseye(total), ms: 2300 };
+  const board = boardSvg('bw-board bc-board');
+  const tilt = hits.length === 1 ? [-8] : hits.length === 2 ? [-22, 6] : [-28, -8, 14];
+  const step = 0.6;
+  const chips = h('div', { class: 'bc-chips' });
+  let sum = 0;
+  hits.forEach((hit, i) => {
+    const [x, y] = hitPoint(hit);
+    const d = 0.45 + i * step;
+    const g = s('g', { class: 'bc-dart' });
+    g.style.cssText = `--x:${x.toFixed(2)}px;--y:${y.toFixed(2)}px;--r:${tilt[i]}deg;animation-delay:${d}s,${(d + 0.4).toFixed(2)}s`;
+    g.append(
+      s('path', { d: 'M0,0L10,-2.6L10,2.6Z', class: 'bw-tip' }),
+      s('rect', { x: 10, y: -3.4, width: 20, height: 6.8, rx: 2.6, class: 'bw-barrel' }),
+      s('rect', { x: 30, y: -1.4, width: 12, height: 2.8, class: 'bw-shaft' }),
+      s('path', { d: 'M37,0L51,-11L56,-11L51,0L56,11L51,11Z', class: 'bw-flight' }),
+    );
+    board.append(g);
+    sum += hitValue(hit);
+    const chip = h('span', { class: 'bc-chip' }, h('b', null, hitLabel(hit)), h('small', null, String(sum)));
+    chip.style.cssText = `animation-delay:${(d + 0.4).toFixed(2)}s`;
+    chips.append(chip);
+  });
+  const end = 0.45 + (hits.length - 1) * step + 0.55;
+  const word = h('b', { class: 'bw-word' }, t('fit.checkout', { n: total }));
+  word.style.cssText = `animation-delay:${end.toFixed(2)}s`;
+  const line = h('span', { class: 'bw-total' }, t('fit.win.total', { n: total }));
+  line.style.cssText = `animation-delay:${(end + 0.2).toFixed(2)}s`;
+  return {
+    el: h('div', { class: 'bw bc' }, h('div', { class: 'bw-hit' }, board), chips, word, line),
+    ms: Math.round((end + 1.6) * 1000),
+  };
+}
+
 /** One round of the film. Resolves true when it reached the shop card, false when it should stop. */
 async function play(root: HTMLElement, c: Cast, mode: 'hero' | 'fit' = 'hero'): Promise<boolean> {
   // The fitting screen tells the same story about you: "your hand", "your answers", "your best match".
@@ -557,10 +600,21 @@ async function play(root: HTMLElement, c: Cast, mode: 'hero' | 'fit' = 'hero'): 
   const step = h('span', { class: 'hs-step' });
   // The fit % sits right above the barrels, big enough to read while each one pauses.
   const chip = splitRow({ shape: 0, style: 0, total: 0 }, 'hs-chip');
-  const modelBox = h('div', { class: 'hs-modelbox' }, chip, model.svg);
+  // The name of the dart on screen, big, under the barrels.
+  const nameEl = h('p', { class: 'hs-name' });
+  const setName = (i: number) => {
+    const v = c.barrels[i]!.v;
+    nameEl.replaceChildren(h('span', null, dartName(v)), h('small', null, `${num(v.weightG)} g`));
+    nameEl.classList.remove('in');
+    void nameEl.offsetWidth;
+    nameEl.classList.add('in');
+  };
+  // The pro who throws the same type, shown with your best match.
+  const twinEl = c.twin ? h('p', { class: 'hs-twin' }, t('hs.twin', { name: c.twin })) : null;
+  const modelBox = h('div', { class: 'hs-modelbox' }, chip, model.svg, nameEl);
   const cards = shopCards(c);
   const ask = askPanel(c.who);
-  root.replaceChildren(h('div', { class: 'hs-stage' }, hand, ask.box, modelBox, step, cards.box));
+  root.replaceChildren(h('div', { class: 'hs-stage' }, hand, ask.box, modelBox, step, twinEl, cards.box));
 
   const still = typeof matchMedia === 'function' && matchMedia('(prefers-reduced-motion: reduce)').matches;
   const alive = () => root.isConnected || !root.dataset.started;
@@ -580,7 +634,7 @@ async function play(root: HTMLElement, c: Cast, mode: 'hero' | 'fit' = 'hero'): 
       await new Promise((r) => requestAnimationFrame(r));
     }
   };
-  root.classList.remove('hs-build', 'hs-end', 'hs-stack');
+  root.classList.remove('hs-build', 'hs-end', 'hs-stack', 'hs-twin-on');
 
   if (still) {
     // Reduced motion: the end state, no film.
@@ -589,8 +643,10 @@ async function play(root: HTMLElement, c: Cast, mode: 'hero' | 'fit' = 'hero'): 
     groups.forEach((g) => g.classList.add('on'));
     chip.classList.add('on');
     model.cands.forEach((g, i) => g.classList.toggle('on', i === last));
+    setName(last);
     setSplit(c.barrels[last]!.m);
     chip.classList.add('best');
+    if (twinEl) root.classList.add('hs-twin-on');
     setStep(label('best'));
     return false;
   }
@@ -631,6 +687,7 @@ async function play(root: HTMLElement, c: Cast, mode: 'hero' | 'fit' = 'hero'): 
     setStep(t('hs.step.compare', { i: i + 1, n: last + 1 }));
     const g = model.cands[i]!;
     g.classList.add('on');
+    setName(i);
     await g.animate([{ transform: 'translateX(320px)' }, { transform: 'translateX(0)' }], {
       duration: fast ? 420 : 520,
       easing: 'cubic-bezier(0.2, 0.8, 0.2, 1)',
@@ -653,9 +710,9 @@ async function play(root: HTMLElement, c: Cast, mode: 'hero' | 'fit' = 'hero'): 
   if (!alive()) return false;
   // Your own fit gets a moment: the dart thunks into the bull.
   if (mode === 'fit') {
-    const win = bullseye(c.barrels[last]!.m.total);
+    const { el: win, ms } = checkoutWin(c.barrels[last]!.m.total);
     root.querySelector('.hs-stage')!.append(win);
-    await wait(2300);
+    await wait(ms);
     win.classList.add('out');
     await wait(350);
     win.remove();
@@ -663,7 +720,9 @@ async function play(root: HTMLElement, c: Cast, mode: 'hero' | 'fit' = 'hero'): 
   }
   // 5. Into the shop card, then the other price classes push up beneath it.
   root.classList.add('hs-end');
-  await wait(1300);
+  // With the price options: the pro who throws the same type.
+  if (twinEl) root.classList.add('hs-twin-on');
+  await wait(twinEl ? 1700 : 1300);
   if (!alive()) return false;
   root.classList.add('hs-stack');
   for (const x of cards.later) {

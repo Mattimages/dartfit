@@ -7,11 +7,20 @@ import { DEMO, requestLogin, setOptins } from '../api';
  * link, and only that link turns alerts on (and saves the fit to the address). An alert goes out
  * only when a new dart becomes this person's best match.
  */
-export function alertSignup(fitId: string | undefined, opts: { saved: boolean; justConfirmed: boolean }) {
+export function alertSignup(
+  fitId: string | undefined | Promise<string | undefined>,
+  opts: {
+    saved: boolean;
+    justConfirmed: boolean;
+    /** At the start of the fitting film: a "Not now" button, and both ways call this to go on. */
+    onDone?: () => void;
+  },
+) {
   const box = h('section', { class: 'alert-signup', 'aria-labelledby': 'alert-title' });
   const title = h('h2', { id: 'alert-title' }, t('r.alert.title'));
   const sub = h('p', null, t('r.alert.sub'));
   const msg = h('p', { class: 'alert-msg', role: 'status' });
+  const finish = () => setTimeout(() => opts.onDone?.(), 1800);
 
   if (opts.justConfirmed) {
     box.classList.add('done');
@@ -81,13 +90,14 @@ export function alertSignup(fitId: string | undefined, opts: { saved: boolean; j
     }
     if (DEMO) {
       msg.textContent = t('r.alert.demo');
+      finish();
       return;
     }
     send.setAttribute('disabled', '');
     try {
       await requestLogin({
         email: email.value.trim(),
-        fitId,
+        fitId: await fitId,
         purpose: 'alerts',
         alertsEmail: true,
         feedbackEmail: false,
@@ -95,6 +105,7 @@ export function alertSignup(fitId: string | undefined, opts: { saved: boolean; j
       });
       box.classList.add('sent');
       msg.textContent = t('r.alert.sent', { email: email.value.trim() });
+      finish();
     } catch {
       send.removeAttribute('disabled');
       msg.classList.add('error');
@@ -102,5 +113,10 @@ export function alertSignup(fitId: string | undefined, opts: { saved: boolean; j
     }
   });
   box.append(title, sub, form);
+  if (opts.onDone) {
+    const later = h('button', { class: 'btn link alert-later', type: 'button' }, t('r.alert.later'));
+    later.addEventListener('click', () => opts.onDone?.());
+    box.append(later);
+  }
   return box;
 }
