@@ -140,7 +140,7 @@
       "affiliateEnv": "AMAZON_TAG_UK",
       "affiliateType": "amazon",
       "priority": 3,
-      "note": "Amazon Associates (one programme per marketplace)."
+      "note": "Amazon Associates UK (matthijsrin03-21)."
     },
     {
       "id": "amazon_de",
@@ -165,111 +165,100 @@
         "LT",
         "DK",
         "FI",
-        "NO"
+        "NO",
+        "FR",
+        "IT",
+        "ES",
+        "PT",
+        "SE",
+        "PL"
       ],
       "kind": "search",
       "searchTemplate": "https://www.amazon.de/s?k={q}",
       "affiliateEnv": "AMAZON_TAG_DE",
       "affiliateType": "amazon",
       "priority": 3,
-      "note": "Amazon Associates (one programme per marketplace)."
+      "note": "Amazon Associates DE (matthijsrin04-21). Also serves the EU countries without a tagged Amazon store of their own: amazon.de ships EU-wide."
     },
     {
       "id": "amazon_fr",
       "name": "Amazon.fr",
-      "countries": [
-        "FR",
-        "LU"
-      ],
+      "countries": [],
       "kind": "search",
       "searchTemplate": "https://www.amazon.fr/s?k={q}",
       "affiliateEnv": "AMAZON_TAG_FR",
       "affiliateType": "amazon",
       "priority": 3,
-      "note": "Amazon Associates (one programme per marketplace)."
+      "note": "No tag yet: linked to no country (an untagged link earns nothing). Add the store's tag in AMAZON_TAG_* and list its countries here."
     },
     {
       "id": "amazon_it",
       "name": "Amazon.it",
-      "countries": [
-        "IT",
-        "MT"
-      ],
+      "countries": [],
       "kind": "search",
       "searchTemplate": "https://www.amazon.it/s?k={q}",
       "affiliateEnv": "AMAZON_TAG_IT",
       "affiliateType": "amazon",
       "priority": 3,
-      "note": "Amazon Associates (one programme per marketplace)."
+      "note": "No tag yet: linked to no country (an untagged link earns nothing). Add the store's tag in AMAZON_TAG_* and list its countries here."
     },
     {
       "id": "amazon_es",
       "name": "Amazon.es",
-      "countries": [
-        "ES",
-        "PT"
-      ],
+      "countries": [],
       "kind": "search",
       "searchTemplate": "https://www.amazon.es/s?k={q}",
       "affiliateEnv": "AMAZON_TAG_ES",
       "affiliateType": "amazon",
       "priority": 3,
-      "note": "Amazon Associates (one programme per marketplace)."
+      "note": "No tag yet: linked to no country (an untagged link earns nothing). Add the store's tag in AMAZON_TAG_* and list its countries here."
     },
     {
       "id": "amazon_nl",
       "name": "Amazon.nl",
       "countries": [
-        "NL"
+        "NL",
+        "BE"
       ],
       "kind": "search",
       "searchTemplate": "https://www.amazon.nl/s?k={q}",
       "affiliateEnv": "AMAZON_TAG_NL",
       "affiliateType": "amazon",
       "priority": 3,
-      "note": "Amazon Associates (one programme per marketplace)."
+      "note": "Amazon Associates NL (matthijsringe-21). Also Belgium until an amazon.com.be tag exists."
     },
     {
       "id": "amazon_be",
       "name": "Amazon.com.be",
-      "countries": [
-        "BE"
-      ],
+      "countries": [],
       "kind": "search",
       "searchTemplate": "https://www.amazon.com.be/s?k={q}",
       "affiliateEnv": "AMAZON_TAG_BE",
       "affiliateType": "amazon",
       "priority": 3,
-      "note": "Amazon Associates (one programme per marketplace)."
+      "note": "No tag yet: linked to no country (an untagged link earns nothing). Add the store's tag in AMAZON_TAG_* and list its countries here."
     },
     {
       "id": "amazon_se",
       "name": "Amazon.se",
-      "countries": [
-        "SE",
-        "FI",
-        "DK",
-        "NO"
-      ],
+      "countries": [],
       "kind": "search",
       "searchTemplate": "https://www.amazon.se/s?k={q}",
       "affiliateEnv": "AMAZON_TAG_SE",
       "affiliateType": "amazon",
       "priority": 3,
-      "note": "Amazon Associates (one programme per marketplace)."
+      "note": "No tag yet: linked to no country (an untagged link earns nothing). Add the store's tag in AMAZON_TAG_* and list its countries here."
     },
     {
       "id": "amazon_pl",
       "name": "Amazon.pl",
-      "countries": [
-        "PL"
-      ],
+      "countries": [],
       "kind": "search",
       "searchTemplate": "https://www.amazon.pl/s?k={q}",
       "affiliateEnv": "AMAZON_TAG_PL",
       "affiliateType": "amazon",
       "priority": 3,
-      "note": "Amazon Associates (one programme per marketplace)."
+      "note": "No tag yet: linked to no country (an untagged link earns nothing). Add the store's tag in AMAZON_TAG_* and list its countries here."
     },
     {
       "id": "ebay_uk",
@@ -423,6 +412,19 @@
       "affiliateType": "affid",
       "priority": 1,
       "note": "US darts shop (now GameMaster), ships US and Canada. In-house affiliate programme: links carry AffId (the owner's ID, 4311, set as DARTING_AFF_ID). Links go to the homepage until the site search URL is confirmed; replace searchTemplate with a {q} search URL then."
+    },
+    {
+      "id": "amazon_us",
+      "name": "Amazon.com",
+      "countries": [
+        "US"
+      ],
+      "kind": "search",
+      "searchTemplate": "https://www.amazon.com/s?k={q}",
+      "affiliateEnv": "AMAZON_TAG_US",
+      "affiliateType": "amazon",
+      "priority": 3,
+      "note": "Amazon Associates US (matthijsringe-20)."
     }
   ]
 }

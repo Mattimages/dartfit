@@ -230,9 +230,34 @@ describe('click-outs', () => {
       (p: { offers: Array<{ retailer: string }> }) => p.offers,
     );
     expect(offers.length).toBeGreaterThan(0);
-    expect(offers.every((o: { retailer: string }) => o.retailer === 'darting_us')).toBe(true);
+    expect(offers.every((o: { retailer: string }) => ['darting_us', 'amazon_us'].includes(o.retailer))).toBe(
+      true,
+    );
+    // Darting.com first (the specialist), Amazon.com after it.
+    expect(r.body.recommendation.picks[0].offers[0].retailer).toBe('darting_us');
     const go = await request(app).get('/go/partner%3Adarting').expect(302);
     expect(go.headers.location).toMatch(/^https:\/\/www\.darting\.com\/\?AFFBanId=10025/);
+  });
+
+  it('every country links only to Amazon stores that have a tag: FR goes to amazon.de, BE to amazon.nl', async () => {
+    const shopsFor = async (cty: string) => {
+      const r = await request(app)
+        .post('/api/fit')
+        .set('x-vercel-ip-country', cty)
+        .send({ answers })
+        .expect(200);
+      return new Set(
+        r.body.recommendation.picks.flatMap((p: { offers: Array<{ retailer: string }> }) =>
+          p.offers.map((o) => o.retailer),
+        ),
+      );
+    };
+    const fr = await shopsFor('FR');
+    expect([...fr].filter((x) => String(x).startsWith('amazon_'))).toEqual(
+      fr.has('amazon_de') ? ['amazon_de'] : [],
+    );
+    expect(fr.has('amazon_fr')).toBe(false);
+    expect((await shopsFor('BE')).has('amazon_be')).toBe(false);
   });
 
   it('404s an unknown offer', async () => {
