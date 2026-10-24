@@ -1,269 +1,75 @@
 /**
- * The calculation, shown live. Three panels light up in turn, each driven by real numbers:
- *  1. your hand: the measured landmarks and dimensions;
- *  2. your ideal dart: weight, length and thickness settling on the engine's ideal barrel;
- *  3. every dart in the catalogue scored against it, with a running top three.
- * Then the winner. Reduced motion: everything appears at once.
+ * The calculation, as a film: the same story as the landing page, told about you. Your hand (the
+ * scanned landmarks or your size), your measurements, your hold and grip answers on the live dart,
+ * your ideal dart from the engine, two near misses and then your real best match, a bullseye, and
+ * your price options stacking up. Every number comes from your fit. Reduced motion skips straight
+ * to the result.
  */
-import { scoreVariant } from '@dartfit/engine';
-import { h, reducedMotion, s } from '../h';
-import { num, t } from '../i18n';
+import { h, reducedMotion } from '../h';
+import { t } from '../i18n';
 import { go } from '../router';
 import { session } from '../store';
 import { createFit, variants } from '../api';
-import { dartArt, handArt, templateHand } from '../draw/art';
-import { matchPct, variantArt } from '../score';
-import { dartName } from './words';
+import { templateHand } from '../draw/art';
+import { castFor, fitFilm } from './hero-scan';
 
 const wait = (ms: number) => new Promise((r) => setTimeout(r, ms));
-
-function reading(label: string, unit: string) {
-  const value = h('span', null, '–');
-  const el = h(
-    'div',
-    { class: 'reading' },
-    h('b', null, value, h('small', null, unit)),
-    h('span', null, label),
-  );
-  return { el, value };
-}
-
-/** Count a number up (or roll it around a band) and settle on the final value. */
-async function roll(el: HTMLElement, to: number, digits: number, ms: number, from = 0, jitter = 0) {
-  const t0 = performance.now();
-  for (;;) {
-    const p = Math.min(1, (performance.now() - t0) / ms);
-    const e = 1 - (1 - p) ** 3;
-    const noise = jitter * (1 - p) * (Math.random() * 2 - 1);
-    el.textContent = num(from + (to - from) * e + noise, digits);
-    if (p >= 1) break;
-    await new Promise((r) => requestAnimationFrame(r));
-  }
-  el.textContent = num(to, digits);
-}
-
-/**
- * The flight path to scale: release point to the bull (1.73 m high, 1.92 m away), from the launch
- * angle and speed the engine computed. Board on the right, floor line at the bottom.
- */
-function throwArc(releaseM: number, angleDeg: number, v: number, fast: boolean): SVGElement {
-  const W = 320;
-  const Hh = 110;
-  const D = 1.92;
-  const X = (x: number) => 12 + (x / D) * (W - 36);
-  const Y = (y: number) => Hh - 8 - ((y - 1.2) / 0.75) * (Hh - 20);
-  const a = (angleDeg * Math.PI) / 180;
-  const pts: string[] = [];
-  for (let i = 0; i <= 40; i++) {
-    const x = (D * i) / 40;
-    const y = releaseM + x * Math.tan(a) - (9.81 * x * x) / (2 * v * v * Math.cos(a) ** 2);
-    pts.push(`${X(x).toFixed(1)},${Y(y).toFixed(1)}`);
-  }
-  return s(
-    'svg',
-    { class: `arc${fast ? '' : ' draw-in'}`, viewBox: `0 0 ${W} ${Hh}`, 'aria-hidden': 'true' },
-    s('line', { class: 'arc-board', x1: W - 22, x2: W - 22, y1: Y(1.95), y2: Y(1.5) }),
-    s('circle', { class: 'arc-bull', cx: W - 22, cy: Y(1.73), r: 3.5 }),
-    s('line', { class: 'arc-eye', x1: 4, x2: 20, y1: Y(releaseM), y2: Y(releaseM) }),
-    s('path', { class: 'arc-path', d: `M${pts.join('L')}`, style: '--len:420' }),
-  );
-}
 
 export async function fittingView(root: HTMLElement) {
   const s0 = session();
   if (!s0.answers) return go('/questions');
-  const fast = reducedMotion();
   const m = s0.measurements;
+  const a = s0.answers;
 
-  // ── Panel 1: the hand ─────────────────────────────────────────────
-  const hl = reading(t('fit.r.length'), 'mm');
-  const pw = reading(t('fit.r.width'), 'mm');
-  const il = reading(t('fit.r.index'), 'mm');
-  const handPts = s0.landmarksMm ?? templateHand(m?.handLengthMm ?? 185);
-  const p1 = h(
-    'div',
-    { class: 'panel' },
-    h('div', { class: 'panel-head' }, h('span', null, t('fit.p1')), h('span', { class: 'state' }, '')),
-    h(
-      'div',
-      { class: 'row' },
-      handArt({ points: handPts, lengthMm: m?.handLengthMm, dots: true, className: 'scan' }),
-      h('div', { class: 'readings' }, hl.el, pw.el, il.el),
-    ),
-  );
-
-  // ── Panel 2: the ideal dart ───────────────────────────────────────
-  const wg = reading(t('fit.r.weight'), 'g');
-  const ln = reading(t('fit.r.barrel'), 'mm');
-  const dm = reading(t('fit.r.diameter'), 'mm');
-  const artBox = h('div');
-  // ── Panel 1b: the throw (only with a height) ─────────────────────
-  const ang = reading(t('fit.r.angle'), '°');
-  const spd = reading(t('fit.r.speed'), 'm/s');
-  const rel = reading(t('fit.r.release'), 'm');
-  const arcBox = h('div', { class: 'arc-box' });
-  const pThrow = s0.answers.heightCm
-    ? h(
-        'div',
-        { class: 'panel wait', 'aria-hidden': 'true' },
-        h(
-          'div',
-          { class: 'panel-head' },
-          h('span', null, t('fit.pThrow')),
-          h('span', { class: 'state' }, ''),
-        ),
-        arcBox,
-        h('div', { class: 'readings' }, ang.el, spd.el, rel.el),
-      )
-    : null;
-
-  const p2 = h(
-    'div',
-    { class: 'panel wait', 'aria-hidden': 'true' },
-    h('div', { class: 'panel-head' }, h('span', null, t('fit.p2')), h('span', { class: 'state' }, '')),
-    artBox,
-    h('div', { class: 'readings' }, wg.el, ln.el, dm.el),
-  );
-
-  // ── Panel 3: every dart, scored ───────────────────────────────────
-  const count = h('span', { class: 'count' }, '0');
-  const nowName = h('span');
-  const nowPct = h('span');
-  const barFill = h('span');
-  const leaders = h('ol', { class: 'leaders', 'aria-label': t('fit.top') });
-  const p3 = h(
-    'div',
-    { class: 'panel wait', 'aria-hidden': 'true' },
-    h('div', { class: 'panel-head' }, h('span', null, t('fit.p3')), h('span', { class: 'state' }, '')),
-    h(
-      'div',
-      { class: 'ticker' },
-      count,
-      h('div', { class: 'bar' }, barFill),
-      h('div', { class: 'now' }, nowName, nowPct),
-    ),
-    leaders,
-  );
-
-  const pct = h('span', { class: 'pct' });
-  const bestName = h('h2');
-  const bestArt = h('div');
-  const go1 = h('a', { class: 'btn block' }, t('fit.show'));
-  const found = h(
-    'div',
-    { class: 'found', hidden: true, 'aria-live': 'polite' },
-    pct,
-    bestName,
-    bestArt,
-    go1,
-  );
-  const err = h('p', { class: 'error', role: 'alert', hidden: true }, t('q.error'));
   const title = h('h1', { class: 'visually-hidden' }, t('fit.title'));
-  root.append(h('section', { class: 'console' }, title, p1, pThrow, p2, p3, found, err));
+  const status = h('p', { class: 'visually-hidden', 'aria-live': 'polite' }, t('fit.title'));
+  const holder = h('div', { class: 'fit-film' }, h('div', { class: 'fit-wait', 'aria-hidden': 'true' }));
+  const cta = h('a', { class: 'btn block fit-cta', hidden: true }, t('fit.see'));
+  const skip = h('a', { class: 'btn link fit-skip', hidden: true }, t('fit.skip'));
+  const err = h('p', { class: 'error', role: 'alert', hidden: true }, t('q.error'));
+  root.append(h('section', { class: 'fit-screen' }, title, status, holder, cta, skip, err));
 
   let result;
   try {
-    result = await createFit(m, s0.answers);
+    result = await createFit(m, a);
   } catch {
+    holder.replaceChildren();
     err.hidden = false;
     return;
   }
   const f = result.fit;
-  const state = (p: HTMLElement, text: string) => {
-    p.classList.remove('wait');
-    p.removeAttribute('aria-hidden');
-    const st = p.querySelector('.state');
-    if (st) st.textContent = text;
-  };
-
-  // Without a scan but with a height, the engine estimated the hand: show that number.
-  const est = (k: string) => {
-    const v = f.reasons.find((x) => x.code === 'hand_from_height')?.params[k];
-    return typeof v === 'number' ? v : undefined;
-  };
-
-  // 1 ── hand
-  const handMs = fast ? 0 : 700;
-  await Promise.all([
-    roll(hl.value, m?.handLengthMm ?? est('handLengthMm') ?? 185, 0, handMs),
-    roll(pw.value, m?.palmWidthMm ?? 78, 0, handMs),
-    roll(il.value, m?.indexLengthMm ?? 78, 0, handMs),
-  ]);
-  state(p1, m ? '✓' : est('handLengthMm') ? t('fit.est') : t('fit.avg'));
-  if (!fast) await wait(250);
-
-  // 1b ── the throw, from height and forearm
-  const tr = f.trajectory;
-  if (pThrow && tr) {
-    state(pThrow, '');
-    arcBox.append(throwArc(tr.releaseHeightM, tr.angleDeg, tr.releaseSpeedMs, fast));
-    const ms = fast ? 0 : 900;
-    await Promise.all([
-      roll(ang.value, tr.angleDeg, 1, ms, 25, 4),
-      roll(spd.value, tr.releaseSpeedMs, 1, ms, 4, 0.5),
-      roll(rel.value, tr.releaseHeightM, 2, ms, 1.4, 0.1),
-    ]);
-    state(pThrow, '✓');
-    if (!fast) await wait(250);
-  }
-
-  // 2 ── ideal dart
-  state(p2, '');
-  artBox.append(dartArt({ ...f.barrel, grip: Math.round(f.grip.mu), soft: f.tip === 'soft', tone: 0 }));
-  const idealMs = fast ? 0 : 1000;
-  await Promise.all([
-    roll(wg.value, f.barrel.massG, 1, idealMs, 16, 3),
-    roll(ln.value, f.barrel.lengthMm, 1, idealMs, 36, 6),
-    roll(dm.value, f.barrel.diameterMm, 2, idealMs, 5.6, 0.6),
-  ]);
-  state(p2, '✓');
-  if (!fast) await wait(250);
-
-  // 3 ── every dart in the catalogue, against the ideal
-  state(p3, '');
-  const budget = s0.answers.budgetUsd;
-  const pool = variants().filter(
-    (v) => v.tip === f.tip && !v.specCheck && (!budget || (v.priceUsd !== null && v.priceUsd <= budget)),
-  );
-  const scored: Array<{ name: string; pct: number }> = [];
-  const perDart = fast ? 0 : Math.max(18, Math.min(40, 1800 / Math.max(1, pool.length)));
-  for (let i = 0; i < pool.length; i++) {
-    const v = pool[i]!;
-    const p = matchPct(scoreVariant(f, v).cost);
-    scored.push({ name: `${dartName(v)} ${num(v.weightG)} g`, pct: p });
-    if (!fast || i === pool.length - 1) {
-      count.textContent = `${i + 1}/${pool.length}`;
-      barFill.style.cssText = `width:${((i + 1) / pool.length) * 100}%`;
-      nowName.textContent = `${dartName(v)} ${num(v.weightG)} g`;
-      nowPct.textContent = `${p}%`;
-      const top = [...scored].sort((a, b) => b.pct - a.pct).slice(0, 3);
-      leaders.replaceChildren(
-        ...top.map((x) => h('li', null, h('span', null, x.name), h('b', null, `${x.pct}%`))),
-      );
-    }
-    if (perDart) await wait(perDart);
-  }
-  state(p3, '✓');
-
-  // ── The winner ────────────────────────────────────────────────────
-  const best = result.recommendation.picks[0];
   const target = `#/fit/${result.id ?? 'local'}`;
-  go1.setAttribute('href', target);
-  if (best) {
-    pct.textContent = `${matchPct(best.cost)}%`;
-    pct.classList.add(`q-${best.quality}`);
-    bestName.textContent = dartName(best.variant);
-    bestArt.replaceChildren(h('div', { class: 'stage-box' }, variantArt(best.variant)));
-  } else {
-    bestName.textContent = t('fit.none');
-  }
-  title.textContent = t('fit.found');
-  found.hidden = false;
-  if (fast) {
-    go1.focus();
-    return;
-  }
-  found.scrollIntoView({ behavior: 'smooth', block: 'center' });
-  await wait(1600);
+  cta.setAttribute('href', target);
+  skip.setAttribute('href', target);
+  const best = result.recommendation.picks[0];
+  status.textContent = best ? t('fit.found') : t('fit.none');
+  if (reducedMotion() || !best) return go(target.slice(1));
+
+  // Your hand: the scanned landmarks when there are any, otherwise a hand of your size.
+  const est = f.reasons.find((x) => x.code === 'hand_from_height')?.params.handLengthMm;
+  const len = m?.handLengthMm ?? (typeof est === 'number' ? est : 185);
+  const k = len / 185;
+  const hand = {
+    lengthMm: len,
+    length: len,
+    knuckles: m?.palmWidthMm ?? 78 * k,
+    index: m?.indexLengthMm ?? 78 * k,
+    points: s0.landmarksMm ?? templateHand(len),
+    tone: 1,
+  };
+  const who = { hold: a.hold, fingers: a.fingers, throwStyle: a.throwStyle, gripFeel: a.gripFeel };
+  const pool = variants().filter((v) => v.tip === f.tip && !v.specCheck);
+  const c = castFor(f, pool, hand, who, { best, tiers: result.tiers ?? {} });
+  if (!c) return go(target.slice(1));
+
+  const film = fitFilm(c);
+  holder.replaceChildren(film.el);
+  skip.hidden = false;
+  await film.done;
+  skip.hidden = true;
+  cta.hidden = false;
+  cta.focus({ preventScroll: true });
+  // Give the stacked options a moment, then open the result unless the player already moved on.
+  await wait(5000);
   if (location.hash === '#/fitting') go(target.slice(1));
 }

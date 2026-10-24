@@ -18,6 +18,8 @@ import {
   variantBarrel,
   type Silhouette,
   type Answers,
+  type Fit,
+  type ScoredVariant,
   type Variant,
 } from '@dartfit/engine';
 import { handArt, SKIN_TONES, templateHand, type MmPoint } from '../draw/art';
@@ -50,9 +52,11 @@ interface Cast {
   barrels: Array<{ v: Variant; shape: Silhouette; m: Split }>;
   /** The price classes for the closing shot: the best match first, then the others. */
   options: Array<{ tier: Tier; v: Variant; m: Split; best: boolean }>;
-  /** The thrower's answers to the two questions the film fills in. */
-  who: Thrower;
+  /** The answers the film fills in (hold, grip) and the live dart shows (fingers, throw). */
+  who: Who;
 }
+/** The answers the film shows. */
+export type Who = Pick<Answers, 'hold' | 'fingers' | 'throwStyle' | 'gripFeel'>;
 type Tier = 'budget' | 'standard' | 'premium';
 /** The engine's match split for one dart, in %: shape (weight, length, thickness), style, total. */
 type Split = { shape: number; style: number; total: number };
@@ -71,8 +75,8 @@ function splitRow(m: Split, cls = 'hs-split') {
 }
 const TIERS: Tier[] = ['budget', 'standard', 'premium'];
 
-/** A thrower for one round of the film: a plausible hand and how they hold and throw. */
-interface Thrower {
+/** A thrower for one round of the hero film: a plausible hand and how they hold and throw. */
+interface Thrower extends Who {
   lengthMm: number;
   hold: 'front' | 'middle' | 'rear';
   fingers: 3 | 4;
@@ -162,13 +166,27 @@ function cast(pool: Variant[], who: Thrower = FIRST): Cast | null {
     gripFeel: who.gripFeel,
     thickness: 'auto',
   });
-  const scored = pool.map((v) => {
-    const shape = variantBarrel(v);
-    const b = matchBreakdown(scoreVariant(f, v));
-    return { v, shape, m: { shape: b.shape.pct, style: b.style.pct, total: b.total } };
-  });
+  return castFor(f, pool, hand, who);
+}
+
+/**
+ * The story for one fit: three barrels in rising order of total (two near misses from other brands,
+ * then the best match) and the price-class cards. `pinned` takes the best match and price classes
+ * from a real result, so the film ends on exactly what the result page shows.
+ */
+export function castFor(
+  f: Fit,
+  pool: Variant[],
+  hand: Cast['hand'],
+  who: Who,
+  pinned?: { best: ScoredVariant; tiers: Partial<Record<Tier, ScoredVariant | null>> },
+): Cast | null {
+  const split = (sv: ScoredVariant): Split => {
+    const b = matchBreakdown(sv);
+    return { shape: b.shape.pct, style: b.style.pct, total: b.total };
+  };
+  const scored = pool.map((v) => ({ v, shape: variantBarrel(v), m: split(scoreVariant(f, v)) }));
   const byId = new Map(scored.map((x) => [x.v.id, x]));
-  // One dart per price class, plus the engine's overall pick.
   const bounds = tierBoundsUsd();
   const tierOf = (v: Variant): Tier =>
     (v.priceUsd ?? 0) <= bounds.budgetMaxUsd
@@ -176,37 +194,45 @@ function cast(pool: Variant[], who: Thrower = FIRST): Cast | null {
       : (v.priceUsd ?? 0) <= bounds.standardMaxUsd
         ? 'standard'
         : 'premium';
-  const tiers = priceTiers(f, pool, bounds);
-  const topId = recommend(f, pool).picks[0]?.variant.id;
-  const candidates = [
-    ...(topId && byId.get(topId) ? [byId.get(topId)!] : []),
-    ...TIERS.map((k) => tiers[k] && byId.get(tiers[k]!.variant.id)).filter(
+  let best: (typeof scored)[number] | undefined;
+  let tierPicks: Array<(typeof scored)[number]>;
+  if (pinned) {
+    const v = pinned.best.variant;
+    best = { v, shape: variantBarrel(v), m: split(pinned.best) };
+    tierPicks = TIERS.map((k) => pinned.tiers[k])
+      .filter((x): x is ScoredVariant => !!x)
+      .map((x) => ({ v: x.variant, shape: variantBarrel(x.variant), m: split(x) }));
+  } else {
+    // One dart per price class, plus the engine's overall pick.
+    const tiers = priceTiers(f, pool, bounds);
+    const topId = recommend(f, pool).picks[0]?.variant.id;
+    tierPicks = TIERS.map((k) => tiers[k] && byId.get(tiers[k]!.variant.id)).filter(
       (x): x is (typeof scored)[number] => !!x,
-    ),
-  ];
-  // The film ranks by the % it shows: the best match is the candidate with the most overlap,
-  // and every card after it has less, so the numbers only ever go down as the cards push up.
-  const best = [...candidates, ...(candidates.length ? [] : scored)].sort((a, b) => b.m.total - a.m.total)[0];
+    );
+    const candidates = [...(topId && byId.get(topId) ? [byId.get(topId)!] : []), ...tierPicks];
+    // The film ranks by the % it shows, so the numbers only ever go down as the cards push up.
+    best = [...candidates, ...(candidates.length ? [] : scored)].sort((a, b) => b.m.total - a.m.total)[0];
+  }
   if (!best) return null;
+  const top = best;
   // Two near misses from other brands: a clear miss, then a close one.
   const near = (target: number, avoid: string[]) =>
     scored
-      .filter((x) => !avoid.includes(x.v.brand) && x.m.total < best.m.total - 4)
+      .filter((x) => !avoid.includes(x.v.brand) && x.m.total < top.m.total - 4)
       .sort((a, b) => Math.abs(a.m.total - target) - Math.abs(b.m.total - target))[0];
-  const first = near(best.m.total - 22, [best.v.brand]);
-  const second = first && near(best.m.total - 10, [best.v.brand, first.v.brand]);
+  const first = near(top.m.total - 22, [top.v.brand]);
+  const second = first && near(top.m.total - 10, [top.v.brand, first.v.brand]);
   if (!first || !second) return null;
-  const bestTier = tierOf(best.v);
-  const others = TIERS.filter((k) => k !== bestTier)
-    .map((k) => tiers[k] && byId.get(tiers[k]!.variant.id))
-    .filter((x): x is (typeof scored)[number] => !!x)
+  const bestTier = tierOf(top.v);
+  const others = tierPicks
+    .filter((x) => tierOf(x.v) !== bestTier && x.v.id !== top.v.id)
     .map((x) => ({ tier: tierOf(x.v), v: x.v, m: x.m, best: false }))
     .sort((a, b) => b.m.total - a.m.total);
   return {
     hand,
     ideal: { ...f.barrel },
-    barrels: [first, second, best].sort((a, b) => a.m.total - b.m.total),
-    options: [{ tier: bestTier, v: best.v, m: best.m, best: true }, ...others],
+    barrels: [first, second, top],
+    options: [{ tier: bestTier, v: top.v, m: top.m, best: true }, ...others],
     who,
   };
 }
@@ -229,7 +255,7 @@ function outline(b: Silhouette) {
 }
 
 function handLayer(c: Cast) {
-  const art = handArt({ lengthMm: c.hand.lengthMm, dots: true, className: 'scan' });
+  const art = handArt({ points: c.hand.points, lengthMm: c.hand.lengthMm, dots: true, className: 'scan' });
   // A different person each round, so a different skin tone too.
   const [skin, hi, shade, nail] = SKIN_TONES[c.hand.tone % SKIN_TONES.length]!;
   (art as unknown as HTMLElement).style.cssText =
@@ -315,7 +341,7 @@ function modelLayer(c: Cast) {
  * The two questions, as the questionnaire asks them, with the same live dart: the film taps the
  * thrower's hold (the red spot moves) and slides the grip up to their answer (the knurling deepens).
  */
-function askPanel(who: Thrower) {
+function askPanel(who: Who) {
   const live = quizDart();
   const now: Answers = {
     tip: 'steel',
@@ -439,8 +465,76 @@ export function heroScan(pool: Variant[]): HTMLElement | null {
   return root;
 }
 
+/**
+ * The fitting screen's film: the same story as the hero, told once with the player's own hand,
+ * answers and result. Resolves when the price cards have stacked.
+ */
+export function fitFilm(c: Cast): { el: HTMLElement; done: Promise<void> } {
+  const root = h('div', { class: 'hs hs-fit', 'aria-hidden': 'true' });
+  const done = (async () => {
+    await new Promise((r) => requestAnimationFrame(r));
+    await play(root, c, 'fit');
+  })();
+  return { el: root, done };
+}
+
+/** A dartboard pops up, a dart lands in the bull, confetti. Total % on the board. */
+function bullseye(total: number): HTMLElement {
+  const board = s('svg', { viewBox: '-50 -50 100 100', class: 'bw-board' });
+  // Rings out to in: double, outer single, treble, inner single, outer bull, bull.
+  [
+    [48, 'bw-black'],
+    [46, 'bw-red'],
+    [43, 'bw-cream'],
+    [30, 'bw-green'],
+    [27.5, 'bw-cream'],
+    [8, 'bw-green'],
+    [3.6, 'bw-red'],
+  ].forEach(([r, cls]) => board.append(s('circle', { r: r!, class: String(cls) })));
+  for (let i = 0; i < 20; i++) {
+    const a = (i * Math.PI) / 10;
+    board.append(
+      s('line', {
+        x1: 8 * Math.cos(a),
+        y1: 8 * Math.sin(a),
+        x2: 46 * Math.cos(a),
+        y2: 46 * Math.sin(a),
+        class: 'bw-wire',
+      }),
+    );
+  }
+  const dart = s('g', { class: 'bw-dart' });
+  dart.append(
+    s('path', { d: 'M0,0L10,-3L10,3Z', class: 'bw-tip' }),
+    s('rect', { x: 10, y: -4, width: 22, height: 8, rx: 3, class: 'bw-barrel' }),
+    s('rect', { x: 32, y: -1.6, width: 14, height: 3.2, class: 'bw-shaft' }),
+    s('path', { d: 'M40,0L56,-13L62,-13L56,0L62,13L56,13Z', class: 'bw-flight' }),
+  );
+  board.append(dart);
+  const confetti = h('div', { class: 'bw-confetti' });
+  for (let i = 0; i < 28; i++) {
+    const a = (i / 28) * Math.PI * 2 + Math.random() * 0.3;
+    const d = 90 + Math.random() * 70;
+    confetti.append(
+      h('i', {
+        style: `--x:${(Math.cos(a) * d).toFixed(0)}px;--y:${(Math.sin(a) * d - 30).toFixed(0)}px;--r:${Math.round(Math.random() * 540 - 270)}deg;--d:${(Math.random() * 0.25).toFixed(2)}s;--c:${['#e3122c', '#0a8f5a', '#ffffff', '#ffd23f'][i % 4]}`,
+      }),
+    );
+  }
+  return h(
+    'div',
+    { class: 'bw' },
+    h('div', { class: 'bw-hit' }, board, confetti),
+    h('b', { class: 'bw-word' }, t('fit.win')),
+    h('span', { class: 'bw-total' }, t('fit.win.total', { n: total })),
+  );
+}
+
 /** One round of the film. Resolves true when it reached the shop card, false when it should stop. */
-async function play(root: HTMLElement, c: Cast): Promise<boolean> {
+async function play(root: HTMLElement, c: Cast, mode: 'hero' | 'fit' = 'hero'): Promise<boolean> {
+  // The fitting screen tells the same story about you: "your hand", "your answers", "your best match".
+  const label = (k: 'scan' | 'measure' | 'ask' | 'model' | 'best') =>
+    mode === 'fit' ? t(`fit.s.${k}`) : t(`hs.step.${k}`);
   const { layer: hand, groups } = handLayer(c);
   const model = modelLayer(c);
   const step = h('span', { class: 'hs-step' });
@@ -480,18 +574,18 @@ async function play(root: HTMLElement, c: Cast): Promise<boolean> {
     model.cands.forEach((g, i) => g.classList.toggle('on', i === last));
     setSplit(c.barrels[last]!.m);
     chip.classList.add('best');
-    setStep(t('hs.step.best'));
+    setStep(label('best'));
     return false;
   }
   root.dataset.started = '1';
 
   // 1. Scan the hand.
-  setStep(t('hs.step.scan'));
+  setStep(label('scan'));
   hand.classList.add('scanning');
   await wait(1500);
   if (!alive()) return false;
   // 2. Draw the measurements one by one.
-  setStep(t('hs.step.measure'));
+  setStep(label('measure'));
   for (const g of groups) {
     g.classList.add('on');
     await wait(520);
@@ -499,13 +593,13 @@ async function play(root: HTMLElement, c: Cast): Promise<boolean> {
   }
   await wait(400);
   // 3. Two questions get answered: where you hold it, and how much grip (knurling).
-  setStep(t('hs.step.ask'));
+  setStep(label('ask'));
   root.classList.add('hs-ask');
   if (!(await ask.run(wait, alive))) return false;
   await wait(200);
   root.classList.remove('hs-ask');
   // 4. The measurements and answers become the ideal barrel.
-  setStep(t('hs.step.model'));
+  setStep(label('model'));
   root.classList.add('hs-build');
   await wait(1300);
   if (!alive()) return false;
@@ -532,9 +626,19 @@ async function play(root: HTMLElement, c: Cast): Promise<boolean> {
     }
   }
   chip.classList.add('best');
-  setStep(t('hs.step.best'));
+  setStep(label('best'));
   await wait(900);
   if (!alive()) return false;
+  // Your own fit gets a moment: the dart thunks into the bull.
+  if (mode === 'fit') {
+    const win = bullseye(c.barrels[last]!.m.total);
+    root.querySelector('.hs-stage')!.append(win);
+    await wait(2300);
+    win.classList.add('out');
+    await wait(350);
+    win.remove();
+    if (!alive()) return false;
+  }
   // 5. Into the shop card, then the other price classes push up beneath it.
   root.classList.add('hs-end');
   await wait(1300);

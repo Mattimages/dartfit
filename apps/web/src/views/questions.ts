@@ -273,23 +273,7 @@ export function questionsView(root: HTMLElement) {
       auto: true,
       focus: 'throwStyle',
     },
-    {
-      el: tiles('moisture', t('q.moisture'), opts('q.moisture', ['dry', 'normal', 'sweaty']), a.moisture),
-      auto: true,
-      focus: 'moisture',
-    },
     { el: grip, auto: false, focus: 'gripFeel' },
-    {
-      el: tiles(
-        'thickness',
-        t('q.thickness'),
-        opts('q.thickness', ['slim', 'standard', 'chunky', 'auto']),
-        a.thickness,
-        2,
-      ),
-      auto: true,
-      focus: 'thickness',
-    },
     { el: h('div', null, currentToggle, currentBox), auto: false },
     { el: budget, auto: false },
   ];
@@ -319,9 +303,9 @@ export function questionsView(root: HTMLElement) {
       hold: get('hold', a.hold) as Answers['hold'],
       fingers: Number(get('fingers', a.fingers)) as Answers['fingers'],
       throwStyle: get('throwStyle', a.throwStyle) as Answers['throwStyle'],
-      moisture: get('moisture', a.moisture) as Answers['moisture'],
+      moisture: 'normal',
       gripFeel: Number(get('gripFeel', a.gripFeel)) as Answers['gripFeel'],
-      thickness: get('thickness', a.thickness) as Answers['thickness'],
+      thickness: 'auto',
     };
     const f = steps[at]?.focus ?? null;
     preview.el.hidden = !f;
@@ -387,9 +371,9 @@ export function questionsView(root: HTMLElement) {
       hold: val('hold') as Answers['hold'],
       fingers: Number(val('fingers')) as Answers['fingers'],
       throwStyle: val('throwStyle') as Answers['throwStyle'],
-      moisture: val('moisture') as Answers['moisture'],
+      moisture: 'normal',
       gripFeel: Number(val('gripFeel')) as Answers['gripFeel'],
-      thickness: val('thickness') as Answers['thickness'],
+      thickness: 'auto',
     };
     const hgt = heightIn.value ? Number(heightIn.value) : undefined;
     const fa = forearmIn.value ? Number(forearmIn.value.replace(',', '.')) : undefined;
