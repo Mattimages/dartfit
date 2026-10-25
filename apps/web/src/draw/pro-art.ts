@@ -58,6 +58,10 @@ function flag(country: string): SVGElement[] {
         r(0, H / 3, W, H / 3, '#dd0000'),
         r(0, (2 * H) / 3, W, H / 3, '#ffce00'),
       ];
+    case 'POL':
+      return [r(0, 0, W, H / 2, '#ffffff'), r(0, H / 2, W, H / 2, '#dc143c')];
+    case 'AUT':
+      return [r(0, 0, W, H, '#ed2939'), r(0, H / 3, W, H / 3, '#ffffff')];
     case 'ESP':
       return [r(0, 0, W, H, '#aa151b'), r(0, H / 4, W, H / 2, '#f1bf00')];
     case 'AUS':

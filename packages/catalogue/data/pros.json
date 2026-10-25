@@ -205,5 +205,86 @@
     "exactDart": false,
     "playingWeightG": 22,
     "sourceUrl": "https://a-zdarts.com/products/one80-jesus-noguera-perea-signature-steel-tip-darts-22gm"
+  },
+  {
+    "id": "cross",
+    "name": "Rob Cross",
+    "country": "ENG",
+    "variantId": "target-rob-cross-95k-23",
+    "exactDart": false,
+    "playingWeightG": null,
+    "sourceUrl": "https://en.wikipedia.org/wiki/Rob_Cross_(darts_player)"
+  },
+  {
+    "id": "heta",
+    "name": "Damon Heta",
+    "country": "AUS",
+    "variantId": "harrows-heta-s3-23",
+    "exactDart": false,
+    "playingWeightG": 23,
+    "sourceUrl": "https://en.wikipedia.org/wiki/Damon_Heta"
+  },
+  {
+    "id": "dobey",
+    "name": "Chris Dobey",
+    "country": "ENG",
+    "variantId": "target-dobey-hollywood-action-23",
+    "exactDart": false,
+    "playingWeightG": 23,
+    "sourceUrl": "https://en.wikipedia.org/wiki/Chris_Dobey"
+  },
+  {
+    "id": "wade",
+    "name": "James Wade",
+    "country": "ENG",
+    "variantId": "unicorn-wade-wraith-22",
+    "exactDart": false,
+    "playingWeightG": 20,
+    "sourceUrl": "https://en.wikipedia.org/wiki/James_Wade"
+  },
+  {
+    "id": "vandenbergh",
+    "name": "Dimitri Van den Bergh",
+    "country": "BEL",
+    "variantId": "target-dvdb-95k-22",
+    "exactDart": false,
+    "playingWeightG": 22,
+    "sourceUrl": "https://en.wikipedia.org/wiki/Dimitri_Van_den_Bergh"
+  },
+  {
+    "id": "ratajski",
+    "name": "Krzysztof Ratajski",
+    "country": "POL",
+    "variantId": "bulls-ratajski-g2-24",
+    "exactDart": false,
+    "playingWeightG": 24,
+    "sourceUrl": "https://en.wikipedia.org/wiki/Krzysztof_Ratajski"
+  },
+  {
+    "id": "taylor",
+    "name": "Phil Taylor",
+    "country": "ENG",
+    "variantId": "target-phil-taylor-power-chrono-24",
+    "exactDart": false,
+    "playingWeightG": 26,
+    "sourceUrl": "https://en.wikipedia.org/wiki/Phil_Taylor_(darts_player)"
+  },
+  {
+    "id": "clemens",
+    "name": "Gabriel Clemens",
+    "country": "GER",
+    "variantId": "target-clemens-95k-22",
+    "exactDart": false,
+    "playingWeightG": 23,
+    "sourceUrl": "https://en.wikipedia.org/wiki/Gabriel_Clemens"
+  },
+  {
+    "id": "manby",
+    "name": "Charlie Manby",
+    "country": "ENG",
+    "variantId": "target-manby-22",
+    "exactDart": false,
+    "playingWeightG": null,
+    "sourceUrl": "https://en.wikipedia.org/wiki/Charlie_Manby"
   }
 ]
