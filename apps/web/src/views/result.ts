@@ -20,6 +20,7 @@ import { dartMedia } from '../media';
 import { alertSignup } from './alert-signup';
 import { matchSplit } from './match-split';
 import { partnerBanner } from './partner';
+import { shareBox } from './share';
 
 const k = (s: string) => s as Key;
 type FullPick = RecPick & { offers: Offer[] };
@@ -371,6 +372,9 @@ export async function resultView(root: HTMLElement, params: Record<string, strin
             h('h1', null, t('r.title')),
             h('p', { class: 'callout' }, t('r.none', { tip: t(k(`q.tip.${f.tip}`)) })),
           )),
+    best && session().giftRequest
+      ? shareBox({ v: best.variant, pct: matchPct(best.cost), proId: twin?.pro.id, proName: twin?.pro.name })
+      : null,
     twin
       ? h(
           'section',
@@ -379,6 +383,15 @@ export async function resultView(root: HTMLElement, params: Record<string, strin
           h('h2', { id: 'twin-name' }, twin.pro.name),
           h('p', null, `${dartName(twin.scored.variant)} ${num(twin.scored.variant.weightG)} g`),
         )
+      : null,
+    // Share: right under the hero for a gift request (send it back), after the pro otherwise.
+    best && !session().giftRequest
+      ? shareBox({
+          v: best.variant,
+          pct: matchPct(best.cost),
+          proId: twin?.pro.id,
+          proName: twin?.pro.name,
+        })
       : null,
     picks.length > 1
       ? h(

@@ -1,9 +1,10 @@
+import { giftRequestBanner } from './share';
 import { giftIcon, noCardIcon } from '../draw/icons';
 import type { Variant } from '@dartfit/engine';
 import { h } from '../h';
 import { num, t, type Key } from '../i18n';
 import { pros, variants } from '../api';
-import { clearSession } from '../store';
+import { clearSession, session, update } from '../store';
 import { approxEur, PRICE_CLASS_EUR } from '../money';
 import { dartMedia, photoUrl } from '../media';
 import { dartName } from './words';
@@ -64,9 +65,15 @@ function heroFan(picks: Variant[]) {
   return fan;
 }
 
-const start = () => clearSession();
+// A new fitting starts clean, except for a gift request (the player came from the buyer's link).
+const start = () => {
+  const giftRequest = session().giftRequest;
+  clearSession();
+  if (giftRequest) update({ giftRequest });
+};
 
-export function homeView(root: HTMLElement) {
+export function homeView(root: HTMLElement, _params?: Record<string, string>, query?: URLSearchParams) {
+  const banner = giftRequestBanner(query);
   const all = showable();
   const picks = tierPicks(all);
   const fanDarts = [picks.budget, picks.premium, picks.standard].filter((v): v is Variant => !!v);
@@ -110,6 +117,7 @@ export function homeView(root: HTMLElement) {
     h(
       'section',
       { class: 'land-hero' },
+      banner,
       h('h1', null, t('land.title')),
       h('p', { class: 'lead' }, t('land.lead')),
       // The film itself starts the measurement when tapped.

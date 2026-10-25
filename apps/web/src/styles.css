@@ -4318,3 +4318,86 @@ a.card {
   outline: 3px solid var(--red);
   outline-offset: 3px;
 }
+
+/* Sharing (views/share.ts) */
+.share-box {
+  display: grid;
+  gap: var(--s3);
+  padding: var(--s5);
+  border-radius: var(--r-card);
+  background: var(--stage);
+}
+.share-box h2 {
+  margin: 0;
+}
+.share-box p {
+  margin: 0;
+  color: var(--ink-2);
+}
+.share-box.gift {
+  background: var(--navy);
+  color: #fff;
+}
+.share-box.gift p {
+  color: #c5d1e2;
+}
+.share-actions {
+  display: grid;
+  gap: var(--s2);
+}
+.share-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--s2);
+}
+.share-msg:empty {
+  display: none;
+}
+.share-msg {
+  margin: 0;
+  font-size: 0.9rem;
+  word-break: break-all;
+}
+.gift-banner {
+  margin: 0 0 var(--s3);
+  padding: var(--s3) var(--s4);
+  border-radius: var(--r-ctl);
+  background: var(--navy);
+  color: #fff;
+  font-weight: 550;
+}
+.gift-choice .gift-opt {
+  display: grid;
+  gap: var(--s3);
+  padding: var(--s5);
+  border: 1px solid var(--line);
+  border-radius: var(--r-card);
+}
+.gift-opt h2,
+.gift-opt p {
+  margin: 0;
+}
+.gift-opt input[type='text'] {
+  width: 100%;
+}
+.shared .shared-dart {
+  display: grid;
+  gap: var(--s2);
+}
+.shared-pct {
+  margin: 0;
+  font-size: 2rem;
+  font-weight: 650;
+  letter-spacing: -0.04em;
+  color: var(--green);
+}
+.shared-cta {
+  display: grid;
+  gap: var(--s3);
+  margin-top: var(--s5);
+}
+.share-row .btn {
+  padding-inline: var(--s3);
+  white-space: nowrap;
+  font-size: 1rem;
+}

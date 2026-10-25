@@ -4,11 +4,11 @@ import { h, mount } from './h';
 import { getLang, LANGS, t } from './i18n';
 import { COUNTRIES, getCountry, hasChosenCountry } from './region';
 import { openRegionPicker } from './views/region-picker';
-import { route, start, render, go, current } from './router';
+import { route, start, render, current } from './router';
 import { inject, pageview } from '@vercel/analytics';
-import { clearSession, update } from './store';
 import { DEMO, refreshCatalogue } from './api';
 import { homeView } from './views/home';
+import { giftChoiceView, sharedView } from './views/share';
 import { scanView } from './views/scan';
 import { manualView } from './views/manual';
 import { handView } from './views/hand';
@@ -24,11 +24,10 @@ route('/', homeView);
 route('/scan', scanView);
 route('/manual', manualView);
 // Buying a gift: no scan; the questionnaire asks about the player instead.
-route('/gift', () => {
-  clearSession();
-  update({ gift: true });
-  go('/questions');
-});
+// Buying a gift: send the player a link, or estimate it yourself (views/share.ts).
+route('/gift', giftChoiceView);
+// Someone's shared result: their dart, the %, the pro, and "your turn".
+route('/s', sharedView);
 route('/hand', handView);
 route('/questions', questionsView);
 route('/fitting', fittingView);

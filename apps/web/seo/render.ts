@@ -146,8 +146,10 @@ ${xDefault ? `<link rel="alternate" hreflang="x-default" href="${o.base}${xDefau
 <meta property="og:description" content="${esc(o.description)}">
 <meta property="og:url" content="${url}">
 <meta property="og:locale" content="${o.site.locale}">
-<meta property="og:image" content="${o.base}/icons/icon-512.png">
-<meta name="twitter:card" content="summary">
+<meta property="og:image" content="${o.base}/og.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
 <meta name="theme-color" content="#ffffff">
 <link rel="icon" href="/icons/icon.svg" type="image/svg+xml">
 <link rel="preload" href="/guides/geist.woff2" as="font" type="font/woff2" crossorigin>

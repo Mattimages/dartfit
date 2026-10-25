@@ -385,6 +385,51 @@ export const de: Partial<Record<Key, string>> = {
   'q.grip.hint.gift': 'Weißt du es nicht? Lass ihn in der Mitte.',
   'why.hand_type':
     'Ohne Scan: Die Form der Hand kommt vom gewählten Handtyp, die Größe aus der Körpergröße. Es bleibt eine Schätzung.',
+  'share.title': 'Teile dein Ergebnis',
+  'share.sub': 'Zeig deinen Freunden, welcher Profi du bist, und fordere sie heraus.',
+  'share.button': 'Teilen',
+  'share.whatsapp': 'WhatsApp',
+  'share.copy': 'Kopieren',
+  'share.copied': 'Link kopiert.',
+  'share.card.like': 'Ich werfe wie',
+  'share.card.mine': 'Mein Dart',
+  'share.card.cta': 'Welcher Dart passt zu dir? Scan deine Hand bei DartFit',
+  'share.text.like': 'Ich werfe wie {pro}: mein Dart passt zu {pct}%. Welcher Profi bist du?',
+  'share.text.mine': 'Mein Dart ist der {dart}: {pct}% Match. Welcher Dart passt zu dir?',
+  'share.text.gift': 'Dieser Dart passt zu mir: der {dart}.',
+  'share.gift.title': 'Schick dein Ergebnis zurück',
+  'share.gift.title.named': 'Schick dein Ergebnis an {name}',
+  'share.gift.sub':
+    'So weiß der Schenkende, welcher Dart zu dir passt. Nur der Dart wird geschickt, nicht deine Handmaße.',
+  'shared.kicker': 'Geteiltes Ergebnis',
+  'shared.like': 'Dein Freund wirft wie {pro}',
+  'shared.title': 'Der Dart deines Freundes',
+  'shared.lead':
+    'Gemessen mit DartFit: die Hand neben einer Karte, fünf Fragen, und dieser Dart kam am besten heraus.',
+  'shared.gift.kicker': 'Für dein Geschenk',
+  'shared.gift.title': 'Dieser Dart passt zum Spieler',
+  'shared.gift.lead':
+    'Der Spieler hat die Messung gemacht. Das ist der Dart, der am besten passt; du kannst ihn hier direkt ansehen.',
+  'shared.you': 'Welcher Dart passt zu dir?',
+  'gift.title': 'Darts für jemand anderen',
+  'gift.lead': 'Wähle, wie du den richtigen Dart findest.',
+  'gift.send.title': 'Den Spieler selbst messen lassen',
+  'gift.send.sub':
+    'Schick einen Link. Der Spieler macht die Messung und schickt dir das Ergebnis zurück. Am genauesten, aber die Überraschung ist dann ein bisschen weg.',
+  'gift.from': 'Dein Vorname (damit der Spieler weiß, von wem es kommt)',
+  'gift.from.placeholder': 'Zum Beispiel Anna',
+  'gift.send.make': 'Link erstellen',
+  'gift.send.text': 'Hi! Mach diese kurze Messung, dann weiß ich, welcher Dart zu dir passt:',
+  'gift.send.text.named':
+    'Hi, hier ist {name}! Mach diese kurze Messung, dann weiß ich, welcher Dart zu dir passt:',
+  'gift.self.title': 'Selbst schätzen',
+  'gift.self.sub':
+    'Gib ein, was du weißt: Größe, Handtyp und wie der Spieler wirft. Ungenauer, aber es bleibt eine Überraschung.',
+  'gift.self.go': 'Selbst schätzen',
+  'gift.banner':
+    'Jemand möchte wissen, welcher Dart zu dir passt. Mach die Messung; am Ende schickst du das Ergebnis zurück.',
+  'gift.banner.named':
+    '{name} möchte wissen, welcher Dart zu dir passt. Mach die Messung; am Ende schickst du das Ergebnis zurück.',
   'region.close': 'Schließen',
   'fit.pThrow': 'Dein Wurf',
   'fit.est': 'aus Größe geschätzt',

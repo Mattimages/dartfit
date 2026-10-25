@@ -14,6 +14,8 @@ export interface Session {
   gift?: boolean;
   /** The email sign-up was shown at the start of a fitting film this visit. */
   alertsAsked?: boolean;
+  /** Opened from a gift link: the buyer's first name (may be empty); the result offers to send the dart back. */
+  giftRequest?: { from: string };
   /** They signed up for alerts this visit (confirmation mail on its way). */
   alertsSent?: boolean;
 }
