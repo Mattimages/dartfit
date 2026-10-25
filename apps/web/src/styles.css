@@ -4482,3 +4482,72 @@ a.card {
   font-size: 1.2rem;
   color: var(--green);
 }
+
+/* Player-card art (draw/pro-art.ts): country colours, initials, a thrower. Not a likeness. */
+.pro-art {
+  display: block;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 6 / 5;
+  max-width: 100%;
+  border-radius: var(--r-tile);
+  background: #1d3762;
+}
+.pro-art .pa-mono {
+  font-size: 52px;
+  font-weight: 650;
+  letter-spacing: -0.05em;
+  fill: #fff;
+}
+.pro-art .pa-edge {
+  stroke: #fff;
+  fill: none;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.pro-art .pa-limb {
+  stroke: var(--navy, #0f1b2d);
+  fill: none;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.pro-art .pa-head-edge {
+  fill: #fff;
+}
+.pro-art .pa-head {
+  fill: var(--navy, #0f1b2d);
+}
+.pro-art .pa-dart {
+  stroke: #e8edf5;
+  fill: none;
+  stroke-linecap: round;
+}
+.pro-art .pa-flight {
+  fill: #cfd8e6;
+}
+.twin.has-art::after {
+  display: none;
+}
+/* On the result: art on the right, text on the left. */
+.twin-link.has-art {
+  grid-template-columns: minmax(0, 1fr) 8.5rem;
+  column-gap: var(--s4);
+  align-items: start;
+}
+.twin-link.has-art > :not(.pro-art) {
+  grid-column: 1;
+}
+.twin-link.has-art .pro-art {
+  grid-column: 2;
+  grid-row: 1 / span 4;
+  align-self: center;
+}
+.twin-link.has-art h2 {
+  max-width: none;
+}
+.pm-hero.has-art .pro-art {
+  margin-bottom: var(--s3);
+}
+.pm-hero.has-art h1 {
+  padding-right: 0;
+}

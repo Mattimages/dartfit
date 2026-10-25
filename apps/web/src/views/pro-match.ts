@@ -12,6 +12,7 @@ import { matchPct } from '../score';
 import { dartMedia } from '../media';
 import { balanceName, dartName, shapeName } from './words';
 import { shareBox } from './share';
+import { proArt } from '../draw/pro-art';
 
 const slug = (name: string) =>
   name
@@ -96,7 +97,8 @@ export async function proMatchView(root: HTMLElement, params: Record<string, str
       { class: 'stack pm' },
       h(
         'div',
-        { class: 'twin pm-hero' },
+        { class: 'twin pm-hero has-art' },
+        proArt(pro),
         h('p', { class: 'kicker' }, t('r.twin')),
         h('h1', null, pro.name),
         h('p', null, t('pm.dart', { dart: dartName(v), w: num(v.weightG) })),

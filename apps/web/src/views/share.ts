@@ -15,6 +15,7 @@ import { pros, shopFor, variants } from '../api';
 import { dartMedia, photoUrl } from '../media';
 import { dartName } from './words';
 import { giftIcon } from '../draw/icons';
+import { monogram, proArtUrl } from '../draw/pro-art';
 
 const base = () => `${location.origin}${location.pathname}`;
 
@@ -77,7 +78,12 @@ function shareButtons(text: string, url: string, card?: () => Promise<Blob | nul
 }
 
 /** A 1080 × 1350 picture of the result, for Instagram and WhatsApp status. */
-async function resultCard(o: { v: Variant; pct: number; pro?: string }): Promise<Blob | null> {
+async function resultCard(o: {
+  v: Variant;
+  pct: number;
+  pro?: string;
+  proCountry?: string;
+}): Promise<Blob | null> {
   const W = 1080;
   const H = 1350;
   const c = h('canvas') as HTMLCanvasElement;
@@ -111,6 +117,26 @@ async function resultCard(o: { v: Variant; pct: number; pro?: string }): Promise
   g.fillStyle = '#ffffff';
   g.font = font(650, 54);
   g.fillText('DartFit', 80, 130);
+  // The pro's player card (country colours, initials, thrower), top right.
+  if (o.pro) {
+    const art = new Image();
+    art.src = proArtUrl({ name: o.pro, country: o.proCountry ?? '' });
+    try {
+      await art.decode();
+      const a = { x: W - 80 - 264, y: 60, w: 264, h: 220 };
+      g.save();
+      g.beginPath();
+      g.roundRect(a.x, a.y, a.w, a.h, 28);
+      g.clip();
+      g.drawImage(art, a.x, a.y, a.w, a.h);
+      g.fillStyle = '#ffffff';
+      g.font = font(650, 64);
+      g.fillText(monogram(o.pro), a.x + 18, a.y + 82, a.w * 0.5);
+      g.restore();
+    } catch {
+      /* no art */
+    }
+  }
   g.fillStyle = '#c5d1e2';
   g.font = font(550, 46);
   g.fillText(o.pro ? t('share.card.like') : t('share.card.mine'), 80, 300);
@@ -175,7 +201,14 @@ export function shareBox(o: { v: Variant; pct: number; proId?: string; proName?:
         : t('share.title'),
     ),
     h('p', null, req ? t('share.gift.sub') : t('share.sub')),
-    shareButtons(text, url, () => resultCard({ v: o.v, pct: o.pct, pro: o.proName })),
+    shareButtons(text, url, () =>
+      resultCard({
+        v: o.v,
+        pct: o.pct,
+        pro: o.proName,
+        proCountry: pros().find((p) => p.id === o.proId)?.country,
+      }),
+    ),
   );
 }
 

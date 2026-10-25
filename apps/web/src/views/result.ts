@@ -20,6 +20,7 @@ import { dartMedia } from '../media';
 import { alertSignup } from './alert-signup';
 import { matchSplit } from './match-split';
 import { partnerBanner } from './partner';
+import { proArt } from '../draw/pro-art';
 import { shareBox } from './share';
 
 const k = (s: string) => s as Key;
@@ -378,7 +379,12 @@ export async function resultView(root: HTMLElement, params: Record<string, strin
     twin
       ? h(
           'a',
-          { class: 'twin twin-link', href: `#/fit/${r.id ?? 'local'}/pro`, 'aria-labelledby': 'twin-name' },
+          {
+            class: 'twin twin-link has-art',
+            href: `#/fit/${r.id ?? 'local'}/pro`,
+            'aria-labelledby': 'twin-name',
+          },
+          proArt(twin.pro),
           h('p', { class: 'kicker' }, t('r.twin')),
           h('h2', { id: 'twin-name' }, twin.pro.name),
           h('p', null, `${dartName(twin.scored.variant)} ${num(twin.scored.variant.weightG)} g`),
