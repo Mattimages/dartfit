@@ -112,7 +112,7 @@ export function questionsView(root: HTMLElement) {
     ),
   );
 
-  // ── Body: height (and optionally forearm). Feeds hand size without a scan and the throw geometry.
+  // ── Body: height. Feeds hand size without a scan and the throw geometry.
   const heightIn = h('input', {
     type: 'number',
     id: 'height',
@@ -123,16 +123,6 @@ export function questionsView(root: HTMLElement) {
     placeholder: '178',
     value: a.heightCm ?? '',
   }) as HTMLInputElement;
-  const forearmIn = h('input', {
-    type: 'number',
-    id: 'forearm',
-    inputmode: 'decimal',
-    min: 18,
-    max: 36,
-    step: 0.5,
-    placeholder: '26',
-    value: a.forearmCm ?? '',
-  }) as HTMLInputElement;
   const body = h(
     'fieldset',
     { class: 'field' },
@@ -141,14 +131,6 @@ export function questionsView(root: HTMLElement) {
     s.measurements?.unscaled ? h('p', { class: 'unscaled-warn', role: 'note' }, t('q.body.unscaled')) : null,
     h('label', { class: 'visually-hidden', for: 'height' }, t('q.body.height')),
     h('div', { class: 'mm-input' }, heightIn, h('span', { 'aria-hidden': 'true' }, 'cm')),
-    // A gift buyer won't know the forearm.
-    gift
-      ? null
-      : h('label', { class: 'label', for: 'forearm', style: 'margin-top:1.25rem' }, t('q.body.forearm')),
-    gift ? null : h('p', { class: 'hint' }, t('q.body.forearm.hint')),
-    gift
-      ? null
-      : h('div', { class: 'mm-input small-input' }, forearmIn, h('span', { 'aria-hidden': 'true' }, 'cm')),
   );
 
   // Hand type in words: long and slender, average, short and stubby (or not sure).
@@ -304,8 +286,7 @@ export function questionsView(root: HTMLElement) {
       thickness: 'auto',
     };
     const hgt = heightIn.value ? Number(heightIn.value) : undefined;
-    const fa = forearmIn.value ? Number(forearmIn.value.replace(',', '.')) : undefined;
-    if ((hgt !== undefined && !(hgt >= 130 && hgt <= 220)) || (fa !== undefined && !(fa >= 18 && fa <= 36))) {
+    if (hgt !== undefined && !(hgt >= 130 && hgt <= 220)) {
       show(0, false);
       err.textContent = t('q.body.range');
       err.hidden = false;
@@ -315,7 +296,6 @@ export function questionsView(root: HTMLElement) {
     if (hgt) answers.heightCm = hgt;
     const ht = val('handType') as HandType;
     if (askHand && HAND_TYPES.includes(ht)) answers.handType = ht;
-    if (fa) answers.forearmCm = fa;
     // No current-dart or price-class questions: every price class is shown on the result.
     update({ answers, currentName: undefined, priceClass: 'any' });
     go('/fitting');

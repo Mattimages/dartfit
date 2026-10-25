@@ -1,5 +1,5 @@
 import { giftRequestBanner } from './share';
-import { giftIcon, noCardIcon } from '../draw/icons';
+import { giftIcon } from '../draw/icons';
 import type { Variant } from '@dartfit/engine';
 import { h } from '../h';
 import { num, t, type Key } from '../i18n';
@@ -132,12 +132,6 @@ export function homeView(root: HTMLElement, _params?: Record<string, string>, qu
         h(
           'div',
           { class: 'alt-starts' },
-          h(
-            'a',
-            { class: 'btn ghost ico-btn', href: '#/scan?nocard=1', onclick: start },
-            noCardIcon(),
-            h('span', null, t('start.nocard')),
-          ),
           h(
             'a',
             { class: 'btn ghost ico-btn', href: '#/gift' },

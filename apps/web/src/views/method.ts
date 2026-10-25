@@ -24,8 +24,8 @@ const COPY = {
         'Gewicht, lengte en dikte hangen samen: een barrel is metaal met een dichtheid. Ons model rekent met de dichtheid van tungstenlegeringen (ASTM B777), de boringen voor punt en schroefdraad en de vorm. Het voorspelt het opgegeven gewicht van 34 rechte barrels uit de catalogus binnen ongeveer 7%. Vraag je iets dat niet kan, dan schuiven we naar de dichtstbijzijnde barrel die wel kan, of zeggen we dat je 95% tungsten nodig hebt.',
       ],
       [
-        'Lengte en onderarm',
-        'Zonder scan schatten we je hand uit je lengte: gemiddeld 10,75% van je lichaamslengte (mannen 10,9%, vrouwen 10,6%, studie onder 195 volwassenen, bioRxiv 2025), met een marge van ±8 mm. Met scan controleren we die twee tegen elkaar. Je lengte bepaalt ook waar je loslaat (ongeveer ooghoogte), je onderarm en hand hoe snel. Met de natuurkunde van een worp (bull op 1,73 m, oche op 2,37 m, losslaatsnelheid zoals gemeten bij profs) rekenen we uit onder welke hoek jij moet gooien. Weet je niet hoe je dart vliegt, dan beslist die hoek of je richting een vlakke of een boogworp zit.',
+        'Je lengte',
+        'Zonder scan schatten we je hand uit je lengte: gemiddeld 10,75% van je lichaamslengte (mannen 10,9%, vrouwen 10,6%, studie onder 195 volwassenen, bioRxiv 2025), met een marge van ±8 mm. Met scan controleren we die twee tegen elkaar. Je lengte bepaalt ook waar je loslaat (ongeveer ooghoogte), je onderarm (geschat uit je lengte) en hand hoe snel. Met de natuurkunde van een worp (bull op 1,73 m, oche op 2,37 m, losslaatsnelheid zoals gemeten bij profs) rekenen we uit onder welke hoek jij moet gooien. Weet je niet hoe je dart vliegt, dan beslist die hoek of je richting een vlakke of een boogworp zit.',
       ],
       [
         '4. Je ideale barrel',
@@ -62,8 +62,8 @@ const COPY = {
         'Weight, length and thickness are tied together: a barrel is metal with a density. Our model uses the density of tungsten alloys (ASTM B777), the bores for the point and thread, and the shape. It predicts the listed weight of 34 straight barrels in the catalogue to within about 7%. Ask for something that cannot be made and we move to the closest barrel that can, or tell you that you need 95% tungsten.',
       ],
       [
-        'Height and forearm',
-        'Without a scan we estimate your hand from your height: on average 10.75% of stature (men 10.9%, women 10.6%, study of 195 adults, bioRxiv 2025), give or take 8 mm. With a scan we check the two against each other. Your height also sets where you release (about eye level), your forearm and hand how fast. With the physics of a throw (bull at 1.73 m, oche at 2.37 m, release speeds as measured in professionals) we work out the angle you have to throw at. If you don’t know how your dart flies, that angle decides whether you lean towards a flat or an arcing throw.',
+        'Your height',
+        'Without a scan we estimate your hand from your height: on average 10.75% of stature (men 10.9%, women 10.6%, study of 195 adults, bioRxiv 2025), give or take 8 mm. With a scan we check the two against each other. Your height also sets where you release (about eye level), your forearm (estimated from your height) and hand how fast. With the physics of a throw (bull at 1.73 m, oche at 2.37 m, release speeds as measured in professionals) we work out the angle you have to throw at. If you don’t know how your dart flies, that angle decides whether you lean towards a flat or an arcing throw.',
       ],
       [
         '4. Your ideal barrel',

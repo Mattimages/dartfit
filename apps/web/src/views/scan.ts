@@ -182,7 +182,8 @@ export function scanView(root: HTMLElement, _params?: Record<string, string>, qu
     class: 'visually-hidden',
   }) as HTMLInputElement;
   const photoBtn = h('label', { class: 'btn ghost', for: 'photo' }, t('scan.photo'));
-  // Builds without the hand model (the embedded preview) measure with a ruler instead.
+  // Builds without the hand model (only the embedded preview) measure with a ruler instead; the
+  // real site has no ruler option.
   const intro = NO_CAMERA
     ? h(
         'div',
@@ -199,7 +200,6 @@ export function scanView(root: HTMLElement, _params?: Record<string, string>, qu
         h('div', { class: 'actions' }, startBtn, photoBtn, photoInput),
         h('p', { class: 'small' }, t('scan.photo.hint')),
         h('div', { class: 'alt-starts' }, noCardBtn, giftBtn),
-        h('a', { class: 'btn link', href: '#/manual' }, t('scan.manual')),
         h('p', { class: 'small' }, t('scan.privacy')),
       );
 

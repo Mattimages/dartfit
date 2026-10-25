@@ -231,7 +231,7 @@ export const app = (base: string, site: Site) => ({
   url: `${base}/`,
   applicationCategory: 'SportsApplication',
   operatingSystem: 'Any (web browser)',
-  browserRequirements: 'A phone with a camera, or a ruler',
+  browserRequirements: 'A phone with a camera',
   inLanguage: LANGS,
   description: site.hub.description,
   offers: { '@type': 'Offer', price: '0', priceCurrency: 'EUR' },
