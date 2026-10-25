@@ -198,15 +198,6 @@
     "sourceUrl": "https://a-zdarts.com/products/one80-boris-koltsov-signature-steel-tip-darts-22gm"
   },
   {
-    "id": "noguera",
-    "name": "Jesús Noguera",
-    "country": "ESP",
-    "variantId": "one80-jesus-noguera-signature-22",
-    "exactDart": false,
-    "playingWeightG": 22,
-    "sourceUrl": "https://a-zdarts.com/products/one80-jesus-noguera-perea-signature-steel-tip-darts-22gm"
-  },
-  {
     "id": "cross",
     "name": "Rob Cross",
     "country": "ENG",
@@ -286,5 +277,14 @@
     "exactDart": false,
     "playingWeightG": null,
     "sourceUrl": "https://en.wikipedia.org/wiki/Charlie_Manby"
+  },
+  {
+    "id": "greaves",
+    "name": "Beau Greaves",
+    "country": "ENG",
+    "variantId": "target-greaves-g1-23",
+    "exactDart": false,
+    "playingWeightG": 23,
+    "sourceUrl": "https://en.wikipedia.org/wiki/Beau_Greaves"
   }
 ]

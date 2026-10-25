@@ -48,7 +48,7 @@ export function rankPros(f: Fit): RankedPro[] {
 }
 
 /** Plain sentences on what your ideal dart and the pro's dart share, and where they differ. */
-function common(f: Fit, v: Variant): string[] {
+function common(f: Fit, v: Variant, name: string): string[] {
   const out: string[] = [];
   const ideal = f.barrel;
   if (v.shape && ideal.shape === v.shape) out.push(t('pm.same.shape', { shape: shapeName(v.shape) }));
@@ -56,19 +56,19 @@ function common(f: Fit, v: Variant): string[] {
   out.push(
     Math.abs(dw) < 1
       ? t('pm.same.weight', { w: num(v.weightG, 0) })
-      : t(dw > 0 ? 'pm.heavier' : 'pm.lighter', { d: num(Math.abs(dw), 0) }),
+      : t(dw > 0 ? 'pm.heavier' : 'pm.lighter', { d: num(Math.abs(dw), 0), name }),
   );
   const dl = v.lengthMm - ideal.lengthMm;
   out.push(
     Math.abs(dl) < 2
       ? t('pm.same.length')
-      : t(dl > 0 ? 'pm.longer' : 'pm.shorter', { d: num(Math.abs(dl), 0) }),
+      : t(dl > 0 ? 'pm.longer' : 'pm.shorter', { d: num(Math.abs(dl), 0), name }),
   );
   const dd = v.diameterMm - ideal.diameterMm;
   out.push(
     Math.abs(dd) < 0.3
       ? t('pm.same.thick')
-      : t(dd > 0 ? 'pm.thicker' : 'pm.thinner', { d: num(Math.abs(dd), 1) }),
+      : t(dd > 0 ? 'pm.thicker' : 'pm.thinner', { d: num(Math.abs(dd), 1), name }),
   );
   if (v.balance && v.balance === f.preferredBalance)
     out.push(t('pm.same.balance', { b: balanceName(v.balance) }));
@@ -117,7 +117,7 @@ export async function proMatchView(root: HTMLElement, params: Record<string, str
             )
           : null,
       ),
-      h('h2', null, t('pm.compare')),
+      h('h2', null, t('pm.compare', { name: pro.name })),
       h(
         'div',
         { class: 'table-wrap' },
@@ -141,7 +141,7 @@ export async function proMatchView(root: HTMLElement, params: Record<string, str
         ),
       ),
       h('h2', null, t('pm.common', { name: pro.name })),
-      h('ul', { class: 'pm-common' }, ...common(f, v).map((x) => h('li', null, x))),
+      h('ul', { class: 'pm-common' }, ...common(f, v, pro.name).map((x) => h('li', null, x))),
       ranked.length > 1
         ? h(
             'section',

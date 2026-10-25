@@ -31,7 +31,8 @@ describe('guide pages (SEO)', () => {
     const p = files['nl/profs/luke-littler/index.html']!;
     expect(p).toContain('Welke darts gooit Luke Littler?');
     expect(p).toContain('Target Luke Littler G1');
-    expect(files['de/profis/jesus-noguera/index.html']).toContain('Jesús Noguera');
+    expect(files['de/profis/beau-greaves/index.html']).toContain('Beau Greaves');
+    expect(files['nl/profs/dimitri-van-den-bergh/index.html']).toContain('Dimitri Van den Bergh');
     expect(files['en/pros/index.html']).toContain('/en/pros/michael-van-gerwen/');
   });
 

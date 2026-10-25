@@ -10,7 +10,7 @@ export const PRO_COPY: Record<Lang, ProCopy> = {
         'The darts of {n} professional players: weight, length, barrel shape and tungsten of each signature dart, and whether that dart would fit your hand.',
       h1: 'Which darts do the pros throw?',
       answer:
-        'The signature darts of the {n} professionals below weigh between {minW} and {maxW} g; most are straight barrels of 90% tungsten. A pro’s dart is built around his own grip, so it fits you only if your hand and hold are similar. DartFit tells you which pro throws the same type of dart as you.',
+        'The signature darts of the {n} professionals below weigh between {minW} and {maxW} g; most are straight barrels of 90% tungsten. A pro’s dart is built around the player’s own grip, so it fits you only if your hand and hold are similar. DartFit tells you which pro throws the same type of dart as you.',
       col: ['Player', 'Dart', 'Weight'],
     },
     title: '{name} darts: weight, barrel and specs',
@@ -57,7 +57,7 @@ export const PRO_COPY: Record<Lang, ProCopy> = {
     similarH2: 'Darts like the {model}',
     similarIntro: 'The closest darts in the DartFit catalogue by weight, length, thickness and shape:',
     fitH2: 'Does {name}’s dart fit me?',
-    fitP: 'A pro picks his dart around his own grip, so the right dart for you is the one that fits your hand. DartFit measures your hand next to a bank card, asks five questions and shows the darts that fit you best, and which pro throws the same type of dart as you.',
+    fitP: 'A pro picks a dart around their own grip, so the right dart for you is the one that fits your hand. DartFit measures your hand next to a bank card, asks five questions and shows the darts that fit you best, and which pro throws the same type of dart as you.',
     faq: [
       ['How heavy is {name}’s dart?', 'The {model} weighs {w} g.'],
       [
@@ -86,7 +86,7 @@ export const PRO_COPY: Record<Lang, ProCopy> = {
         'De darts van {n} profs: gewicht, lengte, barrelvorm en tungsten van elke signature-dart, en of die dart bij jouw hand zou passen.',
       h1: 'Welke darts gooien de profs?',
       answer:
-        'De signature-darts van de {n} profs hieronder wegen tussen {minW} en {maxW} gram; de meeste zijn rechte barrels van 90% tungsten. De dart van een prof is gebouwd rond zijn eigen grip, dus hij past alleen bij jou als je hand en grip erop lijken. DartFit vertelt je welke prof hetzelfde type dart gooit als jij.',
+        'De signature-darts van de {n} profs hieronder wegen tussen {minW} en {maxW} gram; de meeste zijn rechte barrels van 90% tungsten. De dart van een prof is gebouwd rond diens eigen grip, dus hij past alleen bij jou als je hand en grip erop lijken. DartFit vertelt je welke prof hetzelfde type dart gooit als jij.',
       col: ['Speler', 'Dart', 'Gewicht'],
     },
     title: 'Darts van {name}: gewicht, barrel en specificaties',
@@ -134,7 +134,7 @@ export const PRO_COPY: Record<Lang, ProCopy> = {
     similarIntro:
       'De darts in de DartFit-catalogus die er qua gewicht, lengte, dikte en vorm het dichtst bij komen:',
     fitH2: 'Past de dart van {name} bij mij?',
-    fitP: 'Een prof kiest zijn dart rond zijn eigen grip, dus de juiste dart voor jou is de dart die bij jouw hand past. DartFit meet je hand naast een pasje, stelt vijf vragen en laat zien welke darts het best bij je passen, en welke prof hetzelfde type dart gooit als jij.',
+    fitP: 'Een prof kiest een dart rond de eigen grip, dus de juiste dart voor jou is de dart die bij jouw hand past. DartFit meet je hand naast een pasje, stelt vijf vragen en laat zien welke darts het best bij je passen, en welke prof hetzelfde type dart gooit als jij.',
     faq: [
       ['Hoe zwaar is de dart van {name}?', 'De {model} weegt {w} gram.'],
       [
@@ -163,7 +163,7 @@ export const PRO_COPY: Record<Lang, ProCopy> = {
         'Die Darts von {n} Profis: Gewicht, Länge, Barrelform und Wolframanteil jedes Signature-Darts, und ob dieser Dart zu deiner Hand passen würde.',
       h1: 'Welche Darts werfen die Profis?',
       answer:
-        'Die Signature-Darts der {n} Profis unten wiegen zwischen {minW} und {maxW} Gramm; die meisten sind gerade Barrels aus 90% Wolfram. Der Dart eines Profis ist um seinen eigenen Griff gebaut, deshalb passt er zu dir nur, wenn deine Hand und dein Griff ähnlich sind. DartFit sagt dir, welcher Profi denselben Typ Dart wirft wie du.',
+        'Die Signature-Darts der {n} Profis unten wiegen zwischen {minW} und {maxW} Gramm; die meisten sind gerade Barrels aus 90% Wolfram. Der Dart eines Profis ist um den eigenen Griff gebaut, deshalb passt er zu dir nur, wenn deine Hand und dein Griff ähnlich sind. DartFit sagt dir, welcher Profi denselben Typ Dart wirft wie du.',
       col: ['Spieler', 'Dart', 'Gewicht'],
     },
     title: 'Darts von {name}: Gewicht, Barrel und Daten',
@@ -210,7 +210,7 @@ export const PRO_COPY: Record<Lang, ProCopy> = {
     similarH2: 'Darts wie der {model}',
     similarIntro: 'Die Darts im DartFit-Katalog, die nach Gewicht, Länge, Dicke und Form am nächsten kommen:',
     fitH2: 'Passt der Dart von {name} zu mir?',
-    fitP: 'Ein Profi wählt seinen Dart um seinen eigenen Griff, deshalb ist der richtige Dart für dich der, der zu deiner Hand passt. DartFit misst deine Hand neben einer Bankkarte, stellt fünf Fragen und zeigt, welche Darts am besten zu dir passen, und welcher Profi denselben Typ Dart wirft wie du.',
+    fitP: 'Profis wählen ihren Dart um den eigenen Griff, deshalb ist der richtige Dart für dich der, der zu deiner Hand passt. DartFit misst deine Hand neben einer Bankkarte, stellt fünf Fragen und zeigt, welche Darts am besten zu dir passen, und welcher Profi denselben Typ Dart wirft wie du.',
     faq: [
       ['Wie schwer ist der Dart von {name}?', 'Der {model} wiegt {w} Gramm.'],
       [
