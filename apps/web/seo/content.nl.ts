@@ -10,11 +10,11 @@ export const nl: Site = {
       'Welke dart past bij jou? Gidsen over dartgewicht, barrelvorm, grip en hoe DartFit darts bij je hand zoekt. Ook: darts kopen als cadeau.',
     h1: 'Gidsen voor het kiezen van darts',
     intro:
-      'Korte, eerlijke gidsen om een dart te vinden die bij je past: welk gewicht, welke barrelvorm bij je grip hoort en hoe DartFit je hand naast een bankpas meet om je te matchen met {models} echte dartmodellen.',
+      'Korte, eerlijke gidsen om een dart te vinden die bij je past: welk gewicht, welke barrelvorm bij je grip hoort en hoe DartFit je hand naast een pasje meet om je te matchen met {models} echte dartmodellen.',
   },
   ui: {
     cta: 'Vind mijn dart',
-    ctaSub: 'Gratis, ongeveer twee minuten. Meet je hand naast een bankpas; de foto blijft op je telefoon.',
+    ctaSub: 'Gratis, ongeveer twee minuten. Meet je hand naast een pasje; de foto blijft op je telefoon.',
     ctaGift: 'Koop je voor iemand anders?',
     related: 'Meer gidsen',
     faq: 'Veelgestelde vragen',
@@ -34,7 +34,7 @@ export const nl: Site = {
         'Zo vind je een dart die bij je past: gewicht, lengte, dikte, barrelvorm en grip, afgestemd op je hand en hoe je de dart vasthoudt. Gratis met DartFit.',
       h1: 'Welke dart past bij mij?',
       answer:
-        'De dart die bij je past, is de dart waarvan het gewicht, de lengte, de dikte, de barrelvorm en de grip passen bij je hand en bij hoe je vasthoudt en gooit. Een goed startpunt voor steeltip is 22 tot 24 gram ({share2224} van de {darts} darts in onze catalogus zit daartussen), een barrel die lang genoeg is voor de vingers waarmee je grijpt, en een vorm die past bij waar je hem vasthoudt. DartFit rekent dit voor je uit: je meet je hand naast een bankpas, beantwoordt vijf vragen en krijgt je ideale dart plus de echte darts die er het dichtst bij komen, in drie prijsklassen.',
+        'De dart die bij je past, is de dart waarvan het gewicht, de lengte, de dikte, de barrelvorm en de grip passen bij je hand en bij hoe je vasthoudt en gooit. Een goed startpunt voor steeltip is 22 tot 24 gram ({share2224} van de {darts} darts in onze catalogus zit daartussen), een barrel die lang genoeg is voor de vingers waarmee je grijpt, en een vorm die past bij waar je hem vasthoudt. DartFit rekent dit voor je uit: je meet je hand naast een pasje, beantwoordt vijf vragen en krijgt je ideale dart plus de echte darts die er het dichtst bij komen, in drie prijsklassen.',
       sections: [
         {
           h2: 'Wat maakt dat een dart bij je past?',
@@ -55,7 +55,7 @@ export const nl: Site = {
             'In een winkel laat een fitter je darts proberen tot er een goed voelt. Dat werkt, maar de meeste mensen kopen online en kunnen niets proberen. DartFit geeft je daarom een goed onderbouwd startpunt:',
           ],
           list: [
-            'Meet je hand: leg je hand naast een bankpas en je telefoon vindt 21 punten op je hand. De pas (85,6 × 53,98 mm) is de liniaal. De foto verlaat je telefoon nooit.',
+            'Meet je hand: leg je hand naast een pasje en je telefoon vindt 21 punten op je hand. Het pasje (85,6 × 53,98 mm) is de liniaal. De foto verlaat je telefoon nooit.',
             'Beantwoord vijf vragen: je lengte, waar je de dart vasthoudt, met hoeveel vingers, hoe hij vliegt en hoeveel grip je fijn vindt.',
             'Zie je ideale dart: gewicht, lengte, dikte, vorm en balans, op schaal getekend.',
             'Vergelijk echte darts: elke dart in de catalogus krijgt een matchscore (pasvorm, stijl en totaal), met de beste match in budget, standaard en premium.',
@@ -92,11 +92,11 @@ export const nl: Site = {
       faq: [
         [
           'Welke dart past bij mij?',
-          'De dart waarvan gewicht, lengte, dikte, vorm en grip passen bij je hand en je grip. DartFit meet je hand naast een bankpas, stelt vijf vragen en zet {darts} echte darts op volgorde van hoe goed ze bij je passen.',
+          'De dart waarvan gewicht, lengte, dikte, vorm en grip passen bij je hand en je grip. DartFit meet je hand naast een pasje, stelt vijf vragen en zet {darts} echte darts op volgorde van hoe goed ze bij je passen.',
         ],
         [
           'Hoe vind ik een dart die bij me past?',
-          'Meet je hand naast een bankpas met DartFit en beantwoord vijf vragen over je grip en worp. Je krijgt je ideale dart en de echte darts (dartpijlen) die er het best bij passen, per prijsklasse.',
+          'Meet je hand naast een pasje met DartFit en beantwoord vijf vragen over je grip en worp. Je krijgt je ideale dart en de echte darts (dartpijlen) die er het best bij passen, per prijsklasse.',
         ],
         [
           'Welke darts moet ik kopen?',
@@ -125,16 +125,16 @@ export const nl: Site = {
       slug: 'hoe-werkt-dartfit',
       title: 'Hoe werkt DartFit? Het dart-fitting-algoritme uitgelegd',
       description:
-        'Hoe DartFit van een foto van je hand naast een bankpas je ideale dart maakt: handmeting, onzekerheid, barrelnatuurkunde en matchscores.',
+        'Hoe DartFit van een foto van je hand naast een pasje je ideale dart maakt: handmeting, onzekerheid, barrelnatuurkunde en matchscores.',
       h1: 'Hoe het DartFit-algoritme je dart kiest',
       answer:
-        'DartFit meet je hand met de camera van je telefoon, met een bankpas als liniaal, en combineert die maten met je antwoorden tot een schatting van het gewicht, de lengte en de dikte die bij je passen, elk met een onzekerheid. Een natuurkundig model van een echte barrel (dichtheid van tungsten, boringen, vorm) zorgt dat je ideale dart ook echt gemaakt kan worden. Daarna krijgt elke dart in de catalogus een matchscore ten opzichte van dat ideaal.',
+        'DartFit meet je hand met de camera van je telefoon, met een pasje als liniaal, en combineert die maten met je antwoorden tot een schatting van het gewicht, de lengte en de dikte die bij je passen, elk met een onzekerheid. Een natuurkundig model van een echte barrel (dichtheid van tungsten, boringen, vorm) zorgt dat je ideale dart ook echt gemaakt kan worden. Daarna krijgt elke dart in de catalogus een matchscore ten opzichte van dat ideaal.',
       sections: [
         {
           h2: 'Stap 1: je hand meten',
           p: [
-            'Je telefoon herkent 21 punten op je hand (MediaPipe, op je toestel). Een bankpas is altijd 85,6 × 53,98 mm (ISO/IEC 7810 ID-1), dus hij werkt als liniaal in de foto. DartFit neemt de mediaan van veel beelden en gooit uitschieters weg. Het beeld verlaat je telefoon nooit; alleen de maten in millimeters worden gebruikt.',
-            'Geen pas bij de hand? Je kunt ook zonder scannen; DartFit houdt dan alleen de verhoudingen van je hand over, schat de grootte uit je lengte en zegt erbij dat het minder precies is.',
+            'Je telefoon herkent 21 punten op je hand (MediaPipe, op je toestel). Een pasje is altijd 85,6 × 53,98 mm (ISO/IEC 7810 ID-1), dus het werkt als liniaal in de foto. DartFit neemt de mediaan van veel beelden en gooit uitschieters weg. Het beeld verlaat je telefoon nooit; alleen de maten in millimeters worden gebruikt.',
+            'Geen pasje bij de hand? Je kunt ook zonder scannen; DartFit houdt dan alleen de verhoudingen van je hand over, schat de grootte uit je lengte en zegt erbij dat het minder precies is.',
           ],
         },
         {
@@ -176,11 +176,11 @@ export const nl: Site = {
       faq: [
         [
           'Hoe nauwkeurig is DartFit?',
-          'De bankpas maakt van de foto echte millimeters en DartFit neemt de mediaan van veel beelden; we controleren het tegen handen die met een meetlint zijn gemeten. De barrelnatuurkunde voorspelt opgegeven gewichten binnen ongeveer 7%. De stap van hand naar perfect gewicht is een onderbouwde schatting, geen wet; daarom krijg je een korte lijst.',
+          'Het pasje maakt van de foto echte millimeters en DartFit neemt de mediaan van veel beelden; we controleren het tegen handen die met een meetlint zijn gemeten. De barrelnatuurkunde voorspelt opgegeven gewichten binnen ongeveer 7%. De stap van hand naar perfect gewicht is een onderbouwde schatting, geen wet; daarom krijg je een korte lijst.',
         ],
         [
-          'Waarom een bankpas?',
-          'Elke bankpas is even groot (85,6 × 53,98 mm), dus daarmee kan een telefoonfoto in echte millimeters meten.',
+          'Waarom een pasje?',
+          'Elk pasje is even groot (85,6 × 53,98 mm), dus daarmee kan een telefoonfoto in echte millimeters meten.',
         ],
         [
           'Welke darts zitten in de catalogus?',

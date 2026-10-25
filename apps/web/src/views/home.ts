@@ -112,7 +112,11 @@ export function homeView(root: HTMLElement) {
       { class: 'land-hero' },
       h('h1', null, t('land.title')),
       h('p', { class: 'lead' }, t('land.lead')),
-      heroScan(all) ?? heroFan(fanDarts),
+      // The film itself starts the measurement when tapped.
+      ((film) =>
+        film
+          ? h('a', { class: 'hs-link', href: '#/scan', onclick: start, 'aria-label': t('land.cta') }, film)
+          : heroFan(fanDarts))(heroScan(all)),
       h(
         'div',
         { class: 'hero-cta' },

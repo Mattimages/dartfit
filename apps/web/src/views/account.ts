@@ -15,7 +15,6 @@ export function signinView(root: HTMLElement, _p: Record<string, string>, query:
   const box = (id: string, label: string) =>
     h('label', { class: 'check', for: id }, h('input', { type: 'checkbox', id }), h('span', null, label));
   const alerts = box('alerts', t('signin.alerts'));
-  const feedback = box('feedback', t('signin.feedback'));
   const age = box('age', t('signin.age'));
   const msg = h('p', { role: 'status' });
   if (query.get('error') === 'expired') msg.textContent = t('signin.expired');
@@ -26,7 +25,6 @@ export function signinView(root: HTMLElement, _p: Record<string, string>, query:
     h('label', { class: 'label', for: 'email' }, t('signin.email')),
     email,
     alerts,
-    feedback,
     age,
     h('button', { class: 'btn', type: 'submit' }, t('signin.send')),
     msg,
@@ -44,7 +42,7 @@ export function signinView(root: HTMLElement, _p: Record<string, string>, query:
         email: email.value,
         fitId,
         alertsEmail: checked(alerts),
-        feedbackEmail: checked(feedback),
+        feedbackEmail: false,
         confirmsAge16: true,
       });
       msg.className = '';
@@ -111,7 +109,8 @@ export async function meView(root: HTMLElement) {
           )
         : h('p', null, t('me.empty')),
       toggle('al', t('me.alerts'), u.alerts_email, 'alertsEmail'),
-      toggle('fb', t('me.feedback'), u.feedback_email, 'feedbackEmail'),
+      // The two-week "which dart did you pick" mail is no longer offered; only a way off for those who have it.
+      u.feedback_email ? toggle('fb', t('me.feedback'), u.feedback_email, 'feedbackEmail') : null,
       h(
         'div',
         { class: 'actions' },

@@ -182,7 +182,6 @@ export const de: Partial<Record<Key, string>> = {
   'fit.s.model': 'Dein idealer Dart',
   'fit.s.best': 'Dein bester Match',
   'fit.win': 'Bullseye!',
-  'fit.checkout': 'Genau {n}!',
   'hs.twin': 'Du wirfst wie: {name}',
   'fit.win.total': '{n}% Match',
   'fit.see': 'Meine Darts ansehen',

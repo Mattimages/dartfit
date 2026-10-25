@@ -35,6 +35,10 @@ const COPY = {
         'Cookies',
         'Alleen een inlogcookie als je een account gebruikt. Geen advertentie- of trackingcookies.',
       ],
+      [
+        'Bezoekersstatistieken',
+        'We tellen paginabezoeken met Vercel Web Analytics: zonder cookies, zonder je IP-adres op te slaan en alleen als totalen. Van je fit sturen we alleen het type pagina mee, nooit je maten of je fit-nummer.',
+      ],
       ['Leeftijd', 'Accounts en mails vanaf 16 jaar. Een fit maken kan zonder account.'],
       [
         'Winkellinks',
@@ -71,6 +75,10 @@ const COPY = {
         'From every fit we also keep one anonymous line: your hand sizes in whole millimetres, height, your answers about how you throw, country, month and the calculated ideal dart. No account, no link to your fit, no time of day and no image. It helps us make the measuring and the advice better.',
       ],
       ['Cookies', 'Only a sign-in cookie if you use an account. No advertising or tracking cookies.'],
+      [
+        'Visitor statistics',
+        'We count page views with Vercel Web Analytics: no cookies, no stored IP address, only totals. For your fit we send only the kind of page, never your measurements or your fit number.',
+      ],
       ['Age', 'Accounts and emails from 16. Making a fit needs no account.'],
       [
         'Shop links',

@@ -13,7 +13,7 @@ const COPY = {
     sections: [
       [
         '1. Je hand meten',
-        'Je telefoon herkent 21 punten op je hand (MediaPipe, op je toestel). Je bankpas is 85,6 × 53,98 mm (ISO/IEC 7810 ID-1) en dient als liniaal. Wijs je de hoeken zelf aan, dan corrigeren we ook voor perspectief. We nemen de mediaan van 18 beelden en gooien uitschieters weg. Het beeld verlaat je telefoon nooit.',
+        'Je telefoon herkent 21 punten op je hand (MediaPipe, op je toestel). Je pasje is 85,6 × 53,98 mm (ISO/IEC 7810 ID-1) en dient als liniaal. Wijs je de hoeken zelf aan, dan corrigeren we ook voor perspectief. We nemen de mediaan van 18 beelden en gooien uitschieters weg. Het beeld verlaat je telefoon nooit.',
       ],
       [
         '2. Van antwoorden naar maten',

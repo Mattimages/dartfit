@@ -9,8 +9,10 @@ import type { Lang, Page, Section, Site } from './types';
 import { en } from './content.en';
 import { nl } from './content.nl';
 import { de } from './content.de';
+import { TOPICS } from './topics';
+import { proHubItem, renderProIndex, renderProPage, proPaths, type CatalogueRows } from './pro-pages';
 
-export const SITES: Site[] = [nl, en, de];
+export const SITES: Site[] = [nl, en, de].map((s) => ({ ...s, pages: [...s.pages, ...TOPICS[s.lang]] }));
 export const LANGS: Lang[] = ['nl', 'en', 'de'];
 /** Shown on every page and used as dateModified; bump when the guides change. */
 export const UPDATED = '2026-10-24';
@@ -33,6 +35,7 @@ export interface Stats {
   share2224: number;
   straight: number;
   w90: number;
+  w95: number;
 }
 
 /** Minimal CSV reader for the catalogue (no quoted fields in it). */
@@ -63,10 +66,11 @@ export function statsFromCsv(variantsCsv: string, prosCount: number): Stats {
     share2224: w.filter((x) => x >= 22 && x <= 24).length / w.length,
     straight: shaped.filter((r) => at(r, 'shape') === 'straight').length / shaped.length,
     w90: steel.filter((r) => at(r, 'tungsten_pct') === '90').length / steel.length,
+    w95: steel.filter((r) => at(r, 'tungsten_pct') === '95').length / steel.length,
   };
 }
 
-const esc = (s: string) =>
+export const esc = (s: string) =>
   s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 
 /** Fill {placeholders} with catalogue facts, in the page's number format. */
@@ -91,6 +95,7 @@ export function fill(text: string, st: Stats, lang: Lang): string {
     share2224: pct(st.share2224),
     straightPct: pct(st.straight),
     w90Pct: pct(st.w90),
+    w95Pct: pct(st.w95),
   };
   return text.replace(/\{(\w+)\}/g, (m, k: string) => {
     if (!(k in v)) throw new Error(`unknown placeholder ${m}`);
@@ -99,13 +104,13 @@ export function fill(text: string, st: Stats, lang: Lang): string {
 }
 
 export const pathOf = (lang: Lang, slug: string) => (slug ? `/${lang}/${slug}/` : `/${lang}/`);
-const siteOf = (lang: Lang) => SITES.find((s) => s.lang === lang)!;
+export const siteOf = (lang: Lang) => SITES.find((s) => s.lang === lang)!;
 const pageOf = (lang: Lang, key: Page['key']) => siteOf(lang).pages.find((p) => p.key === key)!;
 
 const LOGO =
   '<svg class="logo" viewBox="0 0 32 32" aria-hidden="true"><path d="M16 16 L16 2 L24 10 Z" class="logo-r"/><path d="M16 16 L30 16 L22 24 Z" class="logo-k"/><path d="M16 16 L16 30 L8 22 Z" class="logo-r"/><path d="M16 16 L2 16 L10 8 Z" class="logo-k"/></svg>';
 
-function head(o: {
+export function head(o: {
   site: Site;
   title: string;
   description: string;
@@ -142,11 +147,12 @@ ${xDefault ? `<link rel="alternate" hreflang="x-default" href="${o.base}${xDefau
 <link rel="icon" href="/icons/icon.svg" type="image/svg+xml">
 <link rel="preload" href="/guides/geist.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="stylesheet" href="/guides/guides.css">
+<script defer src="/_vercel/insights/script.js"></script>
 <script type="application/ld+json">${JSON.stringify(o.jsonld).replace(/</g, '\\u003c')}</script>
 </head>`;
 }
 
-function chrome(site: Site, inner: string, langLinks: string, crumbs: string): string {
+export function chrome(site: Site, inner: string, langLinks: string, crumbs: string): string {
   const u = site.ui;
   return `<body>
 <a class="skip" href="#main">${esc(u.skip)}</a>
@@ -167,7 +173,7 @@ ${inner}
 `;
 }
 
-function cta(site: Site): string {
+export function cta(site: Site): string {
   const u = site.ui;
   return `<aside class="cta" aria-label="${esc(u.cta)}">
 <p class="cta-sub">${esc(u.ctaSub)}</p>
@@ -204,14 +210,14 @@ function section(s: Section, st: Stats, lang: Lang): string {
   return `<section>${parts.join('\n')}</section>`;
 }
 
-const org = (base: string) => ({
+export const org = (base: string) => ({
   '@type': 'Organization',
   '@id': `${base}/#org`,
   name: 'DartFit',
   url: `${base}/`,
   logo: `${base}/icons/icon-512.png`,
 });
-const app = (base: string, site: Site) => ({
+export const app = (base: string, site: Site) => ({
   '@type': 'WebApplication',
   '@id': `${base}/#app`,
   name: 'DartFit',
@@ -325,7 +331,7 @@ export function renderHub(site: Site, st: Stats, base: string): string {
   const inner = `<h1>${esc(f(site.hub.h1))}</h1>
 <p class="answer">${esc(f(site.hub.intro))}</p>
 ${cta(site)}
-<ul class="hub">${list}</ul>`;
+<ul class="hub">${list}${proHubItem(site)}</ul>`;
   const jsonld = [
     {
       '@context': 'https://schema.org',
@@ -362,19 +368,22 @@ ${cta(site)}
 }
 
 /** Every guide file: path (without leading slash) → contents. */
-export function buildGuides(st: Stats, base: string): Record<string, string> {
+export function buildGuides(st: Stats, base: string, cat: CatalogueRows): Record<string, string> {
   const out: Record<string, string> = {};
   for (const site of SITES) {
     out[`${site.lang}/index.html`] = renderHub(site, st, base);
     for (const p of site.pages) out[`${site.lang}/${p.slug}/index.html`] = renderPage(site, p, st, base);
+    out[`${proPaths.index(site.lang).slice(1)}index.html`] = renderProIndex(site, cat, base);
+    for (const pro of cat.pros)
+      out[`${proPaths.pro(site.lang, pro).slice(1)}index.html`] = renderProPage(site, pro, cat, base);
   }
-  out['sitemap.xml'] = sitemap(base);
+  out['sitemap.xml'] = sitemap(base, cat);
   out['robots.txt'] = robots(base);
-  out['llms.txt'] = llms(st, base);
+  out['llms.txt'] = llms(st, base, cat);
   return out;
 }
 
-function sitemap(base: string): string {
+function sitemap(base: string, cat: CatalogueRows): string {
   const entry = (loc: string, alts: Array<{ lang: Lang; path: string }>, prio: string) =>
     `<url><loc>${base}${loc}</loc><lastmod>${UPDATED}</lastmod><priority>${prio}</priority>${alts
       .map((a) => `<xhtml:link rel="alternate" hreflang="${a.lang}" href="${base}${a.path}"/>`)
@@ -394,6 +403,23 @@ function sitemap(base: string): string {
           pathOf(site.lang, p.slug),
           LANGS.map((l) => ({ lang: l, path: pathOf(l, pageOf(l, p.key).slug) })),
           p.key === 'guide' ? '0.9' : '0.7',
+        ),
+      );
+  }
+  for (const site of SITES) {
+    urls.push(
+      entry(
+        proPaths.index(site.lang),
+        LANGS.map((l) => ({ lang: l, path: proPaths.index(l) })),
+        '0.7',
+      ),
+    );
+    for (const pro of cat.pros)
+      urls.push(
+        entry(
+          proPaths.pro(site.lang, pro),
+          LANGS.map((l) => ({ lang: l, path: proPaths.pro(l, pro) })),
+          '0.6',
         ),
       );
   }
@@ -428,7 +454,7 @@ Sitemap: ${base}/sitemap.xml
 }
 
 /** llms.txt (llmstxt.org): a plain summary for AI assistants, with the answers and links. */
-function llms(st: Stats, base: string): string {
+function llms(st: Stats, base: string, cat: CatalogueRows): string {
   const e = SITES.find((s) => s.lang === 'en')!;
   const f = (x: string, l: Lang) => fill(x, st, l);
   const block = (site: Site) =>
@@ -452,6 +478,18 @@ ${block(siteOf('nl'))}
 ## Ratgeber (Deutsch)
 
 ${block(siteOf('de'))}
+
+## Darts of the pros
+
+${cat.pros
+  .map((p) => {
+    const v = cat.variants.find((x) => x.id === p.variantId);
+    return v
+      ? `- [${p.name}](${base}${proPaths.pro('en', p)}): ${v.brand} ${v.model}, ${v.weight} g, ${v.length} mm, ${v.shape || 'unknown'} barrel`
+      : '';
+  })
+  .filter(Boolean)
+  .join('\n')}
 
 ## Facts
 

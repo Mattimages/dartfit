@@ -4102,6 +4102,8 @@ a.card {
 .hs-name {
   margin: 0.35rem 0 0;
   display: grid;
+  justify-items: center;
+  text-align: center;
   gap: 0.1rem;
   color: #fff;
   font-size: clamp(1.5rem, 7vw, 2.1rem);
@@ -4298,4 +4300,21 @@ a.card {
 .hs-stage:has(> .bw) .hs-modelbox {
   opacity: 0;
   transition: opacity 0.2s ease;
+}
+/* The landing film is a link to the measurement. */
+.hs-link {
+  display: block;
+  color: inherit;
+  text-decoration: none;
+  border-radius: var(--r-stage);
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition: transform 120ms ease;
+}
+.hs-link:active {
+  transform: scale(0.985);
+}
+.hs-link:focus-visible {
+  outline: 3px solid var(--red);
+  outline-offset: 3px;
 }

@@ -7,7 +7,7 @@
  * Every number is real: the engine fits the hand, the barrels are catalogue darts and the
  * percentages are the engine's own match split (shape, style, total), as on the result page.
  */
-import { boardSvg, checkout, hitLabel, hitPoint, hitValue } from '../draw/checkout';
+import { boardSvg, checkout, hitPoint } from '../draw/checkout';
 import {
   fit,
   matchBreakdown,
@@ -551,17 +551,15 @@ function bullseye(total: number): HTMLElement {
 }
 
 /**
- * The ending of your own film: darts that score exactly your match % (98% = T20, D19), each
- * landing with its score, then the total. Falls back to the bullseye when no checkout exists.
+ * The ending of your own film: darts land on a real board (on segments that add up to your match %,
+ * a small nod for players who notice), then just the score: "95% match".
  */
 function checkoutWin(total: number): { el: HTMLElement; ms: number } {
   const hits = checkout(total);
   if (!hits) return { el: bullseye(total), ms: 2300 };
   const board = boardSvg('bw-board bc-board');
   const tilt = hits.length === 1 ? [-8] : hits.length === 2 ? [-22, 6] : [-28, -8, 14];
-  const step = 0.6;
-  const chips = h('div', { class: 'bc-chips' });
-  let sum = 0;
+  const step = 0.5;
   hits.forEach((hit, i) => {
     const [x, y] = hitPoint(hit);
     const d = 0.45 + i * step;
@@ -574,19 +572,13 @@ function checkoutWin(total: number): { el: HTMLElement; ms: number } {
       s('path', { d: 'M37,0L51,-11L56,-11L51,0L56,11L51,11Z', class: 'bw-flight' }),
     );
     board.append(g);
-    sum += hitValue(hit);
-    const chip = h('span', { class: 'bc-chip' }, h('b', null, hitLabel(hit)), h('small', null, String(sum)));
-    chip.style.cssText = `animation-delay:${(d + 0.4).toFixed(2)}s`;
-    chips.append(chip);
   });
-  const end = 0.45 + (hits.length - 1) * step + 0.55;
-  const word = h('b', { class: 'bw-word' }, t('fit.checkout', { n: total }));
+  const end = 0.45 + (hits.length - 1) * step + 0.5;
+  const word = h('b', { class: 'bw-word' }, t('fit.win.total', { n: total }));
   word.style.cssText = `animation-delay:${end.toFixed(2)}s`;
-  const line = h('span', { class: 'bw-total' }, t('fit.win.total', { n: total }));
-  line.style.cssText = `animation-delay:${(end + 0.2).toFixed(2)}s`;
   return {
-    el: h('div', { class: 'bw bc' }, h('div', { class: 'bw-hit' }, board), chips, word, line),
-    ms: Math.round((end + 1.6) * 1000),
+    el: h('div', { class: 'bw bc' }, h('div', { class: 'bw-hit' }, board), word),
+    ms: Math.round((end + 1.5) * 1000),
   };
 }
 

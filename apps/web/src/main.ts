@@ -4,7 +4,8 @@ import { h, mount } from './h';
 import { getLang, LANGS, t } from './i18n';
 import { COUNTRIES, getCountry, hasChosenCountry } from './region';
 import { openRegionPicker } from './views/region-picker';
-import { route, start, render, go } from './router';
+import { route, start, render, go, current } from './router';
+import { inject, pageview } from '@vercel/analytics';
 import { clearSession, update } from './store';
 import { DEMO, refreshCatalogue } from './api';
 import { homeView } from './views/home';
@@ -117,7 +118,19 @@ function refreshAll() {
 }
 
 layout();
-start(() => {});
+const routeOf = (path: string) => path.replace(/^\/fit\/[^/]+/, '/fit/[id]');
+// Visitor counts (Vercel Web Analytics: cookieless, aggregated). Hash routes are sent as paths,
+// and ids are replaced by the route pattern, so no fit id ever leaves the page.
+if (!DEMO) {
+  inject({
+    mode: import.meta.env.PROD ? 'production' : 'development',
+    disableAutoTrack: true,
+    beforeSend: (e) => ({ ...e, url: location.origin + routeOf(current().path) }),
+  });
+}
+start((path) => {
+  if (!DEMO) pageview({ route: routeOf(path), path: routeOf(path) });
+});
 // First visit: ask where they shop (the browser's guess is pre-selected).
 if (!hasChosenCountry()) openRegionPicker(refreshAll, true);
 void refreshCatalogue();

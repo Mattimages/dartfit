@@ -2,20 +2,30 @@ import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { describe, expect, it } from 'vitest';
 import { buildGuides, LANGS, SITES, statsFromCsv } from '../seo/render';
+import { catalogueRows } from '../seo/pro-pages';
 
 const data = join(__dirname, '..', '..', '..', 'packages', 'catalogue', 'data');
-const stats = statsFromCsv(
-  readFileSync(join(data, 'variants.csv'), 'utf8'),
-  (JSON.parse(readFileSync(join(data, 'pros.json'), 'utf8')) as unknown[]).length,
-);
+const csv = readFileSync(join(data, 'variants.csv'), 'utf8');
+const prosJson = readFileSync(join(data, 'pros.json'), 'utf8');
+const stats = statsFromCsv(csv, (JSON.parse(prosJson) as unknown[]).length);
+const cat = catalogueRows(csv, prosJson);
 const base = 'https://dartfit.example';
-const files = buildGuides(stats, base);
+const files = buildGuides(stats, base, cat);
 const html = Object.entries(files).filter(([f]) => f.endsWith('.html'));
 
 describe('guide pages (SEO)', () => {
-  it('has a hub and five guides per language', () => {
-    expect(html).toHaveLength(LANGS.length * 6);
-    for (const s of SITES) expect(new Set(s.pages.map((p) => p.key)).size).toBe(5);
+  it('has a hub, eight guides, a pro index and a page per pro in every language', () => {
+    expect(html).toHaveLength(LANGS.length * (1 + 8 + 1 + cat.pros.length));
+    for (const s of SITES) expect(new Set(s.pages.map((p) => p.key)).size).toBe(8);
+    expect(cat.pros.length).toBeGreaterThan(20);
+  });
+
+  it('pro pages quote the dart from the catalogue', () => {
+    const p = files['nl/profs/luke-littler/index.html']!;
+    expect(p).toContain('Welke darts gooit Luke Littler?');
+    expect(p).toContain('Target Luke Littler G1');
+    expect(files['de/profis/jesus-noguera/index.html']).toContain('Jesús Noguera');
+    expect(files['en/pros/index.html']).toContain('/en/pros/michael-van-gerwen/');
   });
 
   it('every page has a title, a description, a canonical and all language alternates', () => {
@@ -36,11 +46,13 @@ describe('guide pages (SEO)', () => {
     for (const [file, page] of html) {
       expect(page, file).not.toMatch(/\sstyle="/);
       const scripts = [...page.matchAll(/<script([^>]*)>([\s\S]*?)<\/script>/g)];
-      expect(
-        scripts.every((m) => m[1]!.includes('application/ld+json')),
-        file,
-      ).toBe(true);
-      for (const m of scripts) expect(() => JSON.parse(m[2]!)).not.toThrow();
+      // Only the JSON-LD data block and the same-origin analytics script (no inline code).
+      const ok = (m: RegExpMatchArray) =>
+        m[1]!.includes('application/ld+json') ||
+        (m[1]!.includes('src="/_vercel/insights/script.js"') && !m[2]!.trim());
+      expect(scripts.every(ok), file).toBe(true);
+      for (const m of scripts.filter((x) => x[1]!.includes('ld+json')))
+        expect(() => JSON.parse(m[2]!)).not.toThrow();
     }
   });
 
@@ -51,6 +63,7 @@ describe('guide pages (SEO)', () => {
     expect(lower('en/which-darts-are-right-for-me/index.html')).toContain('which darts are right for me');
     expect(lower('de/welcher-dart-passt-zu-mir/index.html')).toContain('welcher dart passt zu mir');
     expect(lower('nl/welk-gewicht-dart/index.html')).toContain('welk gewicht dart');
+    expect(lower('nl/barrelvormen-uitgelegd/index.html')).toContain('torpedo of rechte barrel');
   });
 
   it('quotes catalogue facts from the live catalogue, with no placeholders left', () => {

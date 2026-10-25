@@ -6,7 +6,7 @@
  * so a number on a guide page is never out of date): see `Stats` in ./render.ts.
  */
 export type Lang = 'nl' | 'en' | 'de';
-export type PageKey = 'guide' | 'algorithm' | 'why' | 'weight' | 'gift';
+export type PageKey = 'guide' | 'algorithm' | 'why' | 'weight' | 'gift' | 'shapes' | 'grip' | 'tungsten';
 
 export interface Section {
   /** Phrased the way people ask it, so it can be quoted as the answer. */
@@ -30,6 +30,45 @@ export interface Page {
   answer: string;
   sections: Section[];
   faq: Array<[q: string, a: string]>;
+}
+
+/**
+ * One page per pro, generated from pros.json and the catalogue. Templates use {name}, {model},
+ * {w}, {L}, {D}, {shape}, {t}, {pw} (reported playing weight), {src} (source name).
+ */
+export interface ProCopy {
+  slug: string;
+  index: { title: string; description: string; h1: string; answer: string; col: [string, string, string] };
+  title: string;
+  description: string;
+  h1: string;
+  answerExact: string;
+  answerSignature: string;
+  answerPlaying: string;
+  answerFit: string;
+  specsH2: string;
+  specs: {
+    weight: string;
+    length: string;
+    diameter: string;
+    shape: string;
+    tungsten: string;
+    grip: string;
+    balance: string;
+  };
+  suitsH2: string;
+  suits: {
+    hold: Record<'straight' | 'torpedo' | 'tapered' | 'bomb' | 'scalloped', string>;
+    fingers: { short: string; mid: string; long: string };
+    thick: { slim: string; mid: string; chunky: string };
+  };
+  similarH2: string;
+  similarIntro: string;
+  fitH2: string;
+  fitP: string;
+  faq: Array<[q: string, a: string]>;
+  shapes: Record<'straight' | 'torpedo' | 'tapered' | 'bomb' | 'scalloped', string>;
+  balance: Record<'front' | 'centre' | 'rear', string>;
 }
 
 export interface Site {

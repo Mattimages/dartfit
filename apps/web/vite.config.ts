@@ -6,6 +6,7 @@ import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 import { buildGuides, GUIDES_CSS, statsFromCsv } from './seo/render';
+import { catalogueRows } from './seo/pro-pages';
 
 const here = dirname(fileURLToPath(import.meta.url));
 const require = createRequire(import.meta.url);
@@ -108,10 +109,12 @@ function guides(): Plugin {
     apply: 'build',
     generateBundle() {
       const data = join(here, '..', '..', 'packages', 'catalogue', 'data');
-      const pros = (JSON.parse(readFileSync(join(data, 'pros.json'), 'utf8')) as unknown[]).length;
-      const stats = statsFromCsv(readFileSync(join(data, 'variants.csv'), 'utf8'), pros);
+      const csv = readFileSync(join(data, 'variants.csv'), 'utf8');
+      const prosJson = readFileSync(join(data, 'pros.json'), 'utf8');
+      const stats = statsFromCsv(csv, (JSON.parse(prosJson) as unknown[]).length);
+      const cat = catalogueRows(csv, prosJson);
       const base = (process.env.SITE_URL ?? 'https://dartfit.vercel.app').replace(/\/$/, '');
-      for (const [fileName, source] of Object.entries(buildGuides(stats, base)))
+      for (const [fileName, source] of Object.entries(buildGuides(stats, base, cat)))
         this.emitFile({ type: 'asset', fileName, source });
       this.emitFile({ type: 'asset', fileName: 'guides/guides.css', source: GUIDES_CSS });
       const font = join(pkgDir('@fontsource-variable/geist'), 'files', 'geist-latin-wght-normal.woff2');

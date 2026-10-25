@@ -1,7 +1,7 @@
 {
   "name": "DartFit",
   "short_name": "DartFit",
-  "description": "Meet je hand naast een bankpas en vind darts die bij je grip passen.",
+  "description": "Meet je hand naast een pasje en vind darts die bij je grip passen.",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",
