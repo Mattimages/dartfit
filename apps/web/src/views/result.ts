@@ -377,11 +377,12 @@ export async function resultView(root: HTMLElement, params: Record<string, strin
       : null,
     twin
       ? h(
-          'section',
-          { class: 'twin', 'aria-labelledby': 'twin-name' },
+          'a',
+          { class: 'twin twin-link', href: `#/fit/${r.id ?? 'local'}/pro`, 'aria-labelledby': 'twin-name' },
           h('p', { class: 'kicker' }, t('r.twin')),
           h('h2', { id: 'twin-name' }, twin.pro.name),
           h('p', null, `${dartName(twin.scored.variant)} ${num(twin.scored.variant.weightG)} g`),
+          h('span', { class: 'twin-more' }, t('pm.open')),
         )
       : null,
     // Share: right under the hero for a gift request (send it back), after the pro otherwise.

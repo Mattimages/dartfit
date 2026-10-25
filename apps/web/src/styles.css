@@ -4401,3 +4401,84 @@ a.card {
   white-space: nowrap;
   font-size: 1rem;
 }
+
+/* "Je gooit als …" page (views/pro-match.ts) */
+.twin-link {
+  text-decoration: none;
+}
+.twin-more {
+  margin-top: var(--s2);
+  font-weight: 600;
+  text-decoration: underline;
+  text-underline-offset: 4px;
+}
+.pm-hero h1 {
+  margin: 0;
+  color: #fff;
+  padding-right: 3rem;
+}
+.pm-hero p {
+  margin: 0;
+}
+.twin.pm-hero .pm-pct {
+  margin-top: var(--s2);
+  font-size: 2.4rem;
+  font-weight: 650;
+  letter-spacing: -0.04em;
+  color: #2ee59d;
+}
+.pm-dart {
+  display: grid;
+  gap: var(--s3);
+}
+.pm-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+.pm-table th,
+.pm-table td {
+  text-align: left;
+  padding: var(--s2) var(--s2);
+  border-bottom: 1px solid var(--line);
+}
+.pm-table tbody th::first-letter,
+.pm-table td::first-letter {
+  text-transform: uppercase;
+}
+.pm-common {
+  display: grid;
+  gap: var(--s2);
+  padding-left: 1.2rem;
+  margin: 0;
+}
+.pm-more {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: grid;
+  gap: var(--s2);
+}
+.pm-more li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--s3);
+  padding: var(--s3) var(--s4);
+  border: 1px solid var(--line);
+  border-radius: var(--r-tile);
+}
+.pm-more a {
+  display: grid;
+  color: var(--ink);
+  text-decoration: none;
+  min-width: 0;
+}
+.pm-more a span {
+  color: var(--ink-2);
+  font-size: 0.9rem;
+}
+.pm-more-pct {
+  font-weight: 650;
+  font-size: 1.2rem;
+  color: var(--green);
+}
