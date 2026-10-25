@@ -10,12 +10,17 @@ import { en } from './content.en';
 import { nl } from './content.nl';
 import { de } from './content.de';
 import { TOPICS } from './topics';
+import { EVENTS, SOURCES } from './events';
+import { checkout, hitLabel } from '../src/draw/checkout';
 import { proHubItem, renderProIndex, renderProPage, proPaths, type CatalogueRows } from './pro-pages';
 
-export const SITES: Site[] = [nl, en, de].map((s) => ({ ...s, pages: [...s.pages, ...TOPICS[s.lang]] }));
+export const SITES: Site[] = [nl, en, de].map((s) => ({
+  ...s,
+  pages: [...s.pages, ...TOPICS[s.lang], ...EVENTS[s.lang]],
+}));
 export const LANGS: Lang[] = ['nl', 'en', 'de'];
 /** Shown on every page and used as dateModified; bump when the guides change. */
-export const UPDATED = '2026-10-24';
+export const UPDATED = '2026-10-25';
 
 /** Catalogue facts quoted in the guides, computed from the live catalogue at build time. */
 export interface Stats {
@@ -256,10 +261,12 @@ export function renderPage(site: Site, page: Page, st: Stats, base: string): str
 <p class="answer">${esc(f(page.answer))}</p>
 ${cta(site)}
 ${page.sections.map((s) => section(s, st, site.lang)).join('\n')}
+${page.key === 'checkout' ? checkoutTable(site.lang) : ''}
 <section class="faq">
 <h2 id="faq">${esc(u.faq)}</h2>
 ${page.faq.map(([q, a]) => `<h3>${esc(f(q))}</h3>\n<p>${esc(f(a))}</p>`).join('\n')}
 </section>
+${sourcesList(page.key, site.lang)}
 <p class="updated">${esc(u.updated)}: <time datetime="${UPDATED}">${new Date(UPDATED).toLocaleDateString(site.locale.replace('_', '-'), { day: 'numeric', month: 'long', year: 'numeric' })}</time> · DartFit</p>
 </article>
 ${cta(site)}
@@ -309,6 +316,35 @@ ${cta(site)}
     head({ site, title: f(page.title), description: f(page.description), path, alternates, base, jsonld }) +
     chrome(site, inner, langLinks, crumbs)
   );
+}
+
+const CHECKOUT_HEAD: Record<Lang, [string, string, string]> = {
+  en: ['Score', 'Darts', 'Route'],
+  nl: ['Score', 'Darts', 'Route'],
+  de: ['Rest', 'Darts', 'Weg'],
+};
+const NO_FINISH: Record<Lang, string> = { en: 'No finish', nl: 'Geen uitgooi', de: 'Kein Finish' };
+
+/** Every finish from 170 to 2, from the same code that throws the darts in the film. */
+function checkoutTable(lang: Lang): string {
+  const rows: string[] = [];
+  for (let n = 170; n >= 2; n--) {
+    const c = checkout(n);
+    rows.push(
+      `<tr><th scope="row">${n}</th><td>${c ? c.length : '–'}</td><td>${c ? esc(c.map(hitLabel).join(' · ')) : esc(NO_FINISH[lang])}</td></tr>`,
+    );
+  }
+  const [a, b, c] = CHECKOUT_HEAD[lang];
+  return `<section><div class="table"><table class="checkout"><thead><tr><th scope="col">${a}</th><th scope="col">${b}</th><th scope="col">${c}</th></tr></thead><tbody>${rows.join('')}</tbody></table></div></section>`;
+}
+
+const SOURCES_H: Record<Lang, string> = { en: 'Sources', nl: 'Bronnen', de: 'Quellen' };
+function sourcesList(key: Page['key'], lang: Lang): string {
+  const list = SOURCES[key];
+  if (!list?.length) return '';
+  return `<section class="sources"><h2>${SOURCES_H[lang]}</h2><ul>${list
+    .map(([label, url]) => `<li><a href="${esc(url)}" rel="noopener nofollow">${esc(label)}</a></li>`)
+    .join('')}</ul></section>`;
 }
 
 export function renderHub(site: Site, st: Stats, base: string): string {
@@ -530,6 +566,7 @@ a{color:var(--red-ink);text-underline-offset:3px}
 caption{text-align:left;color:var(--ink-2);font-size:.9rem;padding-bottom:.5rem}
 th,td{text-align:left;padding:.6rem .5rem;border-bottom:1px solid var(--line);vertical-align:top}thead th{font-weight:600}tbody th{font-weight:550}
 .faq h3{color:var(--ink)}
+.checkout td,.checkout th{padding:.35rem .5rem;font-variant-numeric:tabular-nums}.sources{font-size:.9rem}
 .updated{color:var(--ink-2);font-size:.9rem;margin-top:2rem}
 .related ul,.hub{list-style:none;padding:0;display:grid;gap:.6rem}
 .related li,.hub li{margin:0;max-width:none}

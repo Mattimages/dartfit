@@ -15,9 +15,16 @@ const html = Object.entries(files).filter(([f]) => f.endsWith('.html'));
 
 describe('guide pages (SEO)', () => {
   it('has a hub, eight guides, a pro index and a page per pro in every language', () => {
-    expect(html).toHaveLength(LANGS.length * (1 + 8 + 1 + cat.pros.length));
-    for (const s of SITES) expect(new Set(s.pages.map((p) => p.key)).size).toBe(8);
+    expect(html).toHaveLength(LANGS.length * (1 + 11 + 1 + cat.pros.length));
+    for (const s of SITES) expect(new Set(s.pages.map((p) => p.key)).size).toBe(11);
     expect(cat.pros.length).toBeGreaterThan(20);
+  });
+
+  it('checkout table: every finish, and the bogey numbers the copy names', () => {
+    const page = files['en/darts-checkout-chart/index.html']!;
+    expect(page).toContain('<th scope="row">170</th><td>3</td><td>T20 · T20 · Bull</td>');
+    const none = [...page.matchAll(/<th scope="row">(\d+)<\/th><td>–<\/td>/g)].map((m) => Number(m[1]));
+    expect(none).toEqual([169, 168, 166, 165, 163, 162, 159]);
   });
 
   it('pro pages quote the dart from the catalogue', () => {

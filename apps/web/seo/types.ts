@@ -6,7 +6,18 @@
  * so a number on a guide page is never out of date): see `Stats` in ./render.ts.
  */
 export type Lang = 'nl' | 'en' | 'de';
-export type PageKey = 'guide' | 'algorithm' | 'why' | 'weight' | 'gift' | 'shapes' | 'grip' | 'tungsten';
+export type PageKey =
+  | 'guide'
+  | 'algorithm'
+  | 'why'
+  | 'weight'
+  | 'gift'
+  | 'shapes'
+  | 'grip'
+  | 'tungsten'
+  | 'events'
+  | 'rules'
+  | 'checkout';
 
 export interface Section {
   /** Phrased the way people ask it, so it can be quoted as the answer. */
