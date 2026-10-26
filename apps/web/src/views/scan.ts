@@ -195,7 +195,6 @@ export function scanView(root: HTMLElement, _params?: Record<string, string>, qu
     : h(
         'div',
         { class: 'stack scan-intro' },
-        h('p', { class: 'lead' }, t('scan.setup')),
         h('figure', { class: 'sheet narrow' }, setupDiagram()),
         h('div', { class: 'actions' }, startBtn, photoBtn, photoInput),
         h('p', { class: 'small' }, t('scan.photo.hint')),
