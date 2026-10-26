@@ -179,6 +179,18 @@ function showCard(c) {
     d.src = c.dartImg;
     tile.append(d);
     low.append(tile);
+  } else {
+    // No shop photo: the dart drawn from its specs, as on the site.
+    const art = document.querySelector('.pm-dart .media-model svg')?.cloneNode(true);
+    if (art) {
+      const tile = el(
+        'div',
+        'position:relative;height:132px;border-radius:16px;background:#edf2f9;overflow:hidden;display:flex;align-items:center;justify-content:center;padding:10px;box-sizing:border-box',
+      );
+      art.style.cssText = 'width:100%;height:100%';
+      tile.append(art);
+      low.append(tile);
+    }
   }
   low.append(el('div', 'font-size:15px;color:#c5d1e2;font-weight:550', c.dart));
   low.append(
