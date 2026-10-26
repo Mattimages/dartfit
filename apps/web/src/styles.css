@@ -4135,20 +4135,34 @@ a.card {
   width: max-content;
   max-width: calc(100% - 24px);
   margin: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  pointer-events: none;
+  opacity: 0;
+  transform: translate(-50%, -110%);
+  transition:
+    opacity 0.3s ease,
+    transform 0.7s cubic-bezier(0.34, 1.45, 0.5, 1);
+}
+.hs-twin .pro-art {
+  width: 6.4rem;
+  box-shadow:
+    0 0 0 2px #fff,
+    0 14px 30px -10px rgb(0 0 0 / 0.7);
+}
+.hs-twin p {
+  margin: 0;
   text-align: center;
   text-wrap: balance;
-  padding: 0.45rem 1rem;
+  padding: 0.4rem 0.95rem;
   border-radius: 16px;
-  background: rgb(10 18 31 / 0.75);
+  background: rgb(10 18 31 / 0.8);
   box-shadow: 0 0 0 1px rgb(255 255 255 / 0.22);
   color: #fff;
   font-size: 1.05rem;
   font-weight: 600;
-  opacity: 0;
-  transform: translate(-50%, -6px);
-  transition:
-    opacity 0.4s ease,
-    transform 0.4s var(--ease);
 }
 .hs-twin-on .hs-twin {
   opacity: 1;
@@ -4550,4 +4564,39 @@ a.card {
 }
 .pm-hero.has-art h1 {
   padding-right: 0;
+}
+
+/* Film ending with the player card: while the other price classes come up, the card shrinks to a
+   badge at the top and the cards drop their part scores (the total stays), so both fit. */
+.hs-twin-on.hs-stack .hs-twin {
+  top: 8px;
+  gap: 4px;
+}
+.hs-twin-on.hs-stack .hs-twin .pro-art {
+  width: 4.4rem;
+}
+.hs-twin-on.hs-stack .hs-twin p {
+  padding: 0.25rem 0.75rem;
+  font-size: 0.88rem;
+}
+.hs-twin .pro-art {
+  transition: width 0.5s var(--ease);
+}
+.hs-twin-on.hs-stack .hs-s-shape,
+.hs-twin-on.hs-stack .hs-s-style,
+.hs-twin-on.hs-stack .hs-s-total small {
+  display: none;
+}
+.hs-twin-on.hs-stack .hs-card .hs-split {
+  position: absolute;
+  right: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  margin: 0;
+}
+.hs-twin-on.hs-stack .hs-card > div {
+  padding-right: 4.2rem;
+}
+.hs-twin-on.hs-stack .hs-card .hs-card-meta {
+  font-size: 0.78rem;
 }

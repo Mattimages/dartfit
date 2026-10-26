@@ -32,6 +32,7 @@ import { approxEur } from '../money';
 import { photoUrl } from '../media';
 import { dartName } from './words';
 import { quizDart } from './quiz-dart';
+import { proArt } from '../draw/pro-art';
 
 const SVG = 'http://www.w3.org/2000/svg';
 const s = (tag: string, attrs: Record<string, string | number> = {}, text?: string) => {
@@ -58,7 +59,7 @@ interface Cast {
   /** The answers the film fills in (hold, grip) and the live dart shows (fingers, throw). */
   who: Who;
   /** The pro whose dart is closest to this fit ("throws the same type"). */
-  twin: string | null;
+  twin: { name: string; country: string } | null;
 }
 /** The answers the film shows. */
 export type Who = Pick<Answers, 'hold' | 'fingers' | 'throwStyle' | 'gripFeel'>;
@@ -256,7 +257,7 @@ export function castFor(
     barrels: [...ladder, top],
     options: [{ tier: bestTier, v: top.v, m: top.m, best: true }, ...others],
     who,
-    twin: proTwin(f, pros(), variants())?.pro.name ?? null,
+    twin: ((p) => (p ? { name: p.name, country: p.country } : null))(proTwin(f, pros(), variants())?.pro),
   };
 }
 
@@ -602,7 +603,10 @@ async function play(root: HTMLElement, c: Cast, mode: 'hero' | 'fit' = 'hero'): 
     nameEl.classList.add('in');
   };
   // The pro who throws the same type, shown with your best match.
-  const twinEl = c.twin ? h('p', { class: 'hs-twin' }, t('hs.twin', { name: c.twin })) : null;
+  // Their player card drops in above the name (country colours and initials, not a likeness).
+  const twinEl = c.twin
+    ? h('div', { class: 'hs-twin' }, proArt(c.twin), h('p', null, t('hs.twin', { name: c.twin.name })))
+    : null;
   const modelBox = h('div', { class: 'hs-modelbox' }, chip, model.svg, nameEl);
   const cards = shopCards(c);
   const ask = askPanel(c.who);
