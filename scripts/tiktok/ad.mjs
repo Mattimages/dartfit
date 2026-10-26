@@ -48,6 +48,17 @@ const CLOCK = `(() => {
   try { localStorage.setItem('df_country', '${COUNTRY}'); localStorage.setItem('df_lang', '${LANG}'); } catch {}
 })();`;
 
+/** The pro's photo for the reveal, when you have one: photos/<persona>.jpg + credits.json. */
+const PHOTOS = new URL('./photos/', import.meta.url);
+const CREDITS = JSON.parse(await readFile(new URL('credits.json', PHOTOS), 'utf8').catch(() => '{}'));
+async function photoFor(id) {
+  for (const ext of ['jpg', 'jpeg', 'png', 'webp']) {
+    const buf = await readFile(new URL(`${id}.${ext}`, PHOTOS)).catch(() => null);
+    if (buf) return `data:image/${ext === 'jpg' ? 'jpeg' : ext};base64,${buf.toString('base64')}`;
+  }
+  return null;
+}
+
 const html = await readFile(file);
 const server = createServer((_q, r) => {
   r.writeHead(200, { 'content-type': 'text/html; charset=utf-8' });
@@ -66,6 +77,9 @@ for (const P of PERSONAS.filter((x) => !only.length || only.includes(x.id))) {
     locale: { nl: 'nl-NL', en: 'en-GB', de: 'de-DE' }[LANG],
   });
   await ctx.addInitScript(CLOCK);
+  const photo = await photoFor(P.id);
+  if (photo)
+    await ctx.addInitScript((x) => (window.__adPhoto = x), { src: photo, credit: CREDITS[P.id] ?? '' });
   const p = await ctx.newPage();
   const errors = [];
   p.on('pageerror', (e) => errors.push(e.message));
