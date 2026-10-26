@@ -28,6 +28,12 @@
   ],
   "rewrites": [
     {
+      "source": "/sitemap.xml/googledad782361da4832a.html",
+      "destination": {
+        "service": "api"
+      }
+    },
+    {
       "source": "/api/(.*)",
       "destination": {
         "service": "api"

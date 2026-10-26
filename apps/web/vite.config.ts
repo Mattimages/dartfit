@@ -103,19 +103,53 @@ function catalogueModule(): Plugin {
  * Guide pages for search engines and AI assistants: real HTML at /nl/…, /en/…, /de/…, plus
  * sitemap.xml, robots.txt and llms.txt. Catalogue facts in the text come from the live catalogue.
  */
+/**
+ * IndexNow (Bing, Yandex, Seznam, Naver; Bing feeds ChatGPT search, Copilot and DuckDuckGo): the
+ * key file proves the site is ours, and each production build tells them which pages exist so
+ * new and changed guides are crawled within hours instead of weeks. Not a secret.
+ */
+const INDEXNOW_KEY = 'ca8f9a3ab24d52b9ae60f113ee36640f';
+
 function guides(): Plugin {
+  const urls: string[] = [];
+  let base = '';
   return {
     name: 'dartfit-guides',
     apply: 'build',
+    async closeBundle() {
+      if (process.env.VERCEL_ENV !== 'production' || process.env.INDEXNOW === 'off' || !urls.length) return;
+      try {
+        const res = await fetch('https://api.indexnow.org/indexnow', {
+          method: 'POST',
+          headers: { 'content-type': 'application/json; charset=utf-8' },
+          body: JSON.stringify({
+            host: new URL(base).host,
+            key: INDEXNOW_KEY,
+            keyLocation: `${base}/${INDEXNOW_KEY}.txt`,
+            urlList: urls,
+          }),
+          signal: AbortSignal.timeout(10_000),
+        });
+        console.log(`IndexNow: ${urls.length} URLs, HTTP ${res.status}`);
+      } catch (e) {
+        // Never fail a deploy over this.
+        console.log(`IndexNow skipped: ${(e as Error).message}`);
+      }
+    },
     generateBundle() {
       const data = join(here, '..', '..', 'packages', 'catalogue', 'data');
       const csv = readFileSync(join(data, 'variants.csv'), 'utf8');
       const prosJson = readFileSync(join(data, 'pros.json'), 'utf8');
       const stats = statsFromCsv(csv, (JSON.parse(prosJson) as unknown[]).length);
       const cat = catalogueRows(csv, prosJson);
-      const base = (process.env.SITE_URL ?? 'https://findyourdarts.com').replace(/\/$/, '');
-      for (const [fileName, source] of Object.entries(buildGuides(stats, base, cat)))
+      base = (process.env.SITE_URL ?? 'https://findyourdarts.com').replace(/\/$/, '');
+      urls.length = 0;
+      urls.push(`${base}/`);
+      for (const [fileName, source] of Object.entries(buildGuides(stats, base, cat))) {
         this.emitFile({ type: 'asset', fileName, source });
+        if (fileName.endsWith('index.html')) urls.push(`${base}/${fileName.replace(/index\.html$/, '')}`);
+      }
+      this.emitFile({ type: 'asset', fileName: `${INDEXNOW_KEY}.txt`, source: INDEXNOW_KEY });
       this.emitFile({ type: 'asset', fileName: 'guides/guides.css', source: GUIDES_CSS });
       const font = join(pkgDir('@fontsource-variable/geist'), 'files', 'geist-latin-wght-normal.woff2');
       this.emitFile({ type: 'asset', fileName: 'guides/geist.woff2', source: readFileSync(font) });

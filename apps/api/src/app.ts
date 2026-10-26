@@ -355,6 +355,14 @@ export function createApp(deps: AppDeps) {
     }),
   );
 
+  // ── Google Search Console ownership file ─────────────────────────────
+  // The Search Console property was made for https://findyourdarts.com/sitemap.xml/, so Google
+  // looks for its verification file under that prefix. The site root has the same file (public/).
+  const GOOGLE_VERIFY = 'googledad782361da4832a.html';
+  app.get(`/sitemap.xml/${GOOGLE_VERIFY}`, (_req, res) => {
+    res.type('text/html').send(`google-site-verification: ${GOOGLE_VERIFY}`);
+  });
+
   // ── Outbound click redirect ──────────────────────────────────────────
   app.get(
     '/go/:offerId',
