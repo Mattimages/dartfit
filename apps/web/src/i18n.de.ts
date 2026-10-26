@@ -391,7 +391,7 @@ export const de: Partial<Record<Key, string>> = {
   'share.copied': 'Link kopiert.',
   'share.card.like': 'Ich werfe wie',
   'share.card.mine': 'Mein Dart',
-  'share.card.cta': 'Welcher Dart passt zu dir? Scan deine Hand bei DartFit',
+  'share.card.cta': 'Welcher Dart passt zu dir? findyourdarts.com',
   'share.text.like': 'Ich werfe wie {pro}: mein Dart passt zu {pct}%. Welcher Profi bist du?',
   'share.text.mine': 'Mein Dart ist der {dart}: {pct}% Match. Welcher Dart passt zu dir?',
   'share.text.gift': 'Dieser Dart passt zu mir: der {dart}.',

@@ -113,7 +113,7 @@ function guides(): Plugin {
       const prosJson = readFileSync(join(data, 'pros.json'), 'utf8');
       const stats = statsFromCsv(csv, (JSON.parse(prosJson) as unknown[]).length);
       const cat = catalogueRows(csv, prosJson);
-      const base = (process.env.SITE_URL ?? 'https://dartfit.vercel.app').replace(/\/$/, '');
+      const base = (process.env.SITE_URL ?? 'https://findyourdarts.com').replace(/\/$/, '');
       for (const [fileName, source] of Object.entries(buildGuides(stats, base, cat)))
         this.emitFile({ type: 'asset', fileName, source });
       this.emitFile({ type: 'asset', fileName: 'guides/guides.css', source: GUIDES_CSS });
