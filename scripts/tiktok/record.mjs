@@ -16,6 +16,33 @@ import { mkdir, readFile, rm, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 
 const [file, out, ...only] = process.argv.slice(2);
+/** VIDEO_LANG=en records the English site (UK shop) with English captions; default Dutch. */
+const LANG = process.env.VIDEO_LANG === 'en' ? 'en' : 'nl';
+const TEXT = {
+  nl: {
+    locale: 'nl-NL',
+    country: 'NL',
+    hook: 'Welke dart past bij mijn hand?',
+    questions: '5 vragen over hoe ik gooi',
+    film: 'Nu de match…',
+    result: 'Mijn perfecte dart',
+    pro: (n) => `Ik gooi als ${n}!`,
+    like: 'Ik gooi als',
+    cta: 'Welke dart past bij jou? findyourdarts.com',
+  },
+  en: {
+    locale: 'en-GB',
+    country: 'GB',
+    hook: 'Which dart fits my hand?',
+    questions: '5 questions about how I throw',
+    film: 'Now the match…',
+    result: 'My perfect dart',
+    pro: (n) => `I throw like ${n}!`,
+    like: 'I throw like',
+    cta: 'Which dart fits you? findyourdarts.com',
+  },
+}[LANG];
+const SUFFIX = LANG === 'nl' ? '' : `-${LANG}`;
 if (!file || !out) throw new Error('usage: record.mjs <index.html> <out-dir> [persona ...]');
 
 /** Hand length (mm) and answers found with scripts/tiktok/search.ts, so each lands on its pro. */
@@ -81,7 +108,7 @@ window.__tap = (x, y) => {
   setTimeout(() => d.remove(), 600);
 };
 addEventListener('pointerdown', (e) => window.__tap(e.clientX, e.clientY), true);
-try { localStorage.setItem('df_country', 'NL'); } catch {}
+try { localStorage.setItem('df_country', '__COUNTRY__'); localStorage.setItem('df_lang', '__LANG__'); } catch {}
 `;
 
 const PHOTOS = new URL('./photos/', import.meta.url);
@@ -154,7 +181,7 @@ function showCard(c) {
     ),
   );
   const textBox = el('div', 'position:absolute;left:22px;right:22px;bottom:14px;display:grid;gap:2px');
-  textBox.append(el('div', 'font-size:17px;color:#c5d1e2;font-weight:550', 'Ik gooi als'));
+  textBox.append(el('div', 'font-size:17px;color:#c5d1e2;font-weight:550', c.like));
   textBox.append(el('div', 'font-size:44px;line-height:1;font-weight:650;letter-spacing:-.045em', c.name));
   top.append(textBox);
   if (c.credit)
@@ -196,7 +223,7 @@ function showCard(c) {
   low.append(
     el('div', 'font-size:46px;font-weight:650;letter-spacing:-.04em;color:#2ee59d;line-height:1', c.pct),
   );
-  low.append(el('div', 'font-size:15px;font-weight:550', 'Welke dart past bij jou? findyourdarts.com'));
+  low.append(el('div', 'font-size:15px;font-weight:550', c.cta));
   root.append(low);
   document.body.append(root);
   requestAnimationFrame(() => requestAnimationFrame(() => (root.style.opacity = '1')));
@@ -244,10 +271,10 @@ for (const P of PERSONAS.filter((x) => !only.length || only.includes(x.id))) {
     // at 980 px and zoom out.
     isMobile: false,
     hasTouch: false,
-    locale: 'nl-NL',
+    locale: TEXT.locale,
   });
   await ctx.addInitScript(CLOCK);
-  await ctx.addInitScript(TAPS);
+  await ctx.addInitScript(TAPS.replace('__COUNTRY__', TEXT.country).replace('__LANG__', LANG));
   const p = await ctx.newPage();
   const frames = [];
   const cdp = await ctx.newCDPSession(p);
@@ -266,7 +293,7 @@ for (const P of PERSONAS.filter((x) => !only.length || only.includes(x.id))) {
   await p.waitForSelector('.hs-link, .hero-cta');
   await wait(p, 400);
   mark('start');
-  await say(p, 'Welke dart past bij mijn hand?');
+  await say(p, TEXT.hook);
   // 1. The landing film: the hand scan, the questions, the dart carousel, the pro.
   await wait(p, 11000);
   // 2. "Meet mijn hand": shown as a tap; the measurement itself is set as if a scan was done.
@@ -280,11 +307,13 @@ for (const P of PERSONAS.filter((x) => !only.length || only.includes(x.id))) {
     sessionStorage.setItem('df_session', JSON.stringify({ measurements: m, alertsAsked: true }));
     location.hash = '#/questions';
   }, hand(P.L));
-  await p.waitForSelector('#height');
+  await p.waitForSelector('input[name=shop]', { state: 'attached' });
   await wait(p, 300);
   mark('questions');
-  await say(p, '5 vragen over hoe ik gooi');
+  await say(p, TEXT.questions);
   // 3. The questions, one tap each.
+  // First question: where you buy your darts.
+  await tap(p, p.locator(`.step:not([hidden]) input[name=shop][value="${TEXT.country}"]`).locator('..'), 900);
   await tap(p, p.locator('#height'), 200);
   await p.keyboard.type(String(P.height), { delay: 140 * SLOW });
   await wait(p, 500);
@@ -312,14 +341,14 @@ for (const P of PERSONAS.filter((x) => !only.length || only.includes(x.id))) {
   // 4. The fitting film with the player's own result.
   await p.waitForURL(/fitting/);
   mark('film');
-  await say(p, 'Nu de match…');
+  await say(p, TEXT.film);
   await p.locator('.fit-cta:not([hidden])').waitFor({ timeout: 45000 * SLOW });
   await wait(p, 1600);
   await tap(p, p.locator('.fit-cta'), 200);
   // 5. The result, then the pro.
   await p.waitForURL(/#\/fit\//, { timeout: 30000 * SLOW });
   mark('result');
-  await say(p, 'Mijn perfecte dart');
+  await say(p, TEXT.result);
   await wait(p, 1500);
   await smoothScroll(p, 420, 1800);
   await wait(p, 600);
@@ -329,12 +358,14 @@ for (const P of PERSONAS.filter((x) => !only.length || only.includes(x.id))) {
   await tap(p, twin, 200);
   await p.waitForURL(/\/pro$/);
   mark('pro');
-  await say(p, `Ik gooi als ${(await p.locator('.pm-hero h1').textContent()).trim()}!`);
+  await say(p, TEXT.pro((await p.locator('.pm-hero h1').textContent()).trim()));
   await wait(p, 2400);
   await smoothScroll(p, 700, 3000);
   await wait(p, 1500);
   // 6. The share picture, with the player's photo when one is supplied (photos/<id>.jpg).
   const card = {
+    like: TEXT.like,
+    cta: TEXT.cta,
     photo: await photoFor(P.id),
     credit: CREDITS[P.id] ?? '',
     name: (await p.locator('.pm-hero h1').textContent()).trim(),
@@ -350,7 +381,7 @@ for (const P of PERSONAS.filter((x) => !only.length || only.includes(x.id))) {
   await say(p, '');
   await p.evaluate(showCard, card);
   await wait(p, 4200);
-  await p.screenshot({ path: join(out, `${P.id}-card.png`) });
+  await p.screenshot({ path: join(out, `${P.id}${SUFFIX}-card.png`) });
   mark('end');
   const name = card.name;
   await cdp.send('Page.stopScreencast');
@@ -373,7 +404,7 @@ for (const P of PERSONAS.filter((x) => !only.length || only.includes(x.id))) {
   }
   lines.push(lines.at(-2));
   await writeFile(join(dir, 'list.txt'), lines.join('\n'));
-  const mp4 = join(out, `${P.id}.mp4`);
+  const mp4 = join(out, `${P.id}${SUFFIX}.mp4`);
   execFileSync('ffmpeg', [
     '-y',
     '-loglevel',

@@ -17,6 +17,7 @@ import { questionsView } from './views/questions';
 import { fittingView } from './views/fitting';
 import { resultView } from './views/result';
 import { dartsView } from './views/darts';
+import { adView } from './views/ad';
 import { methodView } from './views/method';
 import { privacyView } from './views/privacy';
 import { signinView, meView } from './views/account';
@@ -35,6 +36,9 @@ route('/fitting', fittingView);
 route('/fit/:id', resultView);
 route('/fit/:id/pro', proMatchView);
 route('/darts', dartsView);
+// The motion ad for TikTok/Reels, recorded by scripts/tiktok/ad.mjs. Demo build only (the check is
+// a build-time constant, so production drops the module).
+if (import.meta.env.MODE === 'demo') route('/ad', adView);
 route('/method', methodView);
 route('/privacy', privacyView);
 route('/signin', signinView);
