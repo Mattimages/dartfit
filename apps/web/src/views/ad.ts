@@ -149,14 +149,14 @@ const CSS = `
 .ad-meas{position:absolute;bottom:8vh;left:7vw;right:7vw;display:grid;grid-template-columns:1fr 1fr;gap:2vw 4vw}
 .ad-meas div{font-size:3.6vw;color:#9fb0c8;font-weight:550;opacity:0}
 .ad-meas b{display:block;color:#fff;font-size:8vw;font-weight:650;letter-spacing:-.04em}
-.ad-panel{width:100%;display:grid;gap:1.4vw;margin-top:6vh}
+.ad-panel{width:100%;display:grid;gap:1.4vw;margin-top:12vh}
 .ad-row{display:flex;justify-content:space-between;align-items:baseline;padding:2.2vw 3.4vw;border-radius:2.6vw;
   background:${CYAN}12;box-shadow:inset 0 0 0 1px ${CYAN}40;opacity:0}
 .ad-row span{font-size:4.4vw;color:#9fb0c8;font-weight:550}
 .ad-row b{font-size:6.4vw;font-weight:650;letter-spacing:-.03em}
 .ad-row.hit{box-shadow:inset 0 0 0 1px ${CYAN}}
 .ad-feed{position:absolute;left:7vw;right:7vw;bottom:4vh;font-size:3.2vw;color:${CYAN};opacity:.8;line-height:1.5;white-space:nowrap;overflow:hidden}
-.ad-curves{width:100%;display:grid;gap:3vw;margin-top:4vh}
+.ad-curves{width:100%;display:grid;gap:3vw;margin-top:12vh}
 .ad-curve{display:grid;grid-template-columns:1fr auto;align-items:end;gap:1vw 3vw}
 .ad-curve span{grid-column:1/-1;font-size:3.8vw;color:#9fb0c8;font-weight:550;letter-spacing:.04em;text-transform:uppercase}
 .ad-curve svg{width:100%;height:16vw;overflow:visible}
