@@ -114,7 +114,10 @@ describe('fit properties', () => {
         (a, h, d) => {
           const small = fit(hand(h), a);
           const big = fit(hand(h + d), a);
-          return big.length.mu >= small.length.mu - 1e-9;
+          // The physics projection snaps the barrel to a 0.5 mm length grid; when the best
+          // diameter tips to the next 0.05 mm step the length can drop by one grid step. That is
+          // resolution, not a trend: allow exactly one step.
+          return big.length.mu >= small.length.mu - config.physics.grid.lengthStep - 1e-9;
         },
       ),
     );

@@ -555,7 +555,7 @@ function bullseye(total: number): HTMLElement {
  * The ending of your own film: darts land on a real board (on segments that add up to your match %,
  * a small nod for players who notice), then just the score: "95% match".
  */
-function checkoutWin(total: number): { el: HTMLElement; ms: number } {
+export function checkoutWin(total: number): { el: HTMLElement; ms: number } {
   const hits = checkout(total);
   if (!hits) return { el: bullseye(total), ms: 2300 };
   const board = boardSvg('bw-board bc-board');

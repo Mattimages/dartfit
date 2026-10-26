@@ -14,7 +14,7 @@ import { boardSvg } from '../draw/checkout';
 import { handArt, SKIN_TONES, templateHand } from '../draw/art';
 import { proArt } from '../draw/pro-art';
 import { variantArt } from '../score';
-import { castFor } from './hero-scan';
+import { castFor, checkoutWin } from './hero-scan';
 import { dartName } from './words';
 
 const COPY = {
@@ -84,6 +84,11 @@ const CSS = `
 .ad-pct{font-size:30vw;line-height:.9;font-weight:650;letter-spacing:-.06em;font-variant-numeric:tabular-nums;margin-top:4vh}
 .ad-pct.win{color:#2ee59d}
 .ad-dname{margin-top:3vw;font-size:6.4vw;font-weight:600;letter-spacing:-.03em;text-align:center;text-wrap:balance;min-height:16vw}
+.ad-match .bw{background:none;z-index:1}
+.ad-match .bw-hit{width:80vw}
+.ad-match .bw-word{font-size:15vw}
+.ad-found{position:absolute;left:7vw;right:7vw;bottom:9vh;display:grid;justify-items:center;gap:2vw}
+.ad-found .ad-dname{opacity:0;min-height:0}
 .ad-badge{margin-top:2vw;padding:1.6vw 4vw;border-radius:99px;background:#2ee59d;color:#0a121f;font-size:4.6vw;font-weight:650;opacity:0}
 .ad-like{font-size:7vw;font-weight:600;color:#c5d1e2;letter-spacing:-.02em}
 .ad-pro .pro-art{width:78vw;margin:4vw 0;border-radius:5vw;box-shadow:0 0 0 1.2vw #fff,0 6vw 14vw rgb(0 0 0/.6)}
@@ -287,57 +292,30 @@ export async function adView(root: HTMLElement, _p: Record<string, string>, q: U
   );
   await hide(qs, 150);
 
-  // 4. The match: three real darts, the score climbing to the best one.
-  const match = h('div', { class: 'ad-scene' });
-  const row = h('div', { class: 'ad-dartrow' });
-  const pct = h('div', { class: 'ad-pct' }, '0%');
-  const dname = h('div', { class: 'ad-dname' });
+  // 4. The match: no sums, just darts landing on the board and "92% match" (the same ending as the
+  // site's own film, so the ad shows what the visitor will see), then the dart it found.
+  const match = h('div', { class: 'ad-scene ad-match' });
+  const top = c.barrels[c.barrels.length - 1]!;
+  const win = checkoutWin(top.m.total);
+  const dname = h('div', { class: 'ad-dname' }, dartName(top.v));
   const badge = h('div', { class: 'ad-badge' }, C.best);
-  match.append(h('div', { class: 'ad-title' }, C.finding), row, pct, dname, badge);
+  match.append(
+    h('div', { class: 'ad-title' }, C.finding),
+    win.el,
+    h('div', { class: 'ad-found' }, dname, badge),
+  );
   ad.append(match);
-  await show(match, 150);
-  let from = 0;
-  for (const [i, b] of c.barrels.entries()) {
-    const last = i === c.barrels.length - 1;
-    const art = variantArt(b.v) as unknown as HTMLElement;
-    row.replaceChildren(art);
-    dname.textContent = dartName(b.v);
-    art.animate([{ transform: 'translateX(90vw)' }, { transform: 'none' }], {
-      duration: 300,
-      easing: EASE_OUT,
-    });
-    const to = b.m.total;
-    const s0 = performance.now();
-    for (;;) {
-      const p = Math.min(1, (performance.now() - s0) / 520);
-      pct.textContent = `${Math.round(from + (to - from) * (1 - Math.pow(1 - p, 3)))}%`;
-      if (p >= 1) break;
-      await wait(30);
-    }
-    from = to;
-    if (last) {
-      pct.classList.add('win');
-      pct.animate([{ transform: 'scale(1)' }, { transform: 'scale(1.15)' }, { transform: 'scale(1)' }], {
-        duration: 380,
-        easing: POP,
-      });
-      badge.animate(
-        [
-          { opacity: 0, transform: 'translateY(3vw)' },
-          { opacity: 1, transform: 'none' },
-        ],
-        { duration: 260, fill: 'forwards' },
-      );
-      await wait(1100);
-    } else {
-      await wait(380);
-      await art.animate([{ transform: 'none' }, { transform: 'translateX(-90vw)' }], {
-        duration: 220,
-        easing: 'ease-in',
-        fill: 'forwards',
-      }).finished;
-    }
-  }
+  match.style.opacity = '1';
+  await wait(win.ms - 600);
+  for (const el of [dname, badge])
+    el.animate(
+      [
+        { opacity: 0, transform: 'translateY(3vw)' },
+        { opacity: 1, transform: 'none' },
+      ],
+      { duration: 280, easing: EASE_OUT, fill: 'forwards' },
+    );
+  await wait(1300);
   await hide(match, 180);
 
   // 5. The reveal: flash, the player card slams in, the name.
