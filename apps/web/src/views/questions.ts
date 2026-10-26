@@ -1,6 +1,7 @@
 import type { Answers, HandType } from '@dartfit/engine';
 import { h } from '../h';
-import { t, type Key } from '../i18n';
+import { getLang, t, type Key } from '../i18n';
+import { COUNTRIES, getCountry, setCountry } from '../region';
 import { go } from '../router';
 import { session, update } from '../store';
 import { pictogram } from '../draw/art';
@@ -146,7 +147,61 @@ export function questionsView(root: HTMLElement) {
   const unsure = (): Opt => ({ value: 'unsure', label: t('q.hand.unsure') });
 
   /** One question per screen. `auto` steps move on by themselves when tapped. */
+  // ── Where you buy your darts: decides the shops (was a pop-up on the first visit).
+  const names = (() => {
+    try {
+      const dn = new Intl.DisplayNames([getLang()], { type: 'region' });
+      return (code: string) => dn.of(code) ?? code;
+    } catch {
+      return (code: string) => COUNTRIES.find((c) => c.code === code)?.name ?? code;
+    }
+  })();
+  const here = getCountry();
+  const POPULAR = ['NL', 'BE', 'DE', 'GB', 'IE', 'US'];
+  const popular = POPULAR.includes(here) ? POPULAR : [here, ...POPULAR.slice(0, 5)];
+  const otherSel = h(
+    'select',
+    { id: 'shop-other', name: 'shopOther', class: 'shop-other' },
+    h('option', { value: '' }, t('q.shop.other')),
+    ...COUNTRIES.filter((c) => !popular.includes(c.code))
+      .map((c) => ({ code: c.code, label: names(c.code) }))
+      .sort((x, y) => x.label.localeCompare(y.label))
+      .map((c) => h('option', { value: c.code }, c.label)),
+  ) as HTMLSelectElement;
+  const shopStep = h(
+    'div',
+    null,
+    tiles(
+      'shop',
+      q('q.shop'),
+      popular.map((code) => ({ value: code, label: names(code) })),
+      here,
+      2,
+      false,
+    ),
+    h('label', { class: 'visually-hidden', for: 'shop-other' }, t('q.shop.other')),
+    otherSel,
+    h('p', { class: 'hint' }, t('q.shop.hint')),
+  );
+  const pickCountry = (code: string) => {
+    setCountry(code);
+    // The globe in the header shows the country code.
+    const btn = document.querySelector('.region-btn');
+    if (btn?.lastChild) btn.lastChild.textContent = code;
+  };
+  shopStep.addEventListener('change', (e) => {
+    const el = e.target as HTMLInputElement | HTMLSelectElement;
+    if (el.name === 'shop') {
+      otherSel.value = '';
+      pickCountry(el.value);
+    } else if (el === otherSel && otherSel.value) {
+      shopStep.querySelectorAll<HTMLInputElement>('input[name=shop]').forEach((r) => (r.checked = false));
+      pickCountry(otherSel.value);
+    }
+  });
+
   const steps: Array<{ el: HTMLElement; auto: boolean; focus?: Focus }> = [
+    { el: shopStep, auto: true },
     { el: body, auto: false },
     ...(askHand ? [{ el: handStep, auto: true }] : []),
     {
@@ -287,7 +342,7 @@ export function questionsView(root: HTMLElement) {
     };
     const hgt = heightIn.value ? Number(heightIn.value) : undefined;
     if (hgt !== undefined && !(hgt >= 130 && hgt <= 220)) {
-      show(0, false);
+      show(1, false);
       err.textContent = t('q.body.range');
       err.hidden = false;
       heightIn.focus();

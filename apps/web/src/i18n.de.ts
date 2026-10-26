@@ -345,6 +345,10 @@ export const de: Partial<Record<Key, string>> = {
   'why.hand_height_mismatch':
     'Dein Scan ({handLengthMm} mm) passt nicht ganz zu {heightCm} cm (~{expectedMm} mm). Miss lieber nach.',
   'why.weight_body': 'Deine Größe braucht einen Wurf von {angle}° (typisch {refAngle}°): {effect} g.',
+  'q.shop': 'Wo kaufst du deine Darts?',
+  'q.shop.gift': 'Wo kaufst du die Darts?',
+  'q.shop.hint': 'So suchen wir in Shops, die zu dir liefern.',
+  'q.shop.other': 'Anderes Land…',
   'q.body': 'Wie groß bist du?',
   'q.body.height': 'Größe in cm',
   'q.body.why': 'Deine Größe bestimmt, wie flach du werfen kannst.',

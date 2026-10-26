@@ -493,6 +493,10 @@ const nl = {
   'why.hand_height_mismatch':
     'Je scan ({handLengthMm} mm) wijkt af van wat bij {heightCm} cm past (~{expectedMm} mm). Meet even na.',
   'why.weight_body': 'Je lengte vraagt een worp van {angle}° (gemiddeld {refAngle}°): {effect} g.',
+  'q.shop': 'Waar koop je je darts?',
+  'q.shop.gift': 'Waar koop je de darts?',
+  'q.shop.hint': 'Zo zoeken we in winkels die bij jou leveren.',
+  'q.shop.other': 'Ander land…',
   'q.body': 'Hoe lang ben je?',
   'q.body.height': 'Lengte in cm',
   'q.body.why': 'Je lengte bepaalt hoe vlak je kunt gooien.',
@@ -1094,6 +1098,10 @@ const en: Record<Key, string> = {
   'why.hand_height_mismatch':
     'Your scan ({handLengthMm} mm) is unusual for {heightCm} cm (~{expectedMm} mm). Worth re-measuring.',
   'why.weight_body': 'Your height needs a {angle}° launch (typical {refAngle}°): {effect} g.',
+  'q.shop': 'Where do you buy your darts?',
+  'q.shop.gift': 'Where are you buying the darts?',
+  'q.shop.hint': 'So we look in shops that deliver to you.',
+  'q.shop.other': 'Another country…',
   'q.body': 'How tall are you?',
   'q.body.height': 'Height in cm',
   'q.body.why': 'Your height decides how flat you can throw.',

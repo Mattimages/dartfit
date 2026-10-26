@@ -2,7 +2,7 @@ import '@fontsource-variable/geist/wght.css';
 import './styles.css';
 import { h, mount } from './h';
 import { getLang, LANGS, t } from './i18n';
-import { COUNTRIES, getCountry, hasChosenCountry } from './region';
+import { COUNTRIES, getCountry } from './region';
 import { openRegionPicker } from './views/region-picker';
 import { route, start, render, current } from './router';
 import { inject, pageview } from '@vercel/analytics';
@@ -132,8 +132,7 @@ if (!DEMO) {
 start((path) => {
   if (!DEMO) pageview({ route: routeOf(path), path: routeOf(path) });
 });
-// First visit: ask where they shop (the browser's guess is pre-selected).
-if (!hasChosenCountry()) openRegionPicker(refreshAll, true);
+// No pop-up on the first visit: the questionnaire asks where they buy (browser guess pre-selected).
 void refreshCatalogue();
 
 if (!DEMO && 'serviceWorker' in navigator && import.meta.env.PROD) {
