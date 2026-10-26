@@ -8,3 +8,7 @@ apps/web/public/mediapipe/
 apps/web/public/models/*.task
 .DS_Store
 apps/web/dist-demo/
+
+# Player photos for TikTok videos (licence per photo, not for the repo)
+scripts/tiktok/photos/*
+!scripts/tiktok/photos/README.md
