@@ -123,7 +123,7 @@ function showCard(c) {
     'div',
     'position:fixed;inset:0;z-index:2147483647;background:#0f1b2d;color:#fff;font-family:"Geist Variable",system-ui,sans-serif;display:flex;flex-direction:column;overflow:hidden;opacity:0;transition:opacity .45s',
   );
-  const top = el('div', 'position:relative;flex:0 0 58%;overflow:hidden;background:#1d3762');
+  const top = el('div', 'position:relative;flex:0 0 52%;overflow:hidden;background:#1d3762');
   if (c.photo) {
     const img = el(
       'img',
@@ -136,7 +136,7 @@ function showCard(c) {
     if (art) {
       art.style.cssText =
         'position:absolute;inset:0;width:100%;height:100%;border-radius:0;aspect-ratio:auto';
-      art.setAttribute('preserveAspectRatio', 'xMidYMid slice');
+      art.setAttribute('preserveAspectRatio', 'xMinYMid slice');
       top.append(art);
     }
   }
@@ -166,13 +166,16 @@ function showCard(c) {
       ),
     );
   root.append(top);
-  const low = el('div', 'flex:1;display:grid;gap:10px;padding:14px 22px 22px;align-content:start');
+  const low = el('div', 'flex:1;display:grid;gap:10px;padding:12px 22px 20px;align-content:start');
   if (c.dartImg) {
     const tile = el(
       'div',
-      'height:150px;border-radius:16px;background:#edf2f9;display:grid;place-items:center;overflow:hidden',
+      'position:relative;height:132px;border-radius:16px;background:#edf2f9;overflow:hidden',
     );
-    const d = el('img', 'width:100%;height:100%;object-fit:contain;padding:8px;box-sizing:border-box');
+    const d = el(
+      'img',
+      'position:absolute;inset:8px;width:calc(100% - 16px);height:calc(100% - 16px);object-fit:contain;mix-blend-mode:multiply',
+    );
     d.src = c.dartImg;
     tile.append(d);
     low.append(tile);
@@ -181,7 +184,7 @@ function showCard(c) {
   low.append(
     el('div', 'font-size:46px;font-weight:650;letter-spacing:-.04em;color:#2ee59d;line-height:1', c.pct),
   );
-  low.append(el('div', 'font-size:15px;font-weight:550', 'Welke dart past bij jou? dartfit.vercel.app'));
+  low.append(el('div', 'font-size:15px;font-weight:550', 'Welke dart past bij jou? findyourdarts.com'));
   root.append(low);
   document.body.append(root);
   requestAnimationFrame(() => requestAnimationFrame(() => (root.style.opacity = '1')));
