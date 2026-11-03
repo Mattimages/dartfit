@@ -100,7 +100,10 @@ for (const P of PERSONAS.filter((x) => !only.length || only.includes(x.id))) {
   }, FONT_CSS);
   const photo = await photoFor(P.id);
   if (photo)
-    await ctx.addInitScript((x) => (window.__adPhoto = x), { src: photo, credit: CREDITS[P.id] ?? '' });
+    await ctx.addInitScript((x) => (window.__adPhoto = x), {
+      src: photo,
+      credit: (CREDITS[P.id] ?? '').replace(/^Foto:/, LANG === 'en' ? 'Photo:' : 'Foto:'),
+    });
   const p = await ctx.newPage();
   const errors = [];
   p.on('pageerror', (e) => errors.push(e.message));

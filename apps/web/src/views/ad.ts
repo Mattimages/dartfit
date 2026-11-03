@@ -83,7 +83,7 @@ const CSS = `
 .ad-pro{justify-content:flex-end;padding-bottom:9vh}
 .ad-photo{position:absolute;left:6vw;right:6vw;top:6vh;height:52vh;border:1vw solid ${CHALK};border-radius:4vw;overflow:hidden;filter:url(#ad-rough);transform:rotate(-2deg)}
 .ad-photo img{width:100%;height:100%;object-fit:cover;object-position:50% 22%}
-.ad-credit{position:absolute;right:7vw;top:calc(6vh + 52vh + 1.5vw);font-family:system-ui,sans-serif;font-weight:500;font-size:2.4vw;color:${CHALK}aa}
+.ad-credit{position:absolute;right:2.4vw;bottom:1.6vw;font-family:system-ui,sans-serif;font-weight:500;font-size:2.4vw;color:#fffc;text-shadow:0 1px 3px #000}aa}
 .ad-pro .pro-art{width:78vw;margin-bottom:6vh;border-radius:5vw}
 .ad-like{font-size:9vw;opacity:0}
 .ad-proname{font-size:17vw;line-height:.9;text-align:center;opacity:0;text-shadow:0 0 .4vw ${CHALK}88}
@@ -491,9 +491,13 @@ export async function adView(root: HTMLElement, _p: Record<string, string>, q: U
   const pct = h('div', { class: 'ad-pct' }, `${top.m.total}%`);
   let hero: HTMLElement;
   if (photo) {
-    hero = h('div', { class: 'ad-photo' }, h('img', { src: photo.src, alt: '' }));
+    hero = h(
+      'div',
+      { class: 'ad-photo' },
+      h('img', { src: photo.src, alt: '' }),
+      photo.credit ? h('div', { class: 'ad-credit' }, photo.credit) : null,
+    );
     pro.append(hero, like, name, pct);
-    if (photo.credit) pro.append(h('div', { class: 'ad-credit' }, photo.credit));
   } else {
     hero = proArt(c.twin) as unknown as HTMLElement;
     pro.style.justifyContent = 'center';
