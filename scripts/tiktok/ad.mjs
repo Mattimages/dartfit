@@ -6,7 +6,7 @@
 //
 // Writes <out-dir>/ad-<persona>-<lang>.mp4. Same capture as record.mjs: CDP screencast at 3×
 // device pixels, the page clock slowed so the screencast keeps up, then played back at real speed.
-/* global URLSearchParams, location */
+/* global URLSearchParams, location, addEventListener */
 import { createRequire } from 'node:module';
 import { createServer } from 'node:http';
 import { execFileSync } from 'node:child_process';
@@ -59,6 +59,19 @@ async function photoFor(id) {
   return null;
 }
 
+const fontFile = (sub) =>
+  readFile(
+    new URL(`../../node_modules/@fontsource/caveat/files/caveat-${sub}-700-normal.woff2`, import.meta.url),
+  );
+const FONT_CSS = (
+  await Promise.all(
+    ['latin', 'latin-ext'].map(
+      async (sub) =>
+        `@font-face{font-family:AdHand;font-weight:700;src:url(data:font/woff2;base64,${(await fontFile(sub)).toString('base64')}) format('woff2')}`,
+    ),
+  )
+).join('');
+
 const html = await readFile(file);
 const server = createServer((_q, r) => {
   r.writeHead(200, { 'content-type': 'text/html; charset=utf-8' });
@@ -77,6 +90,14 @@ for (const P of PERSONAS.filter((x) => !only.length || only.includes(x.id))) {
     locale: { nl: 'nl-NL', en: 'en-GB', de: 'de-DE' }[LANG],
   });
   await ctx.addInitScript(CLOCK);
+  // The ad's handwriting (chalk) font, only for the video: not part of the site.
+  await ctx.addInitScript((css) => {
+    addEventListener('DOMContentLoaded', () => {
+      const st = document.createElement('style');
+      st.textContent = css;
+      document.head.append(st);
+    });
+  }, FONT_CSS);
   const photo = await photoFor(P.id);
   if (photo)
     await ctx.addInitScript((x) => (window.__adPhoto = x), { src: photo, credit: CREDITS[P.id] ?? '' });

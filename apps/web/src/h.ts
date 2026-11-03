@@ -25,6 +25,9 @@ const SVG_TAGS = new Set([
   'mask',
   'title',
   'use',
+  'filter',
+  'feTurbulence',
+  'feDisplacementMap',
 ]);
 
 function append(el: Element, c: Child) {
