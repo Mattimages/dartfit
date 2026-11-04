@@ -632,6 +632,8 @@ export async function adView(root: HTMLElement, _p: Record<string, string>, q: U
   const photo = window.__adPhoto ?? (own ? { src: own.file, credit: creditText(own) } : null);
   const like = h('div', { class: 'ad-like' }, C.like);
   const name = h('div', { class: 'ad-big ad-proname' }, twin.name);
+  // Long names (Raymond van Barneveld) wrap: smaller, so the stack stays clear of the photo.
+  if (twin.name.length > 14) name.style.fontSize = '11.5vw';
   const pct = h('div', { class: 'ad-pct' }, `${top.m.total}%`);
   let hero: HTMLElement;
   if (photo) {
