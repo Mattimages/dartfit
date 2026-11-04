@@ -1,5 +1,5 @@
 // Renders the motion ad (#/ad in the demo build, apps/web/src/views/ad.ts) to 1080×1920 video:
-// a hook, the scan, three taps, the match, the pro reveal and the address, about 19 s.
+// a hook, the hand scan, the maths, the catalogue, the match, the pro reveal and the address.
 //
 //   node scripts/build-preview.mjs <dir>
 //   VIDEO_LANG=nl|en|de node scripts/tiktok/ad.mjs <dir>/index.html <out-dir> [persona ...]
@@ -59,18 +59,22 @@ async function photoFor(id) {
   return null;
 }
 
-const fontFile = (sub) =>
-  readFile(
-    new URL(`../../node_modules/@fontsource/caveat/files/caveat-${sub}-700-normal.woff2`, import.meta.url),
-  );
-const FONT_CSS = (
-  await Promise.all(
-    ['latin', 'latin-ext'].map(
-      async (sub) =>
-        `@font-face{font-family:AdHand;font-weight:700;src:url(data:font/woff2;base64,${(await fontFile(sub)).toString('base64')}) format('woff2')}`,
-    ),
-  )
-).join('');
+/** The ad's two extra faces, only for the video (the site never loads them): handwriting for the
+ *  little notes and a chunky display face for the big words. */
+const face = async (family, pkg, file) =>
+  (
+    await Promise.all(
+      ['latin', 'latin-ext'].map(async (sub) => {
+        const buf = await readFile(
+          new URL(`../../node_modules/@fontsource/${pkg}/files/${file.replace('SUB', sub)}`, import.meta.url),
+        );
+        return `@font-face{font-family:${family};font-weight:${file.match(/-(\d{3})-/)[1]};src:url(data:font/woff2;base64,${buf.toString('base64')}) format('woff2')}`;
+      }),
+    )
+  ).join('');
+const FONT_CSS =
+  (await face('AdHand', 'caveat', 'caveat-SUB-700-normal.woff2')) +
+  (await face('AdDisplay', 'bricolage-grotesque', 'bricolage-grotesque-SUB-800-normal.woff2'));
 
 const html = await readFile(file);
 const server = createServer((_q, r) => {
@@ -90,7 +94,7 @@ for (const P of PERSONAS.filter((x) => !only.length || only.includes(x.id))) {
     locale: { nl: 'nl-NL', en: 'en-GB', de: 'de-DE' }[LANG],
   });
   await ctx.addInitScript(CLOCK);
-  // The ad's handwriting (chalk) font, only for the video: not part of the site.
+  // The ad's extra faces, only for the video: not part of the site.
   await ctx.addInitScript((css) => {
     addEventListener('DOMContentLoaded', () => {
       const st = document.createElement('style');
@@ -126,7 +130,7 @@ for (const P of PERSONAS.filter((x) => !only.length || only.includes(x.id))) {
   await p.waitForFunction(() => document.body.dataset.adDone === '1', null, { timeout: 60000 * SLOW });
   const end = Date.now() / 1000;
   await cdp.send('Page.stopScreencast');
-  const pro = await p.locator('.ad-proname').textContent();
+  const pro = await p.evaluate(() => document.body.dataset.adPro);
   await ctx.close();
   if (errors.length) console.log(`${P.id}: page errors`, errors);
 
