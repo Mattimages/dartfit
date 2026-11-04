@@ -16,6 +16,7 @@ import { dartMedia, photoUrl } from '../media';
 import { dartName } from './words';
 import { giftIcon } from '../draw/icons';
 import { monogram, proArtUrl } from '../draw/pro-art';
+import { creditText, proPhoto, proPortrait } from '../draw/pro-photo';
 
 const base = () => `${location.origin}${location.pathname}`;
 
@@ -82,6 +83,7 @@ async function resultCard(o: {
   v: Variant;
   pct: number;
   pro?: string;
+  proId?: string;
   proCountry?: string;
 }): Promise<Blob | null> {
   const W = 1080;
@@ -117,8 +119,32 @@ async function resultCard(o: {
   g.fillStyle = '#ffffff';
   g.font = font(650, 54);
   g.fillText('DartFit', 80, 130);
-  // The pro's player card (country colours, initials, thrower), top right.
-  if (o.pro) {
+  // The pro's photo (same origin, credited at the bottom), else their player card, top right.
+  const photo = proPhoto(o.proId);
+  let credit = '';
+  if (o.pro && photo) {
+    const img = new Image();
+    img.src = photo.file;
+    try {
+      await img.decode();
+      const a = { x: W - 80 - 220, y: 56, w: 220, h: 275 };
+      const k = Math.max(a.w / img.width, a.h / img.height);
+      g.save();
+      g.beginPath();
+      g.roundRect(a.x, a.y, a.w, a.h, 28);
+      g.clip();
+      g.drawImage(img, a.x + (a.w - img.width * k) / 2, a.y, img.width * k, img.height * k);
+      g.restore();
+      g.strokeStyle = 'rgb(255 255 255 / 0.85)';
+      g.lineWidth = 4;
+      g.beginPath();
+      g.roundRect(a.x, a.y, a.w, a.h, 28);
+      g.stroke();
+      credit = creditText(photo);
+    } catch {
+      /* no photo */
+    }
+  } else if (o.pro) {
     const art = new Image();
     art.src = proArtUrl({ name: o.pro, country: o.proCountry ?? '' });
     try {
@@ -176,6 +202,13 @@ async function resultCard(o: {
   g.fillStyle = '#ffffff';
   g.font = font(550, 38);
   g.fillText(t('share.card.cta'), 80, 1290, 700);
+  if (credit) {
+    g.fillStyle = '#8fa0b8';
+    g.font = font(500, 22);
+    g.textAlign = 'right';
+    g.fillText(credit, W - 40, H - 22, W - 80);
+    g.textAlign = 'left';
+  }
   return new Promise((res) => c.toBlob((b) => res(b), 'image/png'));
 }
 
@@ -206,6 +239,7 @@ export function shareBox(o: { v: Variant; pct: number; proId?: string; proName?:
         v: o.v,
         pct: o.pct,
         pro: o.proName,
+        proId: o.proId,
         proCountry: pros().find((p) => p.id === o.proId)?.country,
       }),
     ),
@@ -224,6 +258,9 @@ export function sharedView(root: HTMLElement, _p: Record<string, string>, q: URL
     h(
       'section',
       { class: 'stack shared' },
+      pro && !gift && proPhoto(pro.id)
+        ? h('div', { class: 'shared-pro' }, proPortrait(pro, { credit: true, eager: true }))
+        : null,
       h('p', { class: 'kicker' }, gift ? t('shared.gift.kicker') : t('shared.kicker')),
       h(
         'h1',

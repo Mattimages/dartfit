@@ -255,6 +255,8 @@ export const de: Partial<Record<Key, string>> = {
   'r.buy': 'Bei {shop} ansehen',
   'r.search': 'Bei {shop} suchen',
   'r.twin': 'Du wirfst wie',
+  'pp.photo': 'Foto:',
+  'pp.cropped': '(zugeschnitten)',
   'r.vs': 'Dein Ideal vs. dieser Dart',
   'r.legend.zone': 'dein Ideal',
   'r.legend.this': 'dieser Dart',

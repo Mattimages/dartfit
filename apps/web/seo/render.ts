@@ -123,8 +123,11 @@ export function head(o: {
   alternates: Array<{ lang: Lang; path: string }>;
   base: string;
   jsonld: object[];
+  /** A page's own picture (a pro's photo); the site's og.png otherwise. */
+  image?: { url: string; width: number; height: number };
 }): string {
   const url = o.base + o.path;
+  const img = o.image ?? { url: `${o.base}/og.png`, width: 1200, height: 630 };
   const alt = o.alternates
     .map((a) => `<link rel="alternate" hreflang="${a.lang}" href="${o.base}${a.path}">`)
     .join('\n');
@@ -146,10 +149,10 @@ ${xDefault ? `<link rel="alternate" hreflang="x-default" href="${o.base}${xDefau
 <meta property="og:description" content="${esc(o.description)}">
 <meta property="og:url" content="${url}">
 <meta property="og:locale" content="${o.site.locale}">
-<meta property="og:image" content="${o.base}/og.png">
-<meta property="og:image:width" content="1200">
-<meta property="og:image:height" content="630">
-<meta name="twitter:card" content="summary_large_image">
+<meta property="og:image" content="${img.url}">
+<meta property="og:image:width" content="${img.width}">
+<meta property="og:image:height" content="${img.height}">
+<meta name="twitter:card" content="${o.image ? 'summary' : 'summary_large_image'}">
 <meta name="theme-color" content="#ffffff">
 <link rel="icon" href="/icons/icon.svg" type="image/svg+xml">
 <link rel="preload" href="/guides/geist.woff2" as="font" type="font/woff2" crossorigin>
@@ -558,6 +561,7 @@ h2{font-size:clamp(1.35rem,5.2vw,1.7rem);margin:2.25rem 0 .75rem}
 h3{font-size:1.12rem;margin:1.5rem 0 .35rem;letter-spacing:-.02em}
 p,li{max-width:65ch}p{margin:0 0 .9rem}ul{padding-left:1.2rem;margin:0 0 1rem}li{margin:.35rem 0}
 a{color:var(--red-ink);text-underline-offset:3px}
+.pro-photo{margin:0 0 1.2rem;max-width:20rem;position:relative;border-radius:16px;overflow:hidden;background:#1d3762}.pro-photo img{display:block;width:100%;height:auto;aspect-ratio:4/5;object-fit:cover}.pro-photo figcaption{position:absolute;inset:auto 0 0;padding:1.6rem .7rem .45rem;background:linear-gradient(to top,rgb(10 18 31/.82),rgb(10 18 31/0));color:rgb(255 255 255/.88);font-size:.72rem;text-align:right}.pro-photo figcaption a{color:inherit}ul.pros a img,.pro-row img{width:2rem;height:2rem;border-radius:50%;object-fit:cover;object-position:50% 15%;vertical-align:middle;margin-right:.5rem;background:#1d3762}.credits{font-size:.85rem}
 .answer{font-size:1.15rem;line-height:1.55;padding:1rem 1.1rem;border-left:3px solid var(--red);background:var(--stage);border-radius:0 12px 12px 0}
 .cta{display:grid;gap:.6rem;margin:1.75rem 0;padding:1.25rem;border-radius:20px;background:var(--navy);color:#fff}
 .cta-sub{margin:0;color:#c5d1e2}

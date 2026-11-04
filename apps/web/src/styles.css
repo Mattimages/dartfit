@@ -4497,7 +4497,8 @@ a.card {
   color: var(--green);
 }
 
-/* Player-card art (draw/pro-art.ts): country colours, initials, a thrower. Not a likeness. */
+/* Player card (draw/pro-art.ts) for pros without a photo; .pro-photo (draw/pro-photo.ts) is the
+   real photo in the same box, with its credit on a scrim at the bottom. */
 .pro-art {
   display: block;
   width: 100%;
@@ -4538,6 +4539,94 @@ a.card {
 }
 .pro-art .pa-flight {
   fill: #cfd8e6;
+}
+.pro-photo {
+  position: relative;
+  margin: 0;
+  overflow: hidden;
+  background: #1d3762;
+}
+.pro-photo img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: 50% 18%;
+}
+.pro-photo figcaption {
+  position: absolute;
+  inset: auto 0 0;
+  padding: 1.6rem 0.7rem 0.45rem;
+  background: linear-gradient(to top, rgb(10 18 31 / 0.82), rgb(10 18 31 / 0));
+  color: rgb(255 255 255 / 0.86);
+  font-size: 0.68rem;
+  line-height: 1.3;
+  letter-spacing: 0;
+  text-align: right;
+}
+.pro-photo figcaption a {
+  color: inherit;
+}
+.twin-link.has-art .pro-photo {
+  aspect-ratio: 4 / 5;
+}
+.twin-link.has-art .pro-photo figcaption {
+  padding: 1.2rem 0.45rem 0.35rem;
+  font-size: 0.56rem;
+}
+.hs-twin .pro-art.pro-photo {
+  border-radius: 50%;
+  aspect-ratio: 1;
+  width: 5.6rem;
+}
+.hs-twin-on.hs-stack .hs-twin .pro-art.pro-photo {
+  width: 3.6rem;
+}
+.pro-avatar {
+  width: 2.75rem;
+  height: 2.75rem;
+  border-radius: 50%;
+  object-fit: cover;
+  object-position: 50% 15%;
+  background: #1d3762;
+  flex: none;
+}
+.pm-more a:has(.pro-avatar) {
+  grid-template-columns: auto minmax(0, 1fr);
+  column-gap: var(--s3);
+  align-items: center;
+}
+.pm-more a .pro-avatar {
+  grid-row: span 2;
+}
+.pro-card h3:has(.pro-avatar) {
+  display: flex;
+  align-items: center;
+  gap: var(--s2);
+}
+.pro-card h3 .pro-avatar {
+  width: 2.2rem;
+  height: 2.2rem;
+}
+.shared-pro {
+  width: min(13rem, 60%);
+}
+.shared-pro .pro-photo {
+  aspect-ratio: 4 / 5;
+}
+.pp-credits {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: grid;
+  gap: var(--s2);
+  font-size: 0.85rem;
+  color: var(--ink-2);
+}
+.pp-credits strong {
+  color: var(--ink);
+  font-weight: 600;
 }
 .twin.has-art::after {
   display: none;

@@ -9,6 +9,7 @@ import { approxEur, PRICE_CLASS_EUR } from '../money';
 import { dartMedia, photoUrl } from '../media';
 import { dartName } from './words';
 import { heroScan } from './hero-scan';
+import { proAvatar } from '../draw/pro-photo';
 import { partnerBanner } from './partner';
 
 type Tier = 'budget' | 'standard' | 'premium';
@@ -186,7 +187,7 @@ export function homeView(root: HTMLElement, _params?: Record<string, string>, qu
                 'div',
                 { class: 'card pro-card' },
                 dartMedia(v),
-                h('h3', null, p.name),
+                h('h3', null, proAvatar(p), h('span', null, p.name)),
                 h('p', { class: 'small' }, dartName(v)),
               ),
             ),

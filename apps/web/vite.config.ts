@@ -83,6 +83,16 @@ function catalogueModule(): Plugin {
           maxBuffer: 16 * 1024 * 1024,
         },
       );
+      // Pro photos (public/pros, credits in pro-photos.json). The single-file preview inlines them.
+      const proPhotos = JSON.parse(
+        readFileSync(join(root, 'packages', 'catalogue', 'data', 'pro-photos.json'), 'utf8'),
+      ) as Record<string, { file: string }>;
+      if (process.env.PHOTOS_DIR)
+        for (const p of Object.values(proPhotos)) {
+          const f = join(here, 'public', p.file);
+          if (existsSync(f)) p.file = `data:image/jpeg;base64,${readFileSync(f).toString('base64')}`;
+        }
+      const pp = `export const proPhotos = ${JSON.stringify(proPhotos)};\n`;
       // PHOTOS_DIR (preview builds only): build the product photos into the page as data URLs, for
       // hosts that block images from other sites. Files are named <model_id>.jpg.
       const dir = process.env.PHOTOS_DIR;
@@ -92,9 +102,9 @@ function catalogueModule(): Plugin {
           const f = join(dir, `${m}.jpg`);
           if (existsSync(f)) p.url = `data:image/jpeg;base64,${readFileSync(f).toString('base64')}`;
         }
-        return `export const catalogue = ${JSON.stringify(cat)};`;
+        return pp + `export const catalogue = ${JSON.stringify(cat)};`;
       }
-      return `export const catalogue = ${json};`;
+      return pp + `export const catalogue = ${json};`;
     },
   };
 }
@@ -141,7 +151,7 @@ function guides(): Plugin {
       const csv = readFileSync(join(data, 'variants.csv'), 'utf8');
       const prosJson = readFileSync(join(data, 'pros.json'), 'utf8');
       const stats = statsFromCsv(csv, (JSON.parse(prosJson) as unknown[]).length);
-      const cat = catalogueRows(csv, prosJson);
+      const cat = catalogueRows(csv, prosJson, readFileSync(join(data, 'pro-photos.json'), 'utf8'));
       base = (process.env.SITE_URL ?? 'https://findyourdarts.com').replace(/\/$/, '');
       urls.length = 0;
       urls.push(`${base}/`);

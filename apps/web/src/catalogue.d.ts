@@ -11,6 +11,17 @@ declare module 'virtual:dartfit-catalogue' {
     url: string;
     cleared: boolean;
   }
+  /** A pro's photo (Wikimedia Commons, credited). `file` is a same-origin path or, in the
+   *  single-file preview, a data URL. */
+  export interface ProPhoto {
+    file: string;
+    author: string;
+    license: string;
+    licenseUrl: string;
+    source: string;
+    cropped: boolean;
+  }
+  export const proPhotos: Record<string, ProPhoto>;
   export const catalogue: {
     variants: Variant[];
     pros: Pro[];

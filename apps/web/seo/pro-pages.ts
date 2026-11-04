@@ -29,13 +29,23 @@ export interface ProRowLite {
   playingWeightG: number | null;
   sourceUrl: string;
 }
+export interface ProPhotoLite {
+  file: string;
+  author: string;
+  license: string;
+  licenseUrl: string;
+  source: string;
+  cropped: boolean;
+}
 export interface CatalogueRows {
   variants: VariantRowLite[];
   pros: ProRowLite[];
+  /** Pro photos (pro-photos.json), served from /pros/. */
+  photos: Record<string, ProPhotoLite>;
 }
 
 /** Steel-tip rows from variants.csv (no quoted fields in it). */
-export function catalogueRows(variantsCsv: string, prosJson: string): CatalogueRows {
+export function catalogueRows(variantsCsv: string, prosJson: string, photosJson = '{}'): CatalogueRows {
   const [headLine, ...rows] = variantsCsv.trim().split(/\r?\n/);
   const cols = headLine!.split(',');
   const variants = rows
@@ -61,7 +71,15 @@ export function catalogueRows(variantsCsv: string, prosJson: string): CatalogueR
     .map(({ tip: _tip, ...v }) => v);
   const ids = new Set(variants.map((v) => v.id));
   const pros = (JSON.parse(prosJson) as ProRowLite[]).filter((p) => ids.has(p.variantId));
-  return { variants, pros };
+  return { variants, pros, photos: JSON.parse(photosJson) as Record<string, ProPhotoLite> };
+}
+
+const PHOTO_WORD = { nl: ['Foto', 'bijgesneden'], en: ['Photo', 'cropped'], de: ['Foto', 'zugeschnitten'] };
+
+/** "Foto: <author>, <licence> (bijgesneden)" with links to the original and the licence. */
+export function photoCreditHtml(p: ProPhotoLite, lang: Lang): string {
+  const [w, cropped] = PHOTO_WORD[lang];
+  return `${w}: <a href="${esc(p.source)}" rel="noopener">${esc(p.author)}</a>, <a href="${esc(p.licenseUrl)}" rel="license noopener">${esc(p.license)}</a>${p.cropped ? ` (${cropped})` : ''}`;
 }
 
 export const proSlug = (name: string) =>
@@ -191,15 +209,22 @@ export function renderProPage(site: Site, pro: ProRowLite, cat: CatalogueRows, b
   const sim = similar(v, cat.variants);
   const others = cat.pros
     .filter((p) => p.id !== pro.id)
-    .map((p) => `<li><a href="${proPaths.pro(lang, p)}">${esc(p.name)}</a></li>`)
+    .map(
+      (p) =>
+        `<li><a href="${proPaths.pro(lang, p)}">${cat.photos[p.id] ? `<img src="${cat.photos[p.id]!.file}" alt="" width="96" height="96" loading="lazy">` : ''}${esc(p.name)}</a></li>`,
+    )
     .join('');
   const title = f(c.title).length <= 65 ? f(c.title) : f(SHORT_TITLE[lang]);
   const description = clip(f(c.description));
   const crumbs = `<nav class="crumbs" aria-label="Breadcrumb"><a href="/">DartFit</a> › <a href="${pathOf(lang, '')}">${esc(site.ui.guides)}</a> › <a href="${proPaths.index(lang)}">${esc(tpl(c.index.h1, {}, lang))}</a></nav>`;
   const faq = c.faq.map(([q, a]) => [f(q), f(a)] as const);
+  const photo = cat.photos[pro.id];
+  const figure = photo
+    ? `<figure class="pro-photo"><img src="${photo.file}" alt="${esc(pro.name)}" width="480" height="600" fetchpriority="high"><figcaption>${photoCreditHtml(photo, lang)}</figcaption></figure>\n`
+    : '';
   const inner = `<article>
 <h1>${esc(f(c.h1))}</h1>
-<p class="answer">${esc(answer)}</p>
+${figure}<p class="answer">${esc(answer)}</p>
 ${cta(site)}
 <section><h2>${esc(f(c.specsH2))}</h2>
 <div class="table"><table><tbody>${rows.map(([k, x]) => `<tr><th scope="row">${esc(k)}</th><td>${esc(x)}</td></tr>`).join('')}</tbody></table></div></section>
@@ -283,8 +308,16 @@ ${cta(site)}
     },
   ];
   return (
-    head({ site, title, description, path, alternates, base, jsonld }) +
-    chrome(site, inner, langLinks(site, alternates), crumbs)
+    head({
+      site,
+      title,
+      description,
+      path,
+      alternates,
+      base,
+      jsonld,
+      image: photo ? { url: base + photo.file, width: 480, height: 600 } : undefined,
+    }) + chrome(site, inner, langLinks(site, alternates), crumbs)
   );
 }
 
@@ -292,6 +325,13 @@ function indexVars(cat: CatalogueRows, lang: Lang): Record<string, string> {
   const ws = cat.pros.map((p) => cat.variants.find((v) => v.id === p.variantId)!.weight);
   return { n: String(cat.pros.length), minW: num(lang, Math.min(...ws)), maxW: num(lang, Math.max(...ws)) };
 }
+
+const CREDITS_H2 = { nl: 'Foto’s', en: 'Photos', de: 'Fotos' };
+const CREDITS_P = {
+  nl: 'De foto’s komen van Wikimedia Commons en staan hier onder hun Creative Commons-licentie, bijgesneden.',
+  en: 'The photos come from Wikimedia Commons and are used under their Creative Commons licence, cropped.',
+  de: 'Die Fotos stammen von Wikimedia Commons und stehen unter ihrer Creative-Commons-Lizenz, zugeschnitten.',
+};
 
 export function renderProIndex(site: Site, cat: CatalogueRows, base: string): string {
   const lang = site.lang;
@@ -304,14 +344,20 @@ export function renderProIndex(site: Site, cat: CatalogueRows, base: string): st
     .sort((a, b) => a.name.localeCompare(b.name))
     .map((p) => {
       const v = cat.variants.find((x) => x.id === p.variantId)!;
-      return `<tr><th scope="row"><a href="${proPaths.pro(lang, p)}">${esc(p.name)}</a></th><td>${esc(`${v.brand} ${v.model}`)}</td><td>${num(lang, v.weight)} g</td></tr>`;
+      const ph = cat.photos[p.id];
+      return `<tr><th scope="row"><a class="pro-row" href="${proPaths.pro(lang, p)}">${ph ? `<img src="${ph.file}" alt="" width="96" height="96" loading="lazy">` : ''}${esc(p.name)}</a></th><td>${esc(`${v.brand} ${v.model}`)}</td><td>${num(lang, v.weight)} g</td></tr>`;
     })
     .join('');
   const crumbs = `<nav class="crumbs" aria-label="Breadcrumb"><a href="/">DartFit</a> › <a href="${pathOf(lang, '')}">${esc(site.ui.guides)}</a></nav>`;
   const inner = `<h1>${esc(f(c.index.h1))}</h1>
 <p class="answer">${esc(f(c.index.answer))}</p>
 ${cta(site)}
-<div class="table"><table><thead><tr>${c.index.col.map((x) => `<th scope="col">${esc(x)}</th>`).join('')}</tr></thead><tbody>${rows}</tbody></table></div>`;
+<div class="table"><table><thead><tr>${c.index.col.map((x) => `<th scope="col">${esc(x)}</th>`).join('')}</tr></thead><tbody>${rows}</tbody></table></div>
+<section class="credits"><h2>${esc(CREDITS_H2[lang])}</h2><p>${esc(CREDITS_P[lang])}</p><ul>${[...cat.pros]
+    .sort((a, b) => a.name.localeCompare(b.name))
+    .filter((p) => cat.photos[p.id])
+    .map((p) => `<li>${esc(p.name)}: ${photoCreditHtml(cat.photos[p.id]!, lang)}</li>`)
+    .join('')}</ul></section>`;
   const jsonld = [
     {
       '@context': 'https://schema.org',

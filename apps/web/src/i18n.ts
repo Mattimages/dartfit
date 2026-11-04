@@ -239,6 +239,8 @@ const nl = {
   'r.none':
     'We hebben nog geen {tip} in de catalogus. De maten hierboven gelden wel; neem ze mee naar de winkel.',
   'r.twin': 'Je gooit als',
+  'pp.photo': 'Foto:',
+  'pp.cropped': '(bijgesneden)',
   'r.explain': 'Waarom deze?',
   'r.explain.ai': 'Geschreven door AI op basis van de cijfers hierboven',
   'r.explain.loading': 'Uitleg schrijven…',
@@ -844,6 +846,8 @@ const en: Record<Key, string> = {
     'Our catalogue has no dart that sits really close to your fit yet. Take the sizes above to a shop.',
   'r.none': 'We have no {tip} in the catalogue yet. The sizes above still apply; take them to a shop.',
   'r.twin': 'You throw like',
+  'pp.photo': 'Photo:',
+  'pp.cropped': '(cropped)',
   'r.explain': 'Why this one?',
   'r.explain.ai': 'Written by AI from the numbers above',
   'r.explain.loading': 'Writing the explanation…',

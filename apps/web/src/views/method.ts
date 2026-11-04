@@ -5,6 +5,8 @@
 import { config, ENGINE_VERSION, numericLeaves, provenanceOf } from '@dartfit/engine';
 import { h } from '../h';
 import { getLang } from '../i18n';
+import { pros } from '../api';
+import { photoCredits } from '../draw/pro-photo';
 
 const COPY = {
   nl: {
@@ -41,6 +43,9 @@ const COPY = {
       ],
     ],
     table: 'Elke waarde die het model gebruikt',
+    photos: 'Foto’s van de profs',
+    photosLead:
+      'De foto’s komen van Wikimedia Commons en staan hier onder hun Creative Commons-licentie. We hebben ze bijgesneden; klik op de naam van de fotograaf voor het origineel.',
     cols: ['Waarde', 'Bron', 'Toelichting'],
     p: { sourced: 'bron', heuristic: 'vuistregel', tuned: 'afgesteld' },
     version: 'Modelversie',
@@ -79,6 +84,9 @@ const COPY = {
       ],
     ],
     table: 'Every value the model uses',
+    photos: 'Photos of the pros',
+    photosLead:
+      'The photos come from Wikimedia Commons and are used under their Creative Commons licence. We cropped them; tap the photographer’s name for the original.',
     cols: ['Value', 'Source', 'Note'],
     p: { sourced: 'source', heuristic: 'rule of thumb', tuned: 'tuned' },
     version: 'Model version',
@@ -135,6 +143,13 @@ export function methodView(root: HTMLElement) {
           h('tbody', null, ...rows),
         ),
       ),
+    ),
+    h(
+      'section',
+      { class: 'stack', id: 'photos' },
+      h('h2', null, c.photos),
+      h('p', { class: 'small' }, c.photosLead),
+      photoCredits(pros()),
     ),
   );
 }

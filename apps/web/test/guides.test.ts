@@ -8,7 +8,7 @@ const data = join(__dirname, '..', '..', '..', 'packages', 'catalogue', 'data');
 const csv = readFileSync(join(data, 'variants.csv'), 'utf8');
 const prosJson = readFileSync(join(data, 'pros.json'), 'utf8');
 const stats = statsFromCsv(csv, (JSON.parse(prosJson) as unknown[]).length);
-const cat = catalogueRows(csv, prosJson);
+const cat = catalogueRows(csv, prosJson, readFileSync(join(data, 'pro-photos.json'), 'utf8'));
 const base = 'https://dartfit.example';
 const files = buildGuides(stats, base, cat);
 const html = Object.entries(files).filter(([f]) => f.endsWith('.html'));
