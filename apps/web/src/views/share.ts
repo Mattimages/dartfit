@@ -91,7 +91,7 @@ const TIER_BG = { budget: '#0f9d63', standard: '#1f5fd6', premium: '#e3122c' } a
 
 /**
  * A 1080 × 1350 picture of the result, for Instagram and WhatsApp status, in the look of the film's
- * last frame: the pro's photo filling the top with "Ik gooi als …" on it, then the price-class cards
+ * last frame: the pro in a circle with "Ik gooi als …" on a pill, the ideal dart, then the price-class cards
  * (best match first, outlined green) with their dart photo, weight, price and match %.
  */
 async function resultCard(o: {
@@ -101,7 +101,7 @@ async function resultCard(o: {
   proId?: string;
   proCountry?: string;
   options?: ShareOption[];
-  ideal?: Parameters<typeof idealDartPaths>[0];
+  ideal?: Parameters<typeof idealDartPaths>[0] & { massG?: number };
 }): Promise<Blob | null> {
   const W = 1080;
   const H = 1350;
@@ -134,6 +134,22 @@ async function resultCard(o: {
     while (s.length > 1 && g.measureText(`${s}…`).width > max) s = s.slice(0, -1);
     return `${s.trimEnd()}…`;
   };
+  /** Words into at most `max` lines that fit `width`; the last one cut with an ellipsis. */
+  const wrap = (text: string, width: number, max: number) => {
+    const lines: string[] = [];
+    let cur = '';
+    for (const word of text.split(/\s+/)) {
+      const next = cur ? `${cur} ${word}` : word;
+      if (g.measureText(next).width <= width || !cur) cur = next;
+      else {
+        lines.push(cur);
+        cur = word;
+      }
+    }
+    if (cur) lines.push(cur);
+    if (lines.length > max) lines.splice(max - 1, lines.length, lines.slice(max - 1).join(' '));
+    return lines.map((l) => clip(l, width));
+  };
   /** Draws `img` to cover the box, anchored `ay` (0 top … 1 bottom) vertically. */
   const cover = (img: HTMLImageElement, x: number, y: number, w: number, hh: number, ay = 0.5) => {
     const k = Math.max(w / img.width, hh / img.height);
@@ -161,9 +177,9 @@ async function resultCard(o: {
   const gap = 20;
   const cardsTop = H - 120 - options.length * cardH - (options.length - 1) * gap;
   // Your ideal dart sits just above the cards (its barrel band is y 34…70 of the film's 320-wide
-  // model), the pro's photo fills the room above it.
+  // model), the pro above it.
   const dk = (W - 2 * M) / 320;
-  const dartTop = o.ideal ? cardsTop - 28 - 36 * dk : cardsTop;
+  const dartTop = o.ideal ? cardsTop - 70 - 36 * dk : cardsTop;
   const top = { x: M, y: M, w: W - 2 * M, h: dartTop - M - 28 };
   if (o.ideal) {
     const p = idealDartPaths(o.ideal);
@@ -180,9 +196,18 @@ async function resultCard(o: {
     g.lineWidth = 1.6;
     g.stroke(new Path2D(p.barrel));
     g.restore();
+    // Say what it is: a stranger seeing the picture wouldn't know the green barrel.
+    g.fillStyle = '#7ef2c4';
+    g.font = font(600, 30);
+    g.textAlign = 'center';
+    const spec = o.ideal.massG
+      ? ` · ${num(o.ideal.lengthMm, 0)} mm · ${num(o.ideal.massG, 0)} g`
+      : ` · ${num(o.ideal.lengthMm, 0)} mm`;
+    g.fillText(`${t('share.card.ideal')}${spec}`, W / 2, dartTop + 36 * dk + 40);
+    g.textAlign = 'left';
   }
 
-  // The pro's photo (same origin; credited at the bottom), else their player card, filling the top.
+  // The pro's photo (same origin; credited at the bottom), else their player card.
   const photo = proPhoto(o.proId);
   let credit = '';
   const art = o.pro
@@ -191,35 +216,64 @@ async function resultCard(o: {
       : await load(proArtUrl({ name: o.pro, country: o.proCountry ?? '' }))
     : null;
   if (o.pro && art) {
+    // The pro in a circle, centred, with "Ik gooi als: <name>" on a pill over its lower edge:
+    // the film's final frame.
+    const pillH = 88;
+    const overlap = 38;
+    const D = Math.min(440, top.h - pillH + overlap - 8);
+    const cx = W / 2;
+    const cy0 = top.y + (top.h - (D + pillH - overlap)) / 2;
+    const cy = cy0 + D / 2;
     g.save();
-    rr(top.x, top.y, top.w, top.h, 40);
-    g.clip();
+    g.shadowColor = 'rgb(0 0 0 / 0.55)';
+    g.shadowBlur = 50;
+    g.shadowOffsetY = 24;
+    g.beginPath();
+    g.arc(cx, cy, D / 2, 0, Math.PI * 2);
     g.fillStyle = '#1d3762';
-    g.fillRect(top.x, top.y, top.w, top.h);
-    cover(art, top.x, top.y, top.w, top.h, photo ? 0.2 : 0.5);
-    // A dark fade at the bottom for the name.
-    const fade = g.createLinearGradient(0, top.y + top.h * 0.55, 0, top.y + top.h);
-    fade.addColorStop(0, 'rgb(10 18 31 / 0)');
-    fade.addColorStop(1, 'rgb(10 18 31 / 0.85)');
-    g.fillStyle = fade;
-    g.fillRect(top.x, top.y, top.w, top.h);
+    g.fill();
+    g.restore();
+    g.save();
+    g.beginPath();
+    g.arc(cx, cy, D / 2, 0, Math.PI * 2);
+    g.clip();
+    cover(art, cx - D / 2, cy0, D, D, photo ? 0.2 : 0.5);
     if (!photo) {
       g.fillStyle = '#ffffff';
-      g.font = font(650, 120);
-      g.fillText(monogram(o.pro), top.x + 44, top.y + 150);
+      g.font = font(650, 110);
+      g.textAlign = 'center';
+      g.fillText(monogram(o.pro), cx, cy + 40);
+      g.textAlign = 'left';
     }
     g.restore();
-    g.strokeStyle = 'rgb(255 255 255 / 0.9)';
-    g.lineWidth = 5;
-    rr(top.x, top.y, top.w, top.h, 40);
+    g.strokeStyle = '#ffffff';
+    g.lineWidth = 6;
+    g.beginPath();
+    g.arc(cx, cy, D / 2, 0, Math.PI * 2);
     g.stroke();
     if (photo) credit = creditText(photo);
+    // The pill.
+    const like = `${t('share.card.like')}: `;
+    g.font = font(550, 46);
+    const lw = g.measureText(like).width;
+    g.font = font(650, 50);
+    const name = clip(o.pro, W - 2 * M - 80 - lw);
+    const nw = g.measureText(name).width;
+    const pw = lw + nw + 76;
+    const py = cy0 + D - overlap;
+    g.fillStyle = 'rgb(10 18 31 / 0.88)';
+    rr(cx - pw / 2, py, pw, pillH, pillH / 2);
+    g.fill();
+    g.strokeStyle = 'rgb(255 255 255 / 0.28)';
+    g.lineWidth = 2;
+    g.stroke();
+    const tx = cx - pw / 2 + 38;
     g.fillStyle = '#c5d1e2';
-    g.font = font(550, 44);
-    g.fillText(t('share.card.like'), top.x + 44, top.y + top.h - 118);
+    g.font = font(550, 46);
+    g.fillText(like, tx, py + 59);
     g.fillStyle = '#ffffff';
-    g.font = font(650, o.pro.length > 16 ? 84 : 100);
-    g.fillText(clip(o.pro, top.w - 88), top.x + 44, top.y + top.h - 36);
+    g.font = font(650, 50);
+    g.fillText(name, tx + lw, py + 60);
   } else {
     g.fillStyle = '#c5d1e2';
     g.font = font(550, 52);
@@ -274,15 +328,6 @@ async function resultCard(o: {
     g.restore();
     const tx = tile.x + tile.w + 28;
     const pctX = W - M - 32;
-    // Tier pill.
-    g.font = font(600, 28);
-    const label = t(`land.tier.${x.tier}`);
-    const lw = g.measureText(label).width + 36;
-    g.fillStyle = TIER_BG[x.tier];
-    rr(tx, y + 26, lw, 44, 22);
-    g.fill();
-    g.fillStyle = '#ffffff';
-    g.fillText(label, tx + 18, y + 58);
     // Match %.
     g.textAlign = 'right';
     g.fillStyle = '#0a8f5a';
@@ -290,19 +335,44 @@ async function resultCard(o: {
     g.fillText(`${Math.round(x.pct)}%`, pctX, y + cardH / 2 + 26);
     const pctW = g.measureText('100%').width;
     g.textAlign = 'left';
-    // Name and weight · price.
+    // The name on top, on two lines when it needs them (as in the film), then the price class
+    // with weight · price on one line.
+    g.font = font(650, 42);
+    const lines = wrap(dartName(x.v), pctX - pctW - 24 - tx, 2);
+    const block = lines.length * 48 + 52;
+    let ty = y + (cardH - block) / 2 + 38;
     g.fillStyle = '#0f1b2d';
-    g.font = font(650, 44);
-    g.fillText(clip(dartName(x.v), pctX - pctW - 24 - tx), tx, y + 122);
+    for (const line of lines) {
+      g.fillText(line, tx, ty);
+      ty += 48;
+    }
+    g.font = font(600, 26);
+    const label = t(`land.tier.${x.tier}`);
+    const lw = g.measureText(label).width + 32;
+    const ry = ty - 30;
+    g.fillStyle = TIER_BG[x.tier];
+    rr(tx, ry, lw, 40, 20);
+    g.fill();
+    g.fillStyle = '#ffffff';
+    g.fillText(label, tx + 16, ry + 29);
     const eur = x.v.priceUsd ? approxEur(x.v.priceUsd) : null;
     g.fillStyle = '#5b6b82';
-    g.font = font(500, 34);
-    g.fillText(`${num(x.v.weightG)} g${eur ? ` · €${eur}` : ''}`, tx, y + 166);
+    g.font = font(500, 32);
+    g.fillText(`${num(x.v.weightG)} g${eur ? ` · €${eur}` : ''}`, tx + lw + 14, ry + 30);
   });
 
-  g.fillStyle = '#ffffff';
+  // The ask, with the address standing out.
+  const cta = t('share.card.cta');
+  const at = cta.indexOf('findyourdarts.com');
   g.font = font(600, 40);
-  g.fillText(t('share.card.cta'), M + 8, H - 62, W - 2 * M);
+  const head = at >= 0 ? cta.slice(0, at) : cta;
+  g.fillStyle = '#ffffff';
+  g.fillText(head, M + 8, H - 62);
+  if (at >= 0) {
+    g.fillStyle = '#2ee59d';
+    g.font = font(700, 40);
+    g.fillText('findyourdarts.com', M + 8 + g.measureText(head).width, H - 62);
+  }
   if (credit) {
     g.fillStyle = '#8fa0b8';
     g.font = font(500, 22);
@@ -322,7 +392,7 @@ export function shareBox(o: {
   /** The price classes, best match first, for the share picture. */
   options?: ShareOption[];
   /** Your ideal dart, drawn between the pro and the darts on the share picture. */
-  ideal?: Parameters<typeof idealDartPaths>[0];
+  ideal?: Parameters<typeof idealDartPaths>[0] & { massG?: number };
 }): HTMLElement {
   const req = session().giftRequest;
   const url = sharedLink({ variantId: o.v.id, pct: o.pct, proId: o.proId, gift: !!req });

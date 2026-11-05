@@ -467,7 +467,8 @@ function shopCards(c: Cast) {
     );
   });
   return {
-    box: h('div', { class: 'hs-cards' }, ...cards),
+    // "Jouw dart" over your best match until the pro drops in.
+    box: h('div', { class: 'hs-cards' }, h('p', { class: 'hs-yours' }, t('hs.step.yours')), ...cards),
     later: cards.filter((x) => x.classList.contains('later')),
   };
 }
@@ -597,24 +598,26 @@ export function checkoutWin(total: number): { el: HTMLElement; ms: number } {
 }
 
 /**
- * While the price cards push up, keeps your ideal dart just above them and the pro's photo filling
- * the room above that (--hs-dart-shift moves the dart, --hs-free sizes the photo), for `ms`.
+ * From the moment the pro drops in: keeps your ideal dart 10px above the price cards and the pro
+ * 10px above the dart, so both ride up as the other price classes push in (for `ms`).
  */
 function followFree(root: HTMLElement, box: HTMLElement, ms: number) {
   const t0 = performance.now();
   const SCALE = 0.75;
+  const GAP = 10;
   const tick = () => {
     const stage = root.querySelector('.hs-stage');
     const mbox = root.querySelector<HTMLElement>('.hs-modelbox');
     const svg = mbox?.querySelector<SVGSVGElement>('.hs-model');
-    if (!stage || !mbox || !svg || !root.classList.contains('hs-twin-on')) return;
+    const twin = root.querySelector<HTMLElement>('.hs-twin');
+    if (!stage || !mbox || !svg || !twin || !root.classList.contains('hs-twin-on')) return;
     const cardsTop = box.getBoundingClientRect().top - stage.getBoundingClientRect().top;
-    // The barrel's visible band in the model's viewBox (0 0 320 112) is about y 34…70; it sits
-    // 12px above the cards, the photo ends 12px above it.
+    // The barrel's visible band in the model's viewBox (0 0 320 112) is about y 34…70.
     const k = (svg.clientWidth / 320) * SCALE;
-    const svgTop = cardsTop - 12 - 70 * k;
+    const svgTop = cardsTop - GAP - 70 * k;
     root.style.setProperty('--hs-dart-shift', `${Math.round(svgTop - mbox.offsetTop)}px`);
-    root.style.setProperty('--hs-free', `${Math.max(0, Math.round(svgTop + 34 * k - 12 - 12))}px`);
+    const twinTop = svgTop + 34 * k - GAP - twin.offsetHeight;
+    root.style.setProperty('--hs-twin-top', `${Math.round(Math.max(6, twinTop))}px`);
     if (performance.now() - t0 < ms) requestAnimationFrame(tick);
   };
   requestAnimationFrame(tick);
@@ -761,7 +764,7 @@ async function play(root: HTMLElement, c: Cast, mode: 'hero' | 'fit' = 'hero'): 
   }
   // 5. Into the shop card, then the other price classes push up beneath it.
   root.classList.add('hs-end');
-  // Your best dart gets a moment on its own before the pro who throws the same type drops in.
+  // First your dart, on its own for a moment; then the pro who throws the same type drops in.
   await wait(1300);
   if (!alive()) return false;
   if (twinEl) {

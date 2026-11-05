@@ -2768,13 +2768,22 @@ a.card {
 .hs-stage {
   position: absolute;
   inset: 0;
+  container-type: size;
   transition: opacity 0.4s ease;
 }
 .hs.hs-out .hs-stage {
   opacity: 0;
 }
 .hs {
-  aspect-ratio: 1 / 1.2;
+  aspect-ratio: 1 / 1.36;
+  /* Narrow phones: tall enough for the final frame (pro, ideal dart, three price cards). The fixed
+     width stops the ratio from turning that minimum height into a wider frame. */
+  width: 100%;
+  min-width: 0;
+  min-height: 30rem;
+}
+.hs-link {
+  min-width: 0;
 }
 /* The closing shot: a stack of shop cards, bottom-anchored, growing upward. */
 .hs-cards {
@@ -2815,7 +2824,7 @@ a.card {
 }
 .hs-cards .hs-card.later.in {
   max-height: 140px;
-  margin-top: 12px;
+  margin-top: 10px;
   padding-block: 10px;
   opacity: 1;
   transform: none;
@@ -4216,7 +4225,7 @@ a.card {
     transform 0.7s cubic-bezier(0.34, 1.45, 0.5, 1);
 }
 .hs-twin .pro-art {
-  width: 6.4rem;
+  width: min(8.6rem, 26cqh);
   box-shadow:
     0 0 0 2px #fff,
     0 14px 30px -10px rgb(0 0 0 / 0.7);
@@ -4647,15 +4656,17 @@ a.card {
 .hs-twin .pro-art.pro-photo {
   border-radius: 50%;
   aspect-ratio: 1;
-  width: 11.2rem;
+  /* One size through the whole ending, scaled to the frame's height so the final frame (pro,
+     ideal dart, three cards) fits on narrow phones too. */
+  width: min(8.6rem, 26cqh);
 }
-/* With the big photo up top, the dart drops below it (between the name pill and the first card),
-   barrel only: its label and name sit under the photo, and the card names the dart anyway. */
+/* With the pro up top, the ideal dart sits between the name pill and the cards, barrel only: its
+   label and name are hidden, the card names the dart anyway. */
 .hs-twin-on .hs-modelbox {
   transform-origin: 50% 0;
   transform: translateY(var(--hs-dart-shift, 41%)) scale(0.75);
 }
-.hs-twin-on:not(.hs-stack) .hs-twin p {
+.hs-twin-on .hs-twin p {
   position: relative;
   margin-top: -22px;
 }
@@ -4735,46 +4746,30 @@ a.card {
   padding-right: 0;
 }
 
-/* Film ending with the player card: while the other price classes come up, the card shrinks to a
-   badge at the top and the cards drop their part scores (the total stays), so both fit. */
-/* While the price classes come up, the photo stays put and opens up into a wide picture; under it
-   your ideal dart, then the cards. hero-scan.ts (followFree) keeps the dart just above the cards
-   and the photo filling the room above the dart as they push up. */
-
-.hs-twin-on.hs-stack .hs-twin {
-  top: 12px;
-  left: 12px;
-  right: 12px;
-  width: auto;
-  max-width: none;
-  height: var(--hs-free, 8rem);
-  transform: none;
-  gap: 0;
-}
-.hs-twin-on.hs-stack .hs-twin .pro-art,
-.hs-twin-on.hs-stack .hs-twin .pro-art.pro-photo {
-  width: 100%;
-  flex: 1;
-  min-height: 0;
-  aspect-ratio: auto;
-  border-radius: var(--r-tile);
-}
-.hs-twin-on.hs-stack .hs-twin .pro-photo img {
-  object-position: 50% 16%;
-}
-.hs-twin-on.hs-stack .hs-twin p {
-  position: absolute;
-  left: 8px;
-  bottom: 8px;
-  margin: 0;
-  padding: 0.25rem 0.75rem;
-  font-size: 0.9rem;
-  white-space: nowrap;
-}
-.hs-twin .pro-art {
+.hs-yours {
+  max-height: 2.6rem;
+  margin: 0 0 10px;
+  overflow: hidden;
+  color: #fff;
+  font-size: 1.45rem;
+  font-weight: 650;
+  letter-spacing: -0.035em;
+  text-align: center;
   transition:
-    width 0.6s var(--ease),
-    border-radius 0.6s var(--ease);
+    opacity 0.3s ease,
+    max-height 0.5s var(--ease),
+    margin 0.5s var(--ease);
+}
+.hs-twin-on .hs-yours {
+  max-height: 0;
+  margin: 0;
+  opacity: 0;
+}
+/* Film ending: your dart, then the pro (one circle, one size), then the other price classes push
+   up and carry the ideal dart and the pro with them. hero-scan.ts (followFree) keeps the dart
+   10px above the cards and the pro 10px above the dart; the cards drop their part scores. */
+.hs-twin-on .hs-twin {
+  top: var(--hs-twin-top, 12px);
 }
 .hs-twin-on.hs-stack .hs-s-shape,
 .hs-twin-on.hs-stack .hs-s-style,
