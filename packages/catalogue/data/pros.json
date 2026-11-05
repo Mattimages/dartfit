@@ -189,15 +189,6 @@
     "sourceUrl": "https://a-zdarts.com/products/winmau-joe-cullen-steel-tip-darts-24gm"
   },
   {
-    "id": "koltsov",
-    "name": "Boris Koltsov",
-    "country": "RUS",
-    "variantId": "one80-boris-koltsov-signature-22",
-    "exactDart": false,
-    "playingWeightG": 22,
-    "sourceUrl": "https://a-zdarts.com/products/one80-boris-koltsov-signature-steel-tip-darts-22gm"
-  },
-  {
     "id": "cross",
     "name": "Rob Cross",
     "country": "ENG",

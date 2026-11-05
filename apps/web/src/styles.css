@@ -4578,10 +4578,28 @@ a.card {
 .hs-twin .pro-art.pro-photo {
   border-radius: 50%;
   aspect-ratio: 1;
-  width: 5.6rem;
+  width: 11.2rem;
 }
 .hs-twin-on.hs-stack .hs-twin .pro-art.pro-photo {
-  width: 3.6rem;
+  width: 7.2rem;
+}
+/* With the big photo up top, the dart drops below it (between the name pill and the first card),
+   barrel only: its label and name sit under the photo, and the card names the dart anyway. */
+.hs-twin-on:not(.hs-stack) .hs-modelbox {
+  transform: translateY(41%);
+}
+.hs-twin-on:not(.hs-stack) .hs-twin p {
+  position: relative;
+  margin-top: -22px;
+}
+.hs-twin-on .hs-ideal-label,
+.hs-twin-on .hs-name {
+  opacity: 0;
+}
+/* While the price classes come up: photo and name side by side, so the cards keep their room. */
+.hs-twin-on.hs-stack .hs-twin {
+  flex-direction: row;
+  gap: 10px;
 }
 .pro-avatar {
   width: 2.75rem;
