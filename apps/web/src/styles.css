@@ -4580,9 +4580,6 @@ a.card {
   aspect-ratio: 1;
   width: 11.2rem;
 }
-.hs-twin-on.hs-stack .hs-twin .pro-art.pro-photo {
-  width: 7.2rem;
-}
 /* With the big photo up top, the dart drops below it (between the name pill and the first card),
    barrel only: its label and name sit under the photo, and the card names the dart anyway. */
 .hs-twin-on:not(.hs-stack) .hs-modelbox {
@@ -4595,11 +4592,6 @@ a.card {
 .hs-twin-on .hs-ideal-label,
 .hs-twin-on .hs-name {
   opacity: 0;
-}
-/* While the price classes come up: photo and name side by side, so the cards keep their room. */
-.hs-twin-on.hs-stack .hs-twin {
-  flex-direction: row;
-  gap: 10px;
 }
 .pro-avatar {
   width: 2.75rem;
@@ -4675,19 +4667,47 @@ a.card {
 
 /* Film ending with the player card: while the other price classes come up, the card shrinks to a
    badge at the top and the cards drop their part scores (the total stays), so both fit. */
-.hs-twin-on.hs-stack .hs-twin {
-  top: 8px;
-  gap: 4px;
+/* While the price classes come up, the photo stays put and opens up into a wide picture; under it
+   your ideal dart, then the cards. hero-scan.ts (followFree) keeps the dart just above the cards
+   and the photo filling the room above the dart as they push up. */
+.hs-twin-on.hs-stack .hs-modelbox {
+  transform-origin: 50% 0;
+  transform: translateY(var(--hs-dart-shift, 0px)) scale(0.75);
 }
-.hs-twin-on.hs-stack .hs-twin .pro-art {
-  width: 4.4rem;
+.hs-twin-on.hs-stack .hs-twin {
+  top: 12px;
+  left: 12px;
+  right: 12px;
+  width: auto;
+  max-width: none;
+  height: var(--hs-free, 8rem);
+  transform: none;
+  gap: 0;
+}
+.hs-twin-on.hs-stack .hs-twin .pro-art,
+.hs-twin-on.hs-stack .hs-twin .pro-art.pro-photo {
+  width: 100%;
+  flex: 1;
+  min-height: 0;
+  aspect-ratio: auto;
+  border-radius: var(--r-tile);
+}
+.hs-twin-on.hs-stack .hs-twin .pro-photo img {
+  object-position: 50% 24%;
 }
 .hs-twin-on.hs-stack .hs-twin p {
+  position: absolute;
+  left: 8px;
+  bottom: 8px;
+  margin: 0;
   padding: 0.25rem 0.75rem;
-  font-size: 0.88rem;
+  font-size: 0.9rem;
+  white-space: nowrap;
 }
 .hs-twin .pro-art {
-  transition: width 0.5s var(--ease);
+  transition:
+    width 0.6s var(--ease),
+    border-radius 0.6s var(--ease);
 }
 .hs-twin-on.hs-stack .hs-s-shape,
 .hs-twin-on.hs-stack .hs-s-style,

@@ -21,7 +21,7 @@ import { alertSignup } from './alert-signup';
 import { matchSplit } from './match-split';
 import { partnerBanner } from './partner';
 import { proPortrait } from '../draw/pro-photo';
-import { shareBox } from './share';
+import { shareBox, type ShareOption } from './share';
 
 const k = (s: string) => s as Key;
 type FullPick = RecPick & { offers: Offer[] };
@@ -120,6 +120,18 @@ function matchView(f: Fit, v: Variant): HTMLElement {
       h('span', null, h('i', { class: 'l-match' }), t('r.legend.this')),
     ),
   );
+}
+
+/** The price classes for the share picture: the one holding your best match first, then by match. */
+function shareOptions(r: FitResult, bestId: string): ShareOption[] {
+  const all = TIERS.flatMap((tier) => {
+    const sv = r.tiers?.[tier];
+    return sv ? [{ tier, v: sv.variant, pct: matchPct(sv.cost) }] : [];
+  });
+  return [
+    ...all.filter((x) => x.v.id === bestId),
+    ...all.filter((x) => x.v.id !== bestId).sort((a, b) => b.pct - a.pct),
+  ];
 }
 
 /** The big product view: photo or model match, with the switch. */
@@ -374,7 +386,14 @@ export async function resultView(root: HTMLElement, params: Record<string, strin
             h('p', { class: 'callout' }, t('r.none', { tip: t(k(`q.tip.${f.tip}`)) })),
           )),
     best && session().giftRequest
-      ? shareBox({ v: best.variant, pct: matchPct(best.cost), proId: twin?.pro.id, proName: twin?.pro.name })
+      ? shareBox({
+          v: best.variant,
+          pct: matchPct(best.cost),
+          proId: twin?.pro.id,
+          proName: twin?.pro.name,
+          options: shareOptions(r, best.variant.id),
+          ideal: f.barrel,
+        })
       : null,
     twin
       ? h(
@@ -398,6 +417,8 @@ export async function resultView(root: HTMLElement, params: Record<string, strin
           pct: matchPct(best.cost),
           proId: twin?.pro.id,
           proName: twin?.pro.name,
+          options: shareOptions(r, best.variant.id),
+          ideal: f.barrel,
         })
       : null,
     picks.length > 1

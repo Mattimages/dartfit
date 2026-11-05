@@ -169,7 +169,7 @@ export async function proMatchView(root: HTMLElement, params: Record<string, str
             ),
           )
         : null,
-      shareBox({ v, pct, proId: pro.id, proName: pro.name }),
+      shareBox({ v, pct, proId: pro.id, proName: pro.name, ideal: f.barrel }),
       h('a', { class: 'btn link', href: proGuideUrl(pro.name) }, t('pm.guide', { name: pro.name })),
       h('a', { class: 'btn ghost block', href: `#/fit/${params.id}` }, t('pm.back')),
     ),

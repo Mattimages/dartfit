@@ -265,6 +265,17 @@ export function castFor(
 const K = 4.4;
 const X0 = 54;
 const CY = 52;
+/** Your ideal dart as SVG path data in the film's model coordinates (viewBox 0 0 320 112, the
+ *  barrel on y 34…70): point, barrel and shaft. The share picture draws it the same way. */
+export function idealDartPaths(b: Silhouette): { point: string; barrel: string; shaft: string } {
+  const end = X0 + b.lengthMm * K;
+  return {
+    point: `M14,${CY}L${X0},${CY - 2.6}L${X0},${CY + 2.6}Z`,
+    barrel: outline(b),
+    shaft: `M${end},${CY - 4}H300V${CY + 4}H${end}Z`,
+  };
+}
+
 function outline(b: Silhouette) {
   const top: string[] = [];
   const bottom: string[] = [];
@@ -583,6 +594,29 @@ export function checkoutWin(total: number): { el: HTMLElement; ms: number } {
   };
 }
 
+/**
+ * While the price cards push up, keeps your ideal dart just above them and the pro's photo filling
+ * the room above that (--hs-dart-shift moves the dart, --hs-free sizes the photo), for `ms`.
+ */
+function followFree(root: HTMLElement, box: HTMLElement, ms: number) {
+  const t0 = performance.now();
+  const SCALE = 0.75;
+  const tick = () => {
+    const stage = root.querySelector('.hs-stage');
+    const mbox = root.querySelector<HTMLElement>('.hs-modelbox');
+    const svg = mbox?.querySelector<SVGSVGElement>('.hs-model');
+    if (!stage || !mbox || !svg || !root.classList.contains('hs-stack')) return;
+    const cardsTop = box.getBoundingClientRect().top - stage.getBoundingClientRect().top;
+    // The barrel's visible band in the model's viewBox (0 0 320 112) is about y 34…70.
+    const k = (svg.clientWidth / 320) * SCALE;
+    const svgTop = cardsTop - 6 - 70 * k;
+    root.style.setProperty('--hs-dart-shift', `${Math.round(svgTop - mbox.offsetTop)}px`);
+    root.style.setProperty('--hs-free', `${Math.max(0, Math.round(svgTop + 34 * k - 6 - 12))}px`);
+    if (performance.now() - t0 < ms) requestAnimationFrame(tick);
+  };
+  requestAnimationFrame(tick);
+}
+
 /** One round of the film. Resolves true when it reached the shop card, false when it should stop. */
 async function play(root: HTMLElement, c: Cast, mode: 'hero' | 'fit' = 'hero'): Promise<boolean> {
   // The fitting screen tells the same story about you: "your hand", "your answers", "your best match".
@@ -642,7 +676,10 @@ async function play(root: HTMLElement, c: Cast, mode: 'hero' | 'fit' = 'hero'): 
     setName(last);
     setSplit(c.barrels[last]!.m);
     chip.classList.add('best');
-    if (twinEl) root.classList.add('hs-twin-on');
+    if (twinEl) {
+      root.classList.add('hs-twin-on');
+      followFree(root, cards.box, 0);
+    }
     setStep(label('best'));
     return false;
   }
@@ -721,6 +758,7 @@ async function play(root: HTMLElement, c: Cast, mode: 'hero' | 'fit' = 'hero'): 
   await wait(twinEl ? 1700 : 1300);
   if (!alive()) return false;
   root.classList.add('hs-stack');
+  if (twinEl) followFree(root, cards.box, (cards.later.length + 1) * 850);
   for (const x of cards.later) {
     x.classList.add('in');
     await wait(850);
