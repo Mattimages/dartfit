@@ -2516,7 +2516,7 @@ a.card {
   bottom: 12px;
   z-index: 3;
   display: grid;
-  grid-template-columns: 80px minmax(0, 1fr);
+  grid-template-columns: 56px minmax(0, 1fr);
   gap: var(--s3);
   align-items: center;
   padding: 10px;
@@ -2534,8 +2534,8 @@ a.card {
   transform: none;
 }
 .hs-card img {
-  width: 80px;
-  height: 80px;
+  width: 56px;
+  height: 56px;
   object-fit: contain;
   border-radius: 12px;
   background: var(--stage);
@@ -2814,8 +2814,8 @@ a.card {
   transform: translateY(24px);
 }
 .hs-cards .hs-card.later.in {
-  max-height: 120px;
-  margin-top: 8px;
+  max-height: 140px;
+  margin-top: 12px;
   padding-block: 10px;
   opacity: 1;
   transform: none;
@@ -2825,20 +2825,24 @@ a.card {
     0 0 0 2px #2ee59d,
     0 22px 44px -16px rgb(0 0 0 / 0.6);
 }
-.hs-card img {
-  transition:
-    width 0.5s var(--ease),
-    height 0.5s var(--ease);
-}
-.hs-stack .hs-card {
-  grid-template-columns: 58px minmax(0, 1fr);
-}
-.hs-stack .hs-card img {
-  width: 58px;
-  height: 58px;
-}
 .hs-stack .hs-card b {
-  font-size: 0.92rem;
+  font-size: 0.95rem;
+}
+/* Stacked: name on top (two lines if it needs them), price class and weight · price on one line. */
+.hs-stack .hs-card > div {
+  grid-template-columns: auto minmax(0, 1fr);
+  column-gap: 6px;
+  align-items: center;
+}
+.hs-stack .hs-card > div > b {
+  grid-column: 1 / -1;
+  grid-row: 1;
+}
+.hs-stack .hs-card .hs-card-top {
+  grid-row: 2;
+}
+.hs-stack .hs-card .hs-card-meta {
+  grid-row: 2;
 }
 .hs-card-top {
   display: flex;
@@ -3735,10 +3739,11 @@ a.card {
   min-width: 0;
 }
 .hs-card b {
-  display: block;
-  white-space: nowrap;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
   overflow: hidden;
-  text-overflow: ellipsis;
+  text-wrap: balance;
 }
 .bw {
   background: radial-gradient(60% 50% at 50% 45%, rgb(10 18 31 / 0.82), rgb(10 18 31 / 0.96));
@@ -4646,8 +4651,9 @@ a.card {
 }
 /* With the big photo up top, the dart drops below it (between the name pill and the first card),
    barrel only: its label and name sit under the photo, and the card names the dart anyway. */
-.hs-twin-on:not(.hs-stack) .hs-modelbox {
-  transform: translateY(41%);
+.hs-twin-on .hs-modelbox {
+  transform-origin: 50% 0;
+  transform: translateY(var(--hs-dart-shift, 41%)) scale(0.75);
 }
 .hs-twin-on:not(.hs-stack) .hs-twin p {
   position: relative;
@@ -4734,10 +4740,7 @@ a.card {
 /* While the price classes come up, the photo stays put and opens up into a wide picture; under it
    your ideal dart, then the cards. hero-scan.ts (followFree) keeps the dart just above the cards
    and the photo filling the room above the dart as they push up. */
-.hs-twin-on.hs-stack .hs-modelbox {
-  transform-origin: 50% 0;
-  transform: translateY(var(--hs-dart-shift, 0px)) scale(0.75);
-}
+
 .hs-twin-on.hs-stack .hs-twin {
   top: 12px;
   left: 12px;
@@ -4757,7 +4760,7 @@ a.card {
   border-radius: var(--r-tile);
 }
 .hs-twin-on.hs-stack .hs-twin .pro-photo img {
-  object-position: 50% 24%;
+  object-position: 50% 16%;
 }
 .hs-twin-on.hs-stack .hs-twin p {
   position: absolute;

@@ -607,13 +607,14 @@ function followFree(root: HTMLElement, box: HTMLElement, ms: number) {
     const stage = root.querySelector('.hs-stage');
     const mbox = root.querySelector<HTMLElement>('.hs-modelbox');
     const svg = mbox?.querySelector<SVGSVGElement>('.hs-model');
-    if (!stage || !mbox || !svg || !root.classList.contains('hs-stack')) return;
+    if (!stage || !mbox || !svg || !root.classList.contains('hs-twin-on')) return;
     const cardsTop = box.getBoundingClientRect().top - stage.getBoundingClientRect().top;
-    // The barrel's visible band in the model's viewBox (0 0 320 112) is about y 34…70.
+    // The barrel's visible band in the model's viewBox (0 0 320 112) is about y 34…70; it sits
+    // 12px above the cards, the photo ends 12px above it.
     const k = (svg.clientWidth / 320) * SCALE;
-    const svgTop = cardsTop - 6 - 70 * k;
+    const svgTop = cardsTop - 12 - 70 * k;
     root.style.setProperty('--hs-dart-shift', `${Math.round(svgTop - mbox.offsetTop)}px`);
-    root.style.setProperty('--hs-free', `${Math.max(0, Math.round(svgTop + 34 * k - 6 - 12))}px`);
+    root.style.setProperty('--hs-free', `${Math.max(0, Math.round(svgTop + 34 * k - 12 - 12))}px`);
     if (performance.now() - t0 < ms) requestAnimationFrame(tick);
   };
   requestAnimationFrame(tick);
@@ -724,7 +725,7 @@ async function play(root: HTMLElement, c: Cast, mode: 'hero' | 'fit' = 'hero'): 
   const fast = mode === 'fit';
   chip.classList.add('on');
   for (let i = 0; i <= last; i++) {
-    setStep(t('hs.step.compare', { i: i + 1, n: last + 1 }));
+    setStep(t('hs.step.compare'));
     const g = model.cands[i]!;
     g.classList.add('on');
     setName(i);
@@ -760,15 +761,19 @@ async function play(root: HTMLElement, c: Cast, mode: 'hero' | 'fit' = 'hero'): 
   }
   // 5. Into the shop card, then the other price classes push up beneath it.
   root.classList.add('hs-end');
-  // With the price options: the pro who throws the same type.
-  if (twinEl) root.classList.add('hs-twin-on');
-  await wait(twinEl ? 1700 : 1300);
+  // Your best dart gets a moment on its own before the pro who throws the same type drops in.
+  await wait(1300);
+  if (!alive()) return false;
+  if (twinEl) {
+    root.classList.add('hs-twin-on');
+    followFree(root, cards.box, 1700 + (cards.later.length + 1) * 900);
+  }
+  await wait(twinEl ? 1700 : 300);
   if (!alive()) return false;
   root.classList.add('hs-stack');
-  if (twinEl) followFree(root, cards.box, (cards.later.length + 1) * 850);
   for (const x of cards.later) {
     x.classList.add('in');
-    await wait(850);
+    await wait(900);
     if (!alive()) return false;
   }
   return true;
