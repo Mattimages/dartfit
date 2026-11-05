@@ -257,7 +257,9 @@ export function castFor(
     barrels: [...ladder, top],
     options: [{ tier: bestTier, v: top.v, m: top.m, best: true }, ...others],
     who,
-    twin: ((p) => (p ? { id: p.id, name: p.name, country: p.country } : null))(proTwin(f, pros(), variants())?.pro),
+    twin: ((p) => (p ? { id: p.id, name: p.name, country: p.country } : null))(
+      proTwin(f, pros(), variants())?.pro,
+    ),
   };
 }
 
@@ -639,7 +641,12 @@ async function play(root: HTMLElement, c: Cast, mode: 'hero' | 'fit' = 'hero'): 
   // The pro who throws the same type, shown with your best match.
   // Their player card drops in above the name (country colours and initials, not a likeness).
   const twinEl = c.twin
-    ? h('div', { class: 'hs-twin' }, proPortrait(c.twin, { eager: true }), h('p', null, t('hs.twin', { name: c.twin.name })))
+    ? h(
+        'div',
+        { class: 'hs-twin' },
+        proPortrait(c.twin, { eager: true }),
+        h('p', null, t('hs.twin', { name: c.twin.name })),
+      )
     : null;
   const modelBox = h('div', { class: 'hs-modelbox' }, chip, model.svg, nameEl);
   const cards = shopCards(c);

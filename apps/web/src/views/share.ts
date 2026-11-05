@@ -154,7 +154,9 @@ async function resultCard(o: {
   g.fillStyle = bg;
   g.fillRect(0, 0, W, H);
 
-  const options = o.options?.length ? o.options.slice(0, 3) : [{ tier: 'standard' as const, v: o.v, pct: o.pct }];
+  const options = o.options?.length
+    ? o.options.slice(0, 3)
+    : [{ tier: 'standard' as const, v: o.v, pct: o.pct }];
   const cardH = 190;
   const gap = 20;
   const cardsTop = H - 120 - options.length * cardH - (options.length - 1) * gap;
@@ -261,7 +263,13 @@ async function resultCard(o: {
     const img = darts[i];
     if (img) {
       const k = Math.min(tile.w / img.width, tile.h / img.height);
-      g.drawImage(img, tile.x + (tile.w - img.width * k) / 2, tile.y + (tile.h - img.height * k) / 2, img.width * k, img.height * k);
+      g.drawImage(
+        img,
+        tile.x + (tile.w - img.width * k) / 2,
+        tile.y + (tile.h - img.height * k) / 2,
+        img.width * k,
+        img.height * k,
+      );
     }
     g.restore();
     const tx = tile.x + tile.w + 28;

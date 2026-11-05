@@ -3299,15 +3299,54 @@ a.card {
 .qd-soft {
   fill: #e3122c;
 }
-.qd-shaft {
-  fill: #50627d;
+.qd-alu-0 {
+  stop-color: #8796ad;
 }
-.qd-flight {
-  fill: #e3122c;
-  opacity: 0.9;
+.qd-alu-1 {
+  stop-color: #56677f;
+}
+.qd-alu-2 {
+  stop-color: #2f3c50;
+}
+.qd-ring {
+  fill: #c9d2de;
+}
+.qd-fl-0 {
+  stop-color: #ff4a5c;
+}
+.qd-fl-1 {
+  stop-color: #e3122c;
+}
+.qd-fl-2 {
+  stop-color: #a30b1f;
+}
+.qd-fl-trim {
+  fill: none;
+  stroke: rgb(255 255 255 / 0.55);
+  stroke-width: 0.5;
+  stroke-linecap: round;
+}
+.qd-fl-band {
+  fill: rgb(255 255 255 / 0.85);
+}
+.qd-fl-line {
+  fill: rgb(255 255 255 / 0.45);
+}
+.qd-fl-sheen {
+  fill: rgb(255 255 255 / 0.08);
+}
+.qd-fl-edge {
+  fill: #7d0816;
+}
+.qd-fl-edge-hi {
+  stroke: rgb(255 255 255 / 0.35);
+  stroke-width: 0.35;
 }
 .qd-steel-0 {
   stop-color: #eef2f7;
+}
+.qd-steel-hi {
+  stop-color: #ffffff;
 }
 .qd-steel-1 {
   stop-color: #a9b5c5;
@@ -3323,18 +3362,43 @@ a.card {
   stroke: #ff4d5e;
   stroke-width: 0.7;
 }
-.qd-knurl line {
-  stroke: #2b3a52;
-  opacity: 0.75;
+/* Knurling (quiz-dart.ts): engraved grooves (a dark cut, a lit edge), micro-grip mesh, shark fins. */
+.qd-knurl .gv {
+  fill: none;
+  stroke: #26344a;
+  opacity: 0.85;
 }
-.qd-knurl line.cut {
-  stroke-width: 0.35;
+.qd-knurl .hi {
+  fill: none;
+  stroke: #ffffff;
+  stroke-width: 0.25;
+  opacity: 0.7;
+}
+.qd-knurl .mesh {
+  stroke: #26344a;
+  stroke-width: 0.22;
+  opacity: 0.6;
+}
+.qd-knurl .mesh-tint {
+  fill: #26344a;
+  opacity: 0.14;
+}
+.qd-fin-0 {
+  stop-color: #1f2b3d;
+  stop-opacity: 0.75;
+}
+.qd-fin-1 {
+  stop-color: #1f2b3d;
+  stop-opacity: 0;
+}
+.qd-spec {
+  fill: #ffffff;
   opacity: 0.55;
 }
-.qd[data-focus='gripFeel'] .qd-knurl line,
-.qd[data-focus='moisture'] .qd-knurl line {
+.qd[data-focus='gripFeel'] .qd-knurl .gv,
+.qd[data-focus='gripFeel'] .qd-knurl .mesh,
+.qd[data-focus='moisture'] .qd-knurl .gv {
   stroke: #9e0d20;
-  opacity: 0.85;
 }
 .qd-zone {
   fill: rgb(227 18 44 / 0.28);
