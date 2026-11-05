@@ -1,30 +1,36 @@
 /**
- * #/ad : a 9:16 motion ad (TikTok / Reels / Shorts), only in the demo build. Playful but clean:
- * the real board and darts in their own colours, soft round lines, three typefaces (a chunky
- * display face for the big words, handwriting for the little notes, Geist for the numbers) and
- * almost no words. A step rail at the top (hand → maths → dart → pro) keeps the viewer oriented,
- * and each scene slides on to the next.
+ * #/ad : a 9:16 motion ad (TikTok / Reels / Shorts), only in the demo build. Fast, about 23 s,
+ * built from the site's own pieces so the viewer sees the real experience:
  *
- * The story: a dart falls out of the board, the hand is scanned next to a pasje, the numbers fly
- * into the model, three bell curves narrow, the catalogue is crossed off down to one dart, darts
- * land on the board with the match %, and the pro is revealed with their real photo (the
- * renderer's window.__adPhoto, else the site's credited photo, else the player card). All numbers
- * come from the real engine for one persona. The last frame is the first frame (the empty board),
- * so the video loops. Recorded by scripts/tiktok/ad.mjs, which injects the two extra faces
- * (AdHand: Caveat, AdDisplay: Bricolage Grotesque); the site itself never loads them.
+ *   hook      "Verkeerde dart?": the questionnaire's realistic dart slams into the board and falls out
+ *   hand      the hand scanned next to a pasje, two measurements
+ *   vragen    the real questionnaire card tapped through: hold zone, fingers, knurling 1→5, live
+ *   rekenen   the numbers fly into the model, three bell curves narrow
+ *   dart      a wall of real dart photos knocked out down to one, then the darts on the board + %
+ *   prof      the pro's real photo, then the film's last frame: photo, your ideal dart, three price
+ *             classes with their real photos
+ *   ask       "Welke prof ben jij?" + findyourdarts.com, then the empty board again (it loops)
+ *
+ * Playful but clean: the real board and darts in their own colours, soft round lines, three faces
+ * (AdDisplay: Bricolage Grotesque for the big words, AdHand: Caveat for little notes, Geist for the
+ * numbers; scripts/tiktok/ad.mjs injects the first two, the site never loads them) and a step rail
+ * so the viewer keeps track. All numbers come from the real engine for one persona. The pro photo is
+ * the renderer's window.__adPhoto, else the site's credited photo, else the player card.
  *
  *   #/ad?L=178&h=180&hold=rear&f=4&throw=flat&g=1      (hand length mm, height cm, answers)
  */
-import { scoreVariant, type Answers, type Measurements } from '@dartfit/engine';
+import { scoreVariant, type Answers, type Measurements, type Variant } from '@dartfit/engine';
 import { h, s } from '../h';
-import { getLang, num } from '../i18n';
+import { getLang, num, t } from '../i18n';
 import { createFit, variants } from '../api';
 import { boardSvg } from '../draw/checkout';
 import { handArt, templateHand } from '../draw/art';
 import { proArt } from '../draw/pro-art';
 import { creditText, proPhoto } from '../draw/pro-photo';
-import { variantArt } from '../score';
-import { castFor, checkoutWin } from './hero-scan';
+import { photoUrl } from '../media';
+import { approxEur } from '../money';
+import { castFor, checkoutWin, idealDartPaths } from './hero-scan';
+import { quizDart } from './quiz-dart';
 import { dartName } from './words';
 
 declare global {
@@ -38,34 +44,40 @@ const COPY = {
     hook: 'Verkeerde dart?',
     like: 'Je gooit als',
     cta: 'Welke prof ben jij?',
-    steps: ['hand', 'rekenen', 'dart', 'prof'],
+    steps: ['hand', 'vragen', 'rekenen', 'dart', 'prof'],
     hand: 'jouw hand',
     dims: ['gewicht', 'lengte', 'dikte'],
     darts: 'darts',
     dart: 'dart',
     pick: 'deze!',
+    ideal: 'jouw ideale dart',
+    tap: 'tik',
   },
   en: {
     hook: 'Wrong dart?',
     like: 'You throw like',
     cta: 'Which pro are you?',
-    steps: ['hand', 'maths', 'dart', 'pro'],
+    steps: ['hand', 'quiz', 'maths', 'dart', 'pro'],
     hand: 'your hand',
     dims: ['weight', 'length', 'thickness'],
     darts: 'darts',
     dart: 'dart',
     pick: 'this one!',
+    ideal: 'your ideal dart',
+    tap: 'tap',
   },
   de: {
     hook: 'Falscher Dart?',
     like: 'Du wirfst wie',
     cta: 'Welcher Profi bist du?',
-    steps: ['Hand', 'Mathe', 'Dart', 'Profi'],
+    steps: ['Hand', 'Fragen', 'Mathe', 'Dart', 'Profi'],
     hand: 'deine Hand',
     dims: ['Gewicht', 'Länge', 'Dicke'],
     darts: 'Darts',
     dart: 'Dart',
     pick: 'der hier!',
+    ideal: 'dein idealer Dart',
+    tap: 'tipp',
   },
 };
 
@@ -76,6 +88,7 @@ const GREEN = '#3ee6a0';
 const SUN = '#ffd166';
 const HAND = 'AdHand,"Caveat","Segoe Print","Comic Sans MS",cursive';
 const DISPLAY = 'AdDisplay,"Bricolage Grotesque","Geist Variable",system-ui,sans-serif';
+const TIER_BG = { budget: '#0f9d63', standard: '#1f5fd6', premium: '#e3122c' } as const;
 const CSS = `
 .ad{position:fixed;inset:0;z-index:2147483000;overflow:hidden;color:${INK};
   font-family:"Geist Variable",system-ui,sans-serif;
@@ -88,12 +101,12 @@ const CSS = `
 .ad-scene{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;opacity:0}
 .ad-hand-note{font-family:${HAND};font-weight:700}
 .ad-big{font-family:${DISPLAY};font-weight:800;letter-spacing:-.025em;line-height:.92;text-align:center}
-.ad-rail{position:absolute;top:5.5vh;left:7vw;right:7vw;display:grid;grid-template-columns:repeat(4,1fr);opacity:0;z-index:5}
-.ad-step{position:relative;display:grid;justify-items:center;gap:1.4vw;color:#ffffff66;transition:color .3s}
-.ad-step::before{content:"";position:absolute;top:2.1vw;left:-50%;right:50%;height:.7vw;border-radius:1vw;background:#ffffff26;z-index:-1}
+.ad-rail{position:absolute;top:5vh;left:5vw;right:5vw;display:grid;grid-template-columns:repeat(5,1fr);opacity:0;z-index:5}
+.ad-step{position:relative;display:grid;justify-items:center;gap:1.4vw;color:#ffffff66;transition:color .25s}
+.ad-step::before{content:"";position:absolute;top:2vw;left:-50%;right:50%;height:.7vw;border-radius:1vw;background:#ffffff26;z-index:-1}
 .ad-step:first-child::before{display:none}
-.ad-step i{display:block;width:4.9vw;height:4.9vw;border-radius:50%;background:${NAVY};box-shadow:inset 0 0 0 .7vw #ffffff40;transition:transform .35s cubic-bezier(.34,1.56,.64,1),background .3s,box-shadow .3s}
-.ad-step span{font-family:${HAND};font-weight:700;font-size:7vw;line-height:1}
+.ad-step i{display:block;width:4.6vw;height:4.6vw;border-radius:50%;background:${NAVY};box-shadow:inset 0 0 0 .7vw #ffffff40;transition:transform .3s cubic-bezier(.34,1.56,.64,1),background .25s,box-shadow .25s}
+.ad-step span{font-family:${HAND};font-weight:700;font-size:6.2vw;line-height:1;white-space:nowrap}
 .ad-step.done{color:#ffffffb0}
 .ad-step.done::before,.ad-step.on::before{background:${GREEN}}
 .ad-step.done i{background:${GREEN};box-shadow:none}
@@ -103,7 +116,9 @@ const CSS = `
 .ad-squig{position:absolute;top:calc(15vh + 34vw);left:18vw;width:64vw;height:6vw;overflow:visible}
 .ad-squig path{fill:none;stroke:${RED};stroke-width:5;stroke-linecap:round;vector-effect:non-scaling-stroke}
 .ad-board{position:absolute;left:50%;bottom:-30vw;width:96vw;height:96vw;margin-left:-48vw;overflow:visible;filter:drop-shadow(0 4vw 6vw #0008)}
-.ad-fly{position:absolute;width:56vw;left:24vw;bottom:44vw;transform-origin:0% 50%;opacity:0;filter:drop-shadow(0 2vw 2vw #0006)}
+.ad-fly{position:absolute;width:70vw;left:22vw;bottom:41vw;transform-origin:0% 50%;opacity:0;filter:drop-shadow(0 2vw 2.4vw #0007)}
+.ad-fly .qd-path,.ad-fly .qd-hold{display:none}
+.ad-flash{position:absolute;inset:0;background:#fff;opacity:0;pointer-events:none}
 .ad-handbox{position:relative;width:70vw;height:96vw;margin-top:6vh;
   --skin:#e3b896;--skin-hi:#f3d5be;--skin-shade:#b9805e;--nail:#f4dbd1}
 .ad-handbox svg.hand{position:absolute;inset:0;width:100%;height:100%;filter:drop-shadow(0 3vw 4vw #0007)}
@@ -118,6 +133,14 @@ const CSS = `
 .ad-note{position:absolute;padding:0 3vw 1vw 1vw;font-size:9vw;color:${SUN};white-space:nowrap;opacity:0}
 .ad-arrow{position:absolute;overflow:visible;opacity:0}
 .ad-arrow path{fill:none;stroke:${SUN};stroke-width:3.2px;stroke-linecap:round;stroke-linejoin:round;vector-effect:non-scaling-stroke}
+.ad-quiz{gap:6vw;padding-top:6vh}
+.ad-q{font-size:11vw;min-height:12vw;padding:0 5vw}
+.ad .ad-quiz .qd{position:relative;top:auto;width:92vw;padding:5vw 4vw 3vw;border-radius:6vw;overflow:hidden;box-shadow:0 5vw 12vw #0009,inset 0 0 0 .3vw #ffffff1c}
+.ad-quiz .qd-svg{transform-origin:40% 52%}
+.ad-opts{display:flex;gap:2.6vw;justify-content:center;flex-wrap:wrap;width:92vw;min-height:15vw}
+.ad-opt{position:relative;min-width:14vw;padding:2.6vw 4.6vw;border-radius:9vw;background:#ffffff14;box-shadow:inset 0 0 0 .4vw #ffffff30;font-weight:650;font-size:6.2vw;letter-spacing:-.02em;text-align:center;transition:background .18s,color .18s,transform .18s}
+.ad-opt.on{background:${RED};box-shadow:none;transform:scale(1.08)}
+.ad-tapdot{position:absolute;left:50%;top:50%;width:10vw;height:10vw;margin:-5vw 0 0 -5vw;border-radius:50%;background:#fff;opacity:0;pointer-events:none}
 .ad-core{position:absolute;left:50%;top:52%;width:48vw;height:48vw;margin:-24vw 0 0 -24vw;overflow:visible}
 .ad-core circle{fill:none;stroke-width:3.2px;vector-effect:non-scaling-stroke;stroke-linecap:round}
 .ad-glow{position:absolute;left:50%;top:52%;width:20vw;height:20vw;margin:-10vw 0 0 -10vw;border-radius:50%;
@@ -131,17 +154,18 @@ const CSS = `
 .ad-curve .line{fill:none;stroke-width:3.4px;stroke-linecap:round;vector-effect:non-scaling-stroke}
 .ad-curve b{font-family:${DISPLAY};font-weight:800;font-size:10vw;letter-spacing:-.03em;text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
 .ad-formula{margin-top:8vw;font-family:${HAND};font-weight:700;font-size:8vw;color:${SUN};transform:rotate(-2deg);clip-path:inset(0 100% 0 0)}
-.ad-grid{display:grid;grid-template-columns:repeat(10,1fr);gap:2.6vw 1.6vw;width:86vw;margin-top:8vh}
-.ad-mini{position:relative;height:5vw;transition:opacity .25s,transform .25s}
-.ad-mini svg{width:100%;height:100%;overflow:visible}
-.ad-mini line{stroke-width:2.6px;vector-effect:non-scaling-stroke;stroke-linecap:round}
-.ad-mini.x{opacity:.14;transform:scale(.7)}
-.ad-mini.win{opacity:1}
-.ad-mini.win::before{content:"";position:absolute;inset:-3.4vw -1vw;border-radius:50%;box-shadow:0 0 0 .8vw ${GREEN},0 0 5vw ${GREEN}}
-.ad-count{margin-top:7vw;display:flex;align-items:baseline;gap:2.6vw}
-.ad-count b{font-family:${DISPLAY};font-weight:800;font-size:22vw;letter-spacing:-.04em;line-height:1;font-variant-numeric:tabular-nums;color:${INK}}
+.ad-wall{display:grid;grid-template-columns:repeat(4,1fr);gap:2.4vw;width:90vw;margin-top:9vh}
+.ad-tile{position:relative;aspect-ratio:1;border-radius:4vw;background:#edf2f9;overflow:hidden;box-shadow:0 1.6vw 4vw #0006;transition:opacity .2s,transform .2s,filter .2s}
+.ad-tile img{position:absolute;inset:6%;width:88%;height:88%;object-fit:contain}
+.ad-tile.x{opacity:.28;transform:scale(.86);filter:grayscale(1)}
+.ad-tile.x::after{content:"✕";position:absolute;inset:0;display:grid;place-items:center;font-family:${DISPLAY};font-weight:800;font-size:16vw;color:${RED};filter:none}
+.ad-tile.win{box-shadow:0 0 0 1.2vw ${GREEN},0 0 8vw ${GREEN}}
+.ad-count{margin-top:5vw;display:flex;align-items:baseline;gap:2.6vw}
+.ad-count b{font-family:${DISPLAY};font-weight:800;font-size:20vw;letter-spacing:-.04em;line-height:1;font-variant-numeric:tabular-nums;color:${INK}}
 .ad-count span{font-family:${HAND};font-weight:700;font-size:9vw;color:#ffffffb0}
-.ad-pick{font-size:6.6vw;font-weight:600;letter-spacing:-.02em;text-align:center;margin-top:1vw;opacity:0}
+.ad-hero{position:absolute;left:14vw;right:14vw;top:24vh;aspect-ratio:1;border-radius:7vw;background:#edf2f9;box-shadow:0 0 0 1.4vw ${GREEN},0 6vw 14vw #000a;opacity:0}
+.ad-hero img{position:absolute;inset:6%;width:88%;height:88%;object-fit:contain}
+.ad-heroname{position:absolute;left:5vw;right:5vw;top:calc(24vh + 82vw);font-size:9vw;font-weight:650;letter-spacing:-.03em;text-align:center;opacity:0}
 .ad-match .bw{background:none}
 .ad-match .bw-hit{width:82vw}
 .ad-match .bw-word{font-family:${DISPLAY};font-weight:800;font-size:22vw;letter-spacing:-.04em;color:${GREEN};text-shadow:0 1vw 6vw #3ee6a066}
@@ -154,6 +178,23 @@ const CSS = `
 .ad-like{font-family:${HAND};font-weight:700;font-size:11vw;color:${SUN};transform:rotate(-4deg);opacity:0}
 .ad-proname{font-size:15vw;margin-top:1vw;opacity:0}
 .ad-pct{margin-top:4vw;padding:1.6vw 5vw;border-radius:9vw;background:${GREEN};color:${NAVY};font-family:${DISPLAY};font-weight:800;font-size:9vw;letter-spacing:-.03em;opacity:0}
+.ad-final{justify-content:flex-start;padding:12.5vh 4vw 0;gap:2.4vw}
+.ad-banner{position:relative;width:92vw;height:26vh;border-radius:5vw;overflow:hidden;box-shadow:0 0 0 1vw ${INK},0 4vw 10vw #0009;background:#1d3762}
+.ad-banner img{width:100%;height:100%;object-fit:cover;object-position:50% 22%}
+.ad-banner p{position:absolute;left:3vw;bottom:3vw;margin:0;padding:1.6vw 3.6vw;border-radius:9vw;background:#0a121fd0;font-weight:600;font-size:5.4vw;white-space:nowrap}
+.ad-banner p b{font-weight:700}
+.ad-ideal{width:92vw;display:grid;justify-items:start;margin-top:1vw}
+.ad-ideal span{font-family:${HAND};font-weight:700;font-size:7vw;color:${SUN};margin-left:4vw;line-height:1}
+.ad-ideal svg{width:92vw;height:auto;overflow:visible}
+.ad-pcard{display:grid;grid-template-columns:17vw minmax(0,1fr) auto;align-items:center;gap:3.4vw;width:92vw;padding:2vw 4vw 2vw 2vw;border-radius:5vw;background:#fff;color:${NAVY};box-shadow:0 3vw 8vw #0008;opacity:0}
+.ad-pcard.best{box-shadow:0 0 0 1vw ${GREEN},0 3vw 8vw #0008}
+.ad-pcard .ph{position:relative;width:17vw;aspect-ratio:1;border-radius:3.4vw;background:#edf2f9;overflow:hidden}
+.ad-pcard .ph img{position:absolute;inset:6%;width:88%;height:88%;object-fit:contain}
+.ad-pcard div{display:grid;gap:.6vw;min-width:0}
+.ad-pcard em{justify-self:start;padding:.6vw 2.6vw;border-radius:9vw;color:#fff;font-style:normal;font-weight:600;font-size:3.6vw}
+.ad-pcard b{font-weight:650;font-size:5vw;letter-spacing:-.02em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ad-pcard small{font-size:4vw;color:#5b6b82}
+.ad-pcard strong{font-family:${DISPLAY};font-weight:800;font-size:10vw;letter-spacing:-.03em;color:#0a8f5a}
 .ad-cta .ad-big{font-size:15vw;padding:0 6vw;opacity:0}
 .ad-url{margin-top:9vw;padding:2.4vw 6vw;border-radius:9vw;background:${INK};color:${NAVY};font-weight:650;font-size:7.4vw;letter-spacing:-.03em;opacity:0;box-shadow:0 2vw 6vw #0006}
 `;
@@ -161,7 +202,7 @@ const CSS = `
 const wait = (ms: number) => new Promise((r) => setTimeout(r, ms));
 const EASE_OUT = 'cubic-bezier(0.2, 0.8, 0.2, 1)';
 const POP = 'cubic-bezier(0.34, 1.56, 0.64, 1)';
-const show = (el: Element, ms = 280, from = 'translateY(4vw) scale(.9)', to = 'none') =>
+const show = (el: Element, ms = 260, from = 'translateY(4vw) scale(.9)', to = 'none') =>
   el.animate(
     [
       { opacity: 0, transform: from },
@@ -170,7 +211,7 @@ const show = (el: Element, ms = 280, from = 'translateY(4vw) scale(.9)', to = 'n
     { duration: ms, easing: POP, fill: 'forwards' },
   );
 /** Handwriting appearing: a left-to-right reveal. */
-const write = (el: Element, ms = 500) =>
+const write = (el: Element, ms = 400) =>
   el.animate(
     [
       { clipPath: 'inset(0 100% 0 0)', opacity: 1 },
@@ -190,7 +231,7 @@ function drawIn(path: SVGGeometryElement, ms: number, delay = 0) {
     fill: 'forwards',
   });
 }
-/** A hand-drawn arrow (a gentle curve with a head), pointing towards the end of the path. */
+/** A hand-drawn arrow (a gentle curve with a head). */
 function arrow(d: string, head: string, css: string) {
   const el = s(
     'svg',
@@ -201,6 +242,12 @@ function arrow(d: string, head: string, css: string) {
   el.style.cssText = css;
   return el;
 }
+/** A dart's product photo on a light tile, or null when it has none. */
+const photoOf = (v: Variant) => {
+  const src = photoUrl(v.modelId, 400);
+  // Only photos bundled into the page: the renderer has no network.
+  return src && !/^https?:/.test(src) ? src : null;
+};
 
 export async function adView(root: HTMLElement, _p: Record<string, string>, q: URLSearchParams) {
   const C = COPY[getLang() as keyof typeof COPY] ?? COPY.en;
@@ -258,7 +305,7 @@ export async function adView(root: HTMLElement, _p: Record<string, string>, q: U
   const fade = (el: HTMLElement, to: 0 | 1, ms = 220) =>
     el.animate([{ opacity: to ? 0 : 1 }, { opacity: to }], { duration: ms, fill: 'forwards' }).finished;
   /** The story moves on: this scene slides out to the left as the next one slides in. */
-  const slide = async (from: HTMLElement, to: HTMLElement, ms = 380) => {
+  const slide = async (from: HTMLElement, to: HTMLElement, ms = 260) => {
     ad.append(to);
     from.animate(
       [
@@ -276,6 +323,11 @@ export async function adView(root: HTMLElement, _p: Record<string, string>, q: U
     ).finished;
     from.remove();
   };
+  const punch = (el: Element, k = 1.06, ms = 220) =>
+    el.animate([{ transform: 'scale(1)' }, { transform: `scale(${k})` }, { transform: 'scale(1)' }], {
+      duration: ms,
+      easing: EASE_OUT,
+    });
 
   // The step rail: where we are in the story.
   const steps = C.steps.map((label) => h('div', { class: 'ad-step' }, h('i'), h('span', null, label)));
@@ -287,7 +339,8 @@ export async function adView(root: HTMLElement, _p: Record<string, string>, q: U
       el.classList.toggle('on', j === i);
     });
 
-  // 1. The loop's first frame is the empty board. "Verkeerde dart?", the dart hits and falls out.
+  // ── 1. Hook: the empty board (the loop's first frame), "Verkeerde dart?", and the realistic
+  //       dart from the questionnaire slams in, shudders, and falls out.
   const hook = h('div', { class: 'ad-scene ad-hook' });
   const word = h('div', { class: 'ad-big' }, C.hook);
   const squig = s(
@@ -295,29 +348,44 @@ export async function adView(root: HTMLElement, _p: Record<string, string>, q: U
     { class: 'ad-squig', viewBox: '0 0 100 10', preserveAspectRatio: 'none' },
     s('path', { d: 'M2,6C12,1 18,10 28,5S44,1 54,6S70,10 80,5S94,2 98,5' }),
   );
-  const fly = variantArt(best.variant, 'ad-fly') as unknown as HTMLElement;
-  hook.append(boardSvg('ad-board bc-board'), word, squig, fly);
+  const flyDart = quizDart();
+  flyDart.update({ ...a, hold: 'middle', gripFeel: 3 }, null);
+  const fly = h('div', { class: 'ad-fly' }, flyDart.el.querySelector('svg')!);
+  const flash = h('div', { class: 'ad-flash' });
+  hook.append(boardSvg('ad-board bc-board'), word, squig, fly, flash);
   ad.append(hook);
   hook.style.opacity = '1';
-  (squig.querySelector('path') as SVGPathElement).style.strokeDasharray = '400';
-  (squig.querySelector('path') as SVGPathElement).style.strokeDashoffset = '400';
-  await wait(350);
-  show(word, 420, 'rotate(-3deg) scale(.6)', 'rotate(-3deg)');
-  drawIn(squig.querySelector('path') as SVGPathElement, 380, 260);
-  await wait(500);
+  const sq = squig.querySelector('path') as SVGPathElement;
+  sq.style.strokeDasharray = '400';
+  sq.style.strokeDashoffset = '400';
+  await wait(250);
+  show(word, 300, 'rotate(-3deg) scale(1.6)', 'rotate(-3deg)');
+  drawIn(sq, 260, 180);
+  await wait(320);
   fly.style.opacity = '1';
   await fly.animate(
-    [{ transform: 'translate(70vw, -34vw) rotate(-14deg)' }, { transform: 'translate(0, 0) rotate(26deg)' }],
-    { duration: 320, easing: 'cubic-bezier(0.5, 0, 0.9, 0.6)', fill: 'forwards' },
+    [{ transform: 'translate(70vw, -40vw) rotate(-16deg)' }, { transform: 'translate(0, 0) rotate(26deg)' }],
+    { duration: 240, easing: 'cubic-bezier(0.5, 0, 0.9, 0.6)', fill: 'forwards' },
   ).finished;
+  // Impact: a flash and a jolt.
+  flash.animate([{ opacity: 0.35 }, { opacity: 0 }], { duration: 160 });
+  hook.animate(
+    [
+      { transform: 'translate(0,0)' },
+      { transform: 'translate(-1.6vw,1vw)' },
+      { transform: 'translate(1.2vw,-.6vw)' },
+      { transform: 'translate(0,0)' },
+    ],
+    { duration: 200 },
+  );
   await fly.animate(
     [
       { transform: 'rotate(26deg)' },
-      { transform: 'rotate(32deg)' },
-      { transform: 'rotate(22deg)' },
+      { transform: 'rotate(33deg)' },
+      { transform: 'rotate(21deg)' },
       { transform: 'rotate(27deg)' },
     ],
-    { duration: 420, fill: 'forwards' },
+    { duration: 340, fill: 'forwards' },
   ).finished;
   await fly.animate(
     [
@@ -325,10 +393,10 @@ export async function adView(root: HTMLElement, _p: Record<string, string>, q: U
       { transform: 'translate(4vw, 6vw) rotate(62deg)', offset: 0.25 },
       { transform: 'translate(10vw, 130vw) rotate(170deg)' },
     ],
-    { duration: 720, easing: 'cubic-bezier(0.5, 0, 0.9, 0.5)', fill: 'forwards' },
+    { duration: 560, easing: 'cubic-bezier(0.5, 0, 0.9, 0.5)', fill: 'forwards' },
   ).finished;
 
-  // 2. Your hand: scanned next to the pasje, then the two measurements.
+  // ── 2. Your hand: scanned next to the pasje, then the two measurements.
   const scan = h('div', { class: 'ad-scene' });
   const hand = handArt({ lengthMm: L, dots: true });
   hand.classList.add('hand');
@@ -352,25 +420,34 @@ export async function adView(root: HTMLElement, _p: Record<string, string>, q: U
   pillW.style.cssText = 'left:28%;top:67%';
   const note = h('div', { class: 'ad-note ad-hand-note' }, C.hand);
   note.style.cssText = 'left:-6vw;top:-6vw;transform:rotate(-8deg)';
-  const noteArrow = arrow('M10,10C30,20 50,40 70,80', 'M52,74L70,80L72,62', 'left:6vw;top:6vw;width:12vw;height:14vw');
+  const noteArrow = arrow(
+    'M10,10C30,20 50,40 70,80',
+    'M52,74L70,80L72,62',
+    'left:6vw;top:6vw;width:12vw;height:14vw',
+  );
   const box = h('div', { class: 'ad-handbox' }, hand, bar, card, dimL, dimW, pillL, pillW, note, noteArrow);
   scan.append(box);
   rail.style.opacity = '1';
   setStep(0);
-  rail.animate([{ opacity: 0, transform: 'translateY(-4vw)' }, { opacity: 1, transform: 'none' }], {
-    duration: 320,
-    easing: EASE_OUT,
-  });
+  rail.animate(
+    [
+      { opacity: 0, transform: 'translateY(-4vw)' },
+      { opacity: 1, transform: 'none' },
+    ],
+    {
+      duration: 260,
+      easing: EASE_OUT,
+    },
+  );
   hand.style.clipPath = 'inset(100% 0 0 0)';
   for (const d of [dimL, dimW]) {
     const p = d.querySelector('path') as SVGPathElement;
     p.style.strokeDasharray = '1000';
     p.style.strokeDashoffset = '1000';
   }
-  await slide(hook, scan, 340);
-  // The scan line sweeps up and the hand appears behind it.
+  await slide(hook, scan, 240);
   hand.animate([{ clipPath: 'inset(100% 0 0 0)' }, { clipPath: 'inset(0 0 0 0)' }], {
-    duration: 900,
+    duration: 650,
     easing: 'ease-in-out',
     fill: 'forwards',
   });
@@ -380,30 +457,111 @@ export async function adView(root: HTMLElement, _p: Record<string, string>, q: U
       { top: '0%', opacity: 1, offset: 0.92 },
       { top: '0%', opacity: 0 },
     ],
-    { duration: 980, easing: 'ease-in-out', fill: 'forwards' },
+    { duration: 720, easing: 'ease-in-out', fill: 'forwards' },
   );
-  const dots = [...hand.querySelectorAll<SVGElement>('.hand-dot')];
-  dots.forEach((d, i) =>
-    d.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 120, delay: 700 + i * 26, fill: 'both' }),
+  [...hand.querySelectorAll<SVGElement>('.hand-dot')].forEach((d, i) =>
+    d.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 100, delay: 500 + i * 18, fill: 'both' }),
   );
-  await wait(500);
-  show(card, 300, 'rotate(-9deg) translateY(8vw)', 'rotate(-9deg)');
-  write(note, 360);
-  drawIn(noteArrow.querySelector('path') as SVGPathElement, 300, 200);
+  await wait(380);
+  show(card, 240, 'rotate(-9deg) translateY(8vw)', 'rotate(-9deg)');
+  write(note, 280);
+  drawIn(noteArrow.querySelector('path') as SVGPathElement, 240, 150);
   noteArrow.style.opacity = '1';
-  await wait(600);
+  await wait(420);
   for (const [dim, label] of [
     [dimL, pillL],
     [dimW, pillW],
   ] as const) {
-    drawIn(dim.querySelector('path')!, 360);
-    await wait(220);
-    show(label, 300);
-    await wait(260);
+    drawIn(dim.querySelector('path')!, 260);
+    await wait(160);
+    show(label, 240);
+    await wait(180);
   }
-  await wait(650);
+  await wait(380);
 
-  // 3. The maths: the numbers fly into the model, which spins up…
+  // ── 3. The questions: the real questionnaire card, tapped through. The dart follows every
+  //       answer: the hold zone moves, the finger pads change, the knurling cuts deeper.
+  const quiz = h('div', { class: 'ad-scene ad-quiz' });
+  const qTitle = h('div', { class: 'ad-big ad-q' });
+  const live = quizDart();
+  let cur: Answers = { ...a, hold: 'middle', fingers: 3, gripFeel: 1 };
+  live.update(cur, 'hold');
+  const opts = h('div', { class: 'ad-opts' });
+  quiz.append(qTitle, live.el, opts);
+  setStep(1);
+  await slide(scan, quiz, 240);
+  type Beat = {
+    title: string;
+    focus: 'hold' | 'fingers' | 'gripFeel';
+    options: Array<{ label: string; set: Partial<Answers> }>;
+    taps: number[];
+  };
+  const holds: Answers['hold'][] = ['front', 'middle', 'rear'];
+  const holdTaps = [holds.indexOf(a.hold) === 0 ? 2 : 0, holds.indexOf(a.hold)];
+  const beats: Beat[] = [
+    {
+      title: t('q.hold'),
+      focus: 'hold',
+      options: holds.map((x) => ({ label: t(`q.hold.${x}`), set: { hold: x } })),
+      taps: holdTaps,
+    },
+    {
+      title: t('q.fingers'),
+      focus: 'fingers',
+      options: [2, 3, 4, 5].map((x) => ({ label: String(x), set: { fingers: x as Answers['fingers'] } })),
+      taps: [a.fingers === 2 ? 2 : 0, [2, 3, 4, 5].indexOf(a.fingers)],
+    },
+    {
+      title: t('q.grip'),
+      focus: 'gripFeel',
+      options: [1, 2, 3, 4, 5].map((x) => ({
+        label: String(x),
+        set: { gripFeel: x as Answers['gripFeel'] },
+      })),
+      // Run the knurling up through every cut, then settle on the answer.
+      taps: [1, 2, 3, 4, a.gripFeel - 1],
+    },
+  ];
+  for (const [bi, beat] of beats.entries()) {
+    qTitle.textContent = beat.title;
+    show(qTitle, 220, 'translateY(-3vw) scale(.92)');
+    const pills = beat.options.map((o) => h('div', { class: 'ad-opt' }, o.label));
+    opts.replaceChildren(...pills);
+    pills.forEach((p, i) =>
+      p.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 160, delay: i * 30, fill: 'both' }),
+    );
+    live.update(cur, beat.focus);
+    // The camera leans in on the barrel, closest for the knurling.
+    const zoom = beat.focus === 'gripFeel' ? 1.9 : 1.35;
+    live.el
+      .querySelector('svg')!
+      .animate([{ transform: `scale(${bi ? 1.35 : 1})` }, { transform: `scale(${zoom})` }], {
+        duration: 360,
+        easing: EASE_OUT,
+        fill: 'forwards',
+      });
+    await wait(260);
+    for (const [ti, idx] of beat.taps.entries()) {
+      const pill = pills[idx]!;
+      pills.forEach((p) => p.classList.toggle('on', p === pill));
+      const dot = h('i', { class: 'ad-tapdot' });
+      pill.append(dot);
+      dot.animate(
+        [
+          { opacity: 0.55, transform: 'scale(.3)' },
+          { opacity: 0, transform: 'scale(2.2)' },
+        ],
+        { duration: 320, easing: EASE_OUT, fill: 'forwards' },
+      );
+      cur = { ...cur, ...beat.options[idx]!.set };
+      live.update(cur, beat.focus);
+      await wait(beat.focus === 'gripFeel' && ti < beat.taps.length - 1 ? 220 : 380);
+    }
+    if (bi < beats.length - 1) await fade(qTitle, 0, 100);
+  }
+  await wait(260);
+
+  // ── 4. The maths: every number flies into the model, and out come three bell curves.
   const core = h('div', { class: 'ad-scene' });
   const glow = h('div', { class: 'ad-glow' });
   const ring = s(
@@ -447,18 +605,18 @@ export async function adView(root: HTMLElement, _p: Record<string, string>, q: U
     return el;
   });
   core.append(glow, ring, ...chips);
-  setStep(1);
-  await slide(scan, core, 340);
+  setStep(2);
+  await slide(quiz, core, 240);
   ring.animate([{ transform: 'rotate(0) scale(.6)' }, { transform: 'rotate(240deg) scale(1)' }], {
-    duration: 2000,
+    duration: 1400,
     easing: EASE_OUT,
     fill: 'forwards',
   });
   for (const el of chips) {
-    show(el, 220, 'translate(-50%,-50%) scale(.3)', 'translate(-50%,-50%)');
-    await wait(100);
+    show(el, 180, 'translate(-50%,-50%) scale(.3)', 'translate(-50%,-50%)');
+    await wait(70);
   }
-  await wait(300);
+  await wait(180);
   await Promise.all(
     chips.map(
       (el, i) =>
@@ -472,7 +630,7 @@ export async function adView(root: HTMLElement, _p: Record<string, string>, q: U
             },
             { left: '50%', top: '52%', opacity: 0, transform: 'translate(-50%,-50%) scale(.2)' },
           ],
-          { duration: 520, delay: i * 40, easing: 'cubic-bezier(0.6, 0, 0.9, 0.4)', fill: 'forwards' },
+          { duration: 420, delay: i * 30, easing: 'cubic-bezier(0.6, 0, 0.9, 0.4)', fill: 'forwards' },
         ).finished,
     ),
   );
@@ -481,14 +639,16 @@ export async function adView(root: HTMLElement, _p: Record<string, string>, q: U
       { opacity: 0.2, transform: 'scale(1)' },
       { opacity: 1, transform: 'scale(2.4)' },
     ],
-    { duration: 320, easing: EASE_OUT, fill: 'forwards' },
+    { duration: 260, easing: EASE_OUT, fill: 'forwards' },
   );
   await ring.animate(
     [{ transform: 'rotate(240deg) scale(1)' }, { transform: 'rotate(300deg) scale(1.15)' }],
-    { duration: 320, fill: 'forwards' },
+    {
+      duration: 260,
+      fill: 'forwards',
+    },
   ).finished;
 
-  // …and out come three bell curves, narrowing on weight, length and thickness.
   const model = h('div', { class: 'ad-scene' });
   const dims = [
     { e: f.weight, unit: 'g', dp: 1, col: GREEN },
@@ -516,7 +676,7 @@ export async function adView(root: HTMLElement, _p: Record<string, string>, q: U
   });
   const formula = h('div', { class: 'ad-formula' }, 'Σ ((x − μ) / σ)² → min');
   model.append(h('div', { class: 'ad-curves' }, ...curves.map((x) => x.el)), formula);
-  await slide(core, model, 300);
+  await slide(core, model, 220);
   const bell = (spread: number) => {
     const pts: string[] = [];
     for (let i = 0; i <= 50; i++) {
@@ -529,13 +689,13 @@ export async function adView(root: HTMLElement, _p: Record<string, string>, q: U
   curves.forEach((x, i) => {
     x.line.setAttribute('d', bell(3));
     x.area.setAttribute('d', `${bell(3)}L200,40L0,40Z`);
-    drawIn(x.line, 500, i * 90);
-    x.area.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 400, delay: 300, fill: 'both' });
+    drawIn(x.line, 380, i * 70);
+    x.area.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 300, delay: 220, fill: 'both' });
   });
-  write(formula, 900);
+  write(formula, 700);
   const t0 = performance.now();
   for (;;) {
-    const p = Math.min(1, (performance.now() - t0) / 1600);
+    const p = Math.min(1, (performance.now() - t0) / 1200);
     const e = 1 - Math.pow(1 - p, 3);
     for (const x of curves) {
       if (p > 0.35) {
@@ -550,83 +710,104 @@ export async function adView(root: HTMLElement, _p: Record<string, string>, q: U
     if (p >= 1) break;
     await wait(30);
   }
-  await wait(900);
+  curves.forEach((x) => punch(x.val, 1.12));
+  await wait(560);
 
-  // 4. Your dart: the whole catalogue, crossed off until one is left.
+  // ── 5. The catalogue as a wall of real darts, knocked out until one is left, which comes
+  //       forward big.
   const ranked = pool.map((v) => ({ v, cost: scoreVariant(f, v).cost })).sort((x, y) => x.cost - y.cost);
-  const cells = Math.min(100, ranked.length);
-  const winAt = 46;
-  const palette = [INK, RED, GREEN, SUN, '#8fb3ff'];
-  const minis = Array.from({ length: cells }, (_, i) => {
-    const col = palette[(i * 7) % palette.length]!;
-    return h(
-      'div',
-      { class: 'ad-mini' },
-      s(
-        'svg',
-        { viewBox: '0 0 40 10' },
-        s('line', { x1: 2, y1: 5, x2: 38, y2: 5, stroke: '#ffffff80' }),
-        s('line', { x1: 11, y1: 5, x2: 23, y2: 5, stroke: col, 'stroke-width': '7px' }),
-      ),
-    );
+  const seen = new Set<string>([top.v.modelId]);
+  const others = ranked
+    .filter((x) => photoOf(x.v) && !seen.has(x.v.modelId) && seen.add(x.v.modelId))
+    .map((x) => x.v);
+  // Spread the field: the near misses and the long shots, not just the top of the list.
+  const field = Array.from({ length: 15 }, (_, i) => others[Math.floor((i * others.length) / 15)]!).filter(
+    Boolean,
+  );
+  const winAt = 9;
+  const wallDarts: Variant[] = [...field.slice(0, winAt), top.v, ...field.slice(winAt)].slice(0, 16);
+  const tiles = wallDarts.map((v) => {
+    const src = photoOf(v);
+    return h('div', { class: 'ad-tile' }, src ? h('img', { src, alt: '' }) : null);
   });
-  const grid = h('div', { class: 'ad-grid' }, ...minis);
+  const wall = h('div', { class: 'ad-wall' }, ...tiles);
   const countN = h('b', null, String(ranked.length));
   const countWord = h('span', null, C.darts);
   const count = h('div', { class: 'ad-count' }, countN, countWord);
-  const pick = h('div', { class: 'ad-pick' }, dartName(top.v));
-  const pickNote = h('div', { class: 'ad-note ad-hand-note' }, C.pick);
-  const search = h('div', { class: 'ad-scene' }, grid, count, pick);
-  setStep(2);
-  await slide(model, search, 320);
-  const order = minis.map((_, i) => i).filter((i) => i !== winAt);
+  const search = h('div', { class: 'ad-scene' }, wall, count);
+  setStep(3);
+  await slide(model, search, 240);
+  tiles.forEach((tl, i) =>
+    tl.animate(
+      [
+        { opacity: 0, transform: 'scale(.6)' },
+        { opacity: 1, transform: 'none' },
+      ],
+      {
+        duration: 220,
+        delay: i * 22,
+        easing: POP,
+        fill: 'backwards',
+      },
+    ),
+  );
+  await wait(420);
+  const order = tiles.map((_, i) => i).filter((i) => i !== winAt);
   for (let i = order.length - 1; i > 0; i--) {
     const j = Math.floor((((i * 7919) % 104729) / 104729) * (i + 1));
     [order[i], order[j]] = [order[j]!, order[i]!];
   }
-  const s0 = performance.now();
-  let done = 0;
-  while (done < order.length) {
-    const p = Math.min(1, (performance.now() - s0) / 1500);
-    const want = Math.round(order.length * p);
-    for (; done < want; done++) minis[order[done]!]!.classList.add('x');
-    countN.textContent = String(Math.max(1, Math.round(ranked.length - (ranked.length - 1) * p)));
-    await wait(30);
+  // Knocked out one by one, faster and faster, the counter racing down with them.
+  for (const [i, idx] of order.entries()) {
+    tiles[idx]!.classList.add('x');
+    countN.textContent = String(
+      Math.max(2, Math.round(ranked.length - ((ranked.length - 1) * (i + 1)) / order.length)),
+    );
+    await wait(Math.max(40, 150 - i * 9));
   }
+  countN.textContent = '1';
   countWord.textContent = C.dart;
-  const winner = minis[winAt]!;
-  winner.classList.add('win');
-  winner.animate([{ transform: 'scale(1)' }, { transform: 'scale(1.8)' }, { transform: 'scale(1.4)' }], {
-    duration: 420,
-    easing: POP,
-    fill: 'forwards',
-  });
-  // "deze!" with an arrow at the winner.
-  const wr = winner.getBoundingClientRect();
-  const vw = innerWidth / 100;
-  pickNote.style.cssText = `left:${(wr.left / vw - 30).toFixed(1)}vw;top:${(wr.top / vw - 22).toFixed(1)}vw;transform:rotate(-6deg)`;
-  const pickArrow = arrow(
-    'M10,10C40,10 70,30 85,85',
-    'M68,78L85,85L88,66',
-    `left:${(wr.left / vw - 12).toFixed(1)}vw;top:${(wr.top / vw - 13).toFixed(1)}vw;width:12vw;height:11vw`,
-  );
-  search.append(pickNote, pickArrow);
-  write(pickNote, 300);
-  pickArrow.style.opacity = '1';
-  drawIn(pickArrow.querySelector('path') as SVGPathElement, 260, 150);
-  show(pick, 300);
-  await wait(1200);
+  punch(count, 1.15, 260);
+  const winTile = tiles[winAt]!;
+  winTile.classList.add('win');
+  punch(winTile, 1.12, 260);
+  await wait(320);
+  // The winner comes forward, big, with its name.
+  const heroSrc = photoOf(top.v);
+  const heroTile = h('div', { class: 'ad-hero' }, heroSrc ? h('img', { src: heroSrc, alt: '' }) : null);
+  const heroName = h('div', { class: 'ad-heroname' }, dartName(top.v));
+  const pickNote = h('div', { class: 'ad-note ad-hand-note' }, C.pick);
+  pickNote.style.cssText = 'left:8vw;top:calc(24vh - 13vw);transform:rotate(-8deg)';
+  search.append(heroTile, heroName, pickNote);
+  const wr = winTile.getBoundingClientRect();
+  const hr = { left: innerWidth * 0.14, top: innerHeight * 0.24, w: innerWidth * 0.72 };
+  wall.animate([{ opacity: 1 }, { opacity: 0.15 }], { duration: 260, fill: 'forwards' });
+  count.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 200, fill: 'forwards' });
+  await heroTile.animate(
+    [
+      {
+        opacity: 1,
+        transform: `translate(${wr.left - hr.left}px, ${wr.top - hr.top}px) scale(${wr.width / hr.w})`,
+        transformOrigin: '0 0',
+      },
+      { opacity: 1, transform: 'none', transformOrigin: '0 0' },
+    ],
+    { duration: 360, easing: POP, fill: 'forwards' },
+  ).finished;
+  show(heroName, 260);
+  write(pickNote, 260);
+  await wait(750);
 
-  // The match: darts on the board and "83%".
+  // The match: darts on the board and the %.
   const match = h('div', { class: 'ad-scene ad-match' });
   const win = checkoutWin(top.m.total);
   const wordEl = win.el.querySelector('.bw-word');
   if (wordEl) wordEl.textContent = `${top.m.total}%`;
   match.append(win.el);
-  await slide(search, match, 300);
-  await wait(win.ms - 300);
+  await slide(search, match, 220);
+  await wait(win.ms - 500);
 
-  // 5. Your pro: their photo (or the player card), the name, the %.
+  // ── 6. The pro: their real photo, the name, the %.
   const pro = h('div', { class: 'ad-scene ad-pro' });
   const own = proPhoto(twin.id);
   const photo = window.__adPhoto ?? (own ? { src: own.file, credit: creditText(own) } : null);
@@ -635,53 +816,101 @@ export async function adView(root: HTMLElement, _p: Record<string, string>, q: U
   // Long names (Raymond van Barneveld) wrap: smaller, so the stack stays clear of the photo.
   if (twin.name.length > 14) name.style.fontSize = '11.5vw';
   const pct = h('div', { class: 'ad-pct' }, `${top.m.total}%`);
-  let hero: HTMLElement;
-  if (photo) {
-    hero = h(
-      'div',
-      { class: 'ad-photo' },
-      h('img', { src: photo.src, alt: '' }),
-      photo.credit ? h('div', { class: 'ad-credit' }, photo.credit) : null,
-    );
-  } else {
-    hero = proArt(twin) as unknown as HTMLElement;
+  const hero = photo
+    ? h(
+        'div',
+        { class: 'ad-photo' },
+        h('img', { src: photo.src, alt: '' }),
+        photo.credit ? h('div', { class: 'ad-credit' }, photo.credit) : null,
+      )
+    : (proArt(twin) as unknown as HTMLElement);
+  if (!photo) {
     pro.style.justifyContent = 'center';
     pro.style.paddingBottom = '0';
   }
   pro.append(hero, like, name, pct);
   hero.style.opacity = '0';
-  setStep(3);
-  await slide(match, pro, 300);
+  setStep(4);
+  await slide(match, pro, 220);
+  flash.remove();
   await hero.animate(
     [
       { transform: 'scale(.4) rotate(-14deg)', opacity: 0 },
       { transform: 'scale(1) rotate(-3deg)', opacity: 1 },
     ],
-    { duration: 520, easing: POP, fill: 'forwards' },
+    { duration: 420, easing: POP, fill: 'forwards' },
   ).finished;
-  write(like, 320);
-  await wait(260);
-  show(name, 380, 'translateY(6vw) scale(.7)');
-  await wait(420);
-  show(pct, 300, 'scale(.4)');
-  await wait(1900);
+  write(like, 260);
+  await wait(200);
+  show(name, 320, 'translateY(6vw) scale(.7)');
+  await wait(320);
+  show(pct, 260, 'scale(.4)');
+  await wait(900);
 
-  // 6. The ask, then the empty board again: the first frame, so the video loops.
+  // ── 7. The film's last frame: the pro up top, your ideal dart, your three price classes.
+  const final = h('div', { class: 'ad-scene ad-final' });
+  const banner = h(
+    'div',
+    { class: 'ad-banner' },
+    photo ? h('img', { src: photo.src, alt: '' }) : proArt(twin),
+    h('p', null, `${C.like}: `, h('b', null, twin.name)),
+  );
+  const dp = idealDartPaths(c.ideal);
+  const idealSvg = s(
+    'svg',
+    { viewBox: '0 30 320 46' },
+    s('path', { d: dp.point, fill: '#b8c0cc' }),
+    s('path', { d: dp.shaft, fill: '#50627d' }),
+    s('path', { d: dp.barrel, fill: '#2ee59d4d', stroke: '#2ee59d', 'stroke-width': 1.6 }),
+  );
+  const ideal = h('div', { class: 'ad-ideal' }, h('span', null, C.ideal), idealSvg);
+  const pcards = c.options.slice(0, 3).map((o) => {
+    const src = photoOf(o.v);
+    const eur = o.v.priceUsd ? approxEur(o.v.priceUsd) : null;
+    const tier = h('em', null, t(`land.tier.${o.tier}`));
+    tier.style.background = TIER_BG[o.tier];
+    return h(
+      'div',
+      { class: `ad-pcard${o.best ? ' best' : ''}` },
+      h('span', { class: 'ph' }, src ? h('img', { src, alt: '' }) : null),
+      h(
+        'div',
+        null,
+        tier,
+        h('b', null, dartName(o.v)),
+        h('small', null, `${num(o.v.weightG)} g${eur ? ` · €${eur}` : ''}`),
+      ),
+      h('strong', null, `${o.m.total}%`),
+    );
+  });
+  final.append(banner, ideal, ...pcards);
+  ideal.style.opacity = '0';
+  await slide(pro, final, 240);
+  show(ideal, 260, 'translateX(-10vw)');
+  await wait(200);
+  for (const pc of pcards) {
+    show(pc, 300, 'translateY(10vw) scale(.94)');
+    await wait(230);
+  }
+  await wait(1150);
+
+  // ── 8. The ask, then the empty board again: the first frame, so the video loops.
   const cta = h('div', { class: 'ad-scene ad-cta' });
   const ask = h('div', { class: 'ad-big' }, C.cta);
   const url = h('div', { class: 'ad-url' }, 'findyourdarts.com');
   cta.append(ask, url);
-  rail.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 250, fill: 'forwards' });
-  await slide(pro, cta, 320);
-  show(ask, 460, 'scale(.6) rotate(4deg)');
-  await wait(520);
-  show(url, 360);
-  await wait(2000);
-  await fade(cta, 0, 250);
+  rail.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 220, fill: 'forwards' });
+  await slide(final, cta, 260);
+  show(ask, 380, 'scale(.6) rotate(4deg)');
+  await wait(420);
+  show(url, 300);
+  punch(url, 1.08, 300);
+  await wait(1400);
+  await fade(cta, 0, 220);
   const back = h('div', { class: 'ad-scene ad-hook' }, boardSvg('ad-board bc-board'));
   ad.append(back);
-  await fade(back, 1, 300);
-  await wait(350);
+  await fade(back, 1, 260);
+  await wait(300);
   document.body.dataset.adPro = twin.name;
   document.body.dataset.adDone = '1';
 }
