@@ -10,7 +10,7 @@
 import { createRequire } from 'node:module';
 import { createServer } from 'node:http';
 import { execFileSync } from 'node:child_process';
-import { mkdir, readFile, rm, writeFile } from 'node:fs/promises';
+import { mkdir, readFile, rename, rm, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 
 const { chromium } = createRequire(import.meta.url)('playwright');
@@ -76,6 +76,69 @@ const FONT_CSS =
   (await face('AdHand', 'caveat', 'caveat-SUB-700-normal.woff2')) +
   (await face('AdDisplay', 'bricolage-grotesque', 'bricolage-grotesque-SUB-800-normal.woff2'));
 
+/** A mono 16-bit WAV with one synthesised sound per cue. */
+function soundtrack(cues, seconds) {
+  const SR = 44100;
+  const out = new Float32Array(Math.ceil((seconds + 0.5) * SR));
+  let seed = 7;
+  const rnd = () => ((seed = (seed * 16807) % 2147483647) / 2147483647) * 2 - 1;
+  const put = (at, len, fn) => {
+    const i0 = Math.round(at * SR);
+    for (let i = 0; i < len * SR && i0 + i < out.length; i++) if (i0 + i >= 0) out[i0 + i] += fn(i / SR);
+  };
+  const sounds = {
+    thud: (at) => {
+      let ph = 0;
+      let lp = 0;
+      put(at, 0.25, (t) => {
+        ph += (2 * Math.PI * (45 + 80 * Math.exp(-t / 0.03))) / SR;
+        lp += 0.12 * (rnd() - lp);
+        return Math.sin(ph) * Math.exp(-t / 0.07) * 0.85 + lp * Math.exp(-t / 0.02) * 1.2;
+      });
+    },
+    tick: (at) => put(at, 0.03, (t) => Math.sin(2 * Math.PI * 2100 * t) * Math.exp(-t / 0.005) * 0.16),
+    pop: (at) => {
+      let ph = 0;
+      put(at, 0.1, (t) => {
+        ph += (2 * Math.PI * (480 + 2600 * t)) / SR;
+        return Math.sin(ph) * Math.exp(-t / 0.028) * 0.26;
+      });
+    },
+    whoosh: (at) => {
+      let lp = 0;
+      put(at - 0.06, 0.26, (t) => {
+        lp += (0.04 + 0.5 * t) * (rnd() - lp);
+        return lp * Math.sin((Math.PI * t) / 0.26) ** 2 * 0.3;
+      });
+    },
+    win: (at) =>
+      [523.25, 659.25, 783.99, 1046.5].forEach((f, i) =>
+        put(
+          at + i * 0.045,
+          1.0,
+          (t) =>
+            (Math.sin(2 * Math.PI * f * t) + 0.3 * Math.sin(4 * Math.PI * f * t)) * Math.exp(-t / 0.3) * 0.13,
+        ),
+      ),
+  };
+  for (const c of cues) sounds[c.k]?.(c.t);
+  const buf = Buffer.alloc(44 + out.length * 2);
+  buf.write('RIFF', 0);
+  buf.writeUInt32LE(36 + out.length * 2, 4);
+  buf.write('WAVEfmt ', 8);
+  buf.writeUInt32LE(16, 16);
+  buf.writeUInt16LE(1, 20);
+  buf.writeUInt16LE(1, 22);
+  buf.writeUInt32LE(SR, 24);
+  buf.writeUInt32LE(SR * 2, 28);
+  buf.writeUInt16LE(2, 32);
+  buf.writeUInt16LE(16, 34);
+  buf.write('data', 36);
+  buf.writeUInt32LE(out.length * 2, 40);
+  for (let i = 0; i < out.length; i++) buf.writeInt16LE(Math.round(Math.tanh(out[i]) * 32000), 44 + i * 2);
+  return buf;
+}
+
 const html = await readFile(file);
 const server = createServer((_q, r) => {
   r.writeHead(200, { 'content-type': 'text/html; charset=utf-8' });
@@ -125,12 +188,17 @@ for (const P of PERSONAS.filter((x) => !only.length || only.includes(x.id))) {
   const q = new URLSearchParams({ L: P.L, h: P.h, hold: P.hold, f: P.f, throw: P.throw, g: P.g });
   await p.evaluate((hash) => (location.hash = hash), `#/ad?${q}`);
   await p.waitForSelector('.ad');
+  const adT0 = await p.evaluate(() => performance.now());
   const start = Date.now() / 1000;
   await cdp.send('Page.startScreencast', { format: 'jpeg', quality: 80, maxWidth: 1080, maxHeight: 1920 });
   await p.waitForFunction(() => document.body.dataset.adDone === '1', null, { timeout: 60000 * SLOW });
   const end = Date.now() / 1000;
   await cdp.send('Page.stopScreencast');
   const pro = await p.evaluate(() => document.body.dataset.adPro);
+  const cues = (await p.evaluate(() => window.__adCues ?? [])).map((c) => ({
+    t: (c.t - adT0) / 1000,
+    k: c.k,
+  }));
   await ctx.close();
   if (errors.length) console.log(`${P.id}: page errors`, errors);
 
@@ -163,6 +231,31 @@ for (const P of PERSONAS.filter((x) => !only.length || only.includes(x.id))) {
     'slow',
     '-crf',
     '19',
+    '-movflags',
+    '+faststart',
+    mp4,
+  ]);
+  // Sound: synthesised from the page's cues (a thud for each dart, ticks, pops, a chord on the
+  // reveal), so the ad isn't silent in a sound-on feed. Swap in a trending sound in the app.
+  const wav = join(dir, 'sfx.wav');
+  await writeFile(wav, soundtrack(cues, (end - start) / SLOW));
+  const silent = join(dir, 'silent.mp4');
+  await rename(mp4, silent);
+  execFileSync('ffmpeg', [
+    '-y',
+    '-loglevel',
+    'error',
+    '-i',
+    silent,
+    '-i',
+    wav,
+    '-c:v',
+    'copy',
+    '-c:a',
+    'aac',
+    '-b:a',
+    '160k',
+    '-shortest',
     '-movflags',
     '+faststart',
     mp4,
