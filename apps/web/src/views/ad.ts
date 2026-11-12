@@ -36,6 +36,7 @@ import { photoUrl } from '../media';
 import { approxEur } from '../money';
 import { castFor, checkoutWin, idealDartPaths } from './hero-scan';
 import { quizDart } from './quiz-dart';
+import { variantArt } from '../score';
 import { dartName } from './words';
 
 declare global {
@@ -150,7 +151,7 @@ const CSS = `
   background:${RED};font-family:${DISPLAY};font-weight:800;font-size:12vw;box-shadow:0 2vw 5vw #0008;transform:rotate(10deg)}
 .ad-name{margin-top:4.5vw;min-height:15vw;font-family:${DISPLAY};font-weight:800;font-size:12.5vw;letter-spacing:-.03em;line-height:.92;text-align:center;padding:0 5vw;opacity:0}
 .ad-pct{margin-top:3vw;padding:1.4vw 5vw;border-radius:9vw;background:${GREEN};color:${NAVY};font-family:${DISPLAY};font-weight:800;font-size:9vw;letter-spacing:-.03em;opacity:0}
-.ad-credit{position:absolute;z-index:6;left:8vw;right:8vw;top:78.4vh;font-weight:500;font-size:2.3vw;line-height:1.25;color:#ffffff8c;text-align:center;opacity:0}
+.ad-credit{position:absolute;z-index:6;left:8vw;right:8vw;top:79.6vh;font-weight:500;font-size:2.3vw;line-height:1.25;color:#ffffff8c;text-align:center;opacity:0}
 .ad-handbox{position:relative;width:60vw;height:82vw;
   --skin:#e3b896;--skin-hi:#f3d5be;--skin-shade:#b9805e;--nail:#f4dbd1}
 .ad-handbox svg.hand{position:absolute;inset:0;width:100%;height:100%;filter:drop-shadow(0 3vw 4vw #0007)}
@@ -191,7 +192,7 @@ const CSS = `
 .ad-match .bw{background:none}
 .ad-match .bw-hit{width:76vw}
 .ad-match .bw-word{font-family:${DISPLAY};font-weight:800;font-size:22vw;letter-spacing:-.04em;color:${GREEN};text-shadow:0 1vw 6vw #3ee6a066}
-.ad-final{position:absolute;left:0;right:0;top:13vh;height:65vh;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2.2vw}
+.ad-final{position:absolute;left:0;right:0;top:12.5vh;height:65vh;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2.2vw}
 .ad-final .ad-ring{width:30vw;box-shadow:0 0 0 1vw ${INK},0 4vw 10vw #000a}
 .ad-final .ad-ring img{opacity:1}
 .ad-who{margin-top:-6vw;position:relative;padding:1.6vw 4.4vw;border-radius:9vw;background:#0a121fe6;box-shadow:inset 0 0 0 .3vw #ffffff40;font-weight:550;font-size:5.4vw;white-space:nowrap}
@@ -202,7 +203,7 @@ const CSS = `
 .ad-pcard{display:grid;grid-template-columns:16vw minmax(0,1fr) auto;align-items:center;gap:3.2vw;width:84vw;padding:1.8vw 4vw 1.8vw 1.8vw;border-radius:4.6vw;background:#fff;color:#0f1b2d;box-shadow:0 3vw 8vw #0009;opacity:0}
 .ad-pcard.best{box-shadow:0 0 0 1vw ${GREEN},0 3vw 8vw #0009}
 .ad-pcard .ph{position:relative;width:16vw;aspect-ratio:1;border-radius:3vw;background:#edf2f9;overflow:hidden}
-.ad-pcard .ph img{position:absolute;inset:6%;width:88%;height:88%;object-fit:contain}
+.ad-pcard .ph img,.ad-pcard .ph svg,.ad-tile svg,.ad-hero svg{position:absolute;inset:6%;width:88%;height:88%;object-fit:contain}
 .ad-pcard div{display:grid;gap:.8vw;min-width:0}
 .ad-pcard b{font-weight:650;font-size:4.4vw;line-height:1.08;letter-spacing:-.02em;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden}
 .ad-pcard p{margin:0;display:flex;align-items:center;gap:1.6vw;font-size:3.7vw;color:#5b6b82;white-space:nowrap}
@@ -248,6 +249,12 @@ function drawIn(path: SVGGeometryElement, ms: number, delay = 0) {
 const photoOf = (v: Variant) => {
   const src = photoUrl(v.modelId, 400);
   return src && !/^https?:/.test(src) ? src : null;
+};
+
+/** The dart's picture for a tile: its product photo, else the site's drawing of it. */
+const picture = (v: Variant): Element => {
+  const src = photoOf(v);
+  return src ? h('img', { src, alt: '' }) : variantArt(v);
 };
 
 export async function adView(root: HTMLElement, _p: Record<string, string>, q: URLSearchParams) {
@@ -350,6 +357,9 @@ export async function adView(root: HTMLElement, _p: Record<string, string>, q: U
   const setSeg = (i: number) => segs.forEach((el, j) => el.classList.toggle('on', j <= i));
   const setCap = (text: string | Node, from = 'translateY(5vw) scale(.8)') => {
     cap.replaceChildren(text);
+    // Long captions stay on one line.
+    cap.style.fontSize =
+      typeof text === 'string' && text.length > 13 && !cap.classList.contains('hook') ? '10.6vw' : '';
     show(cap, 260, from);
   };
   const bang = (strength = 0.3) => flash.animate([{ opacity: strength }, { opacity: 0 }], { duration: 180 });
@@ -756,8 +766,7 @@ export async function adView(root: HTMLElement, _p: Record<string, string>, q: U
   const winAt = 9;
   const wallDarts: Variant[] = [...field.slice(0, winAt), top.v, ...field.slice(winAt)].slice(0, 16);
   const tiles = wallDarts.map((v) => {
-    const src = photoOf(v);
-    return h('div', { class: 'ad-tile' }, src ? h('img', { src, alt: '' }) : null);
+    return h('div', { class: 'ad-tile' }, picture(v));
   });
   const wall = h('div', { class: 'ad-wall' }, ...tiles);
   const search = scene();
@@ -799,8 +808,7 @@ export async function adView(root: HTMLElement, _p: Record<string, string>, q: U
   winTile.classList.add('win');
   cue('pop');
   await wait(260);
-  const heroSrc = photoOf(top.v);
-  const heroTile = h('div', { class: 'ad-hero' }, heroSrc ? h('img', { src: heroSrc, alt: '' }) : null);
+  const heroTile = h('div', { class: 'ad-hero' }, picture(top.v));
   const heroName = h('div', { class: 'ad-heroname' }, dartName(top.v));
   searchStage.append(heroTile, heroName);
   const wr = winTile.getBoundingClientRect();
@@ -860,24 +868,27 @@ export async function adView(root: HTMLElement, _p: Record<string, string>, q: U
   // ── The result: the site's final frame. The pro, your ideal dart, three price classes.
   const final = scene();
   const dp = idealDartPaths(c.ideal);
-  const pcards = c.options.slice(0, 3).map((o) => {
-    const src = photoOf(o.v);
-    const eur = o.v.priceUsd ? approxEur(o.v.priceUsd) : null;
-    const tier = h('em', null, t(`land.tier.${o.tier}`));
-    tier.style.background = TIER_BG[o.tier];
-    return h(
-      'div',
-      { class: `ad-pcard${o.best ? ' best' : ''}` },
-      h('span', { class: 'ph' }, src ? h('img', { src, alt: '' }) : null),
-      h(
+  // Weak matches in another price class don't belong in an ad.
+  const pcards = c.options
+    .slice(0, 3)
+    .filter((o) => o.best || o.m.total >= 60)
+    .map((o) => {
+      const eur = o.v.priceUsd ? approxEur(o.v.priceUsd) : null;
+      const tier = h('em', null, t(`land.tier.${o.tier}`));
+      tier.style.background = TIER_BG[o.tier];
+      return h(
         'div',
-        null,
-        h('b', null, dartName(o.v)),
-        h('p', null, tier, `${num(o.v.weightG)} g${eur ? ` · €${eur}` : ''}`),
-      ),
-      h('strong', null, `${o.m.total}%`),
-    );
-  });
+        { class: `ad-pcard${o.best ? ' best' : ''}` },
+        h('span', { class: 'ph' }, picture(o.v)),
+        h(
+          'div',
+          null,
+          h('b', null, dartName(o.v)),
+          h('p', null, tier, `${num(o.v.weightG)} g${eur ? ` · €${eur}` : ''}`),
+        ),
+        h('strong', null, `${o.m.total}%`),
+      );
+    });
   const ideal = h(
     'div',
     { class: 'ad-ideal' },
@@ -890,12 +901,16 @@ export async function adView(root: HTMLElement, _p: Record<string, string>, q: U
     ),
     h('span', null, C.ideal),
   );
+  const who = h('div', { class: 'ad-who' }, `${C.like}: `, h('b', null, twin.name));
+  if (twin.name.length > 14) who.style.fontSize = '4.3vw';
+  // Only the twin is on screen now: only their credit.
+  credit.textContent = twinFace.credit;
   final.append(
     h(
       'div',
       { class: 'ad-final' },
       h('div', { class: 'ad-ring' }, h('img', { src: twinFace.src, alt: '' })),
-      h('div', { class: 'ad-who' }, `${C.like}: `, h('b', null, twin.name)),
+      who,
       ideal,
       ...pcards,
     ),
