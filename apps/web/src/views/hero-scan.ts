@@ -610,14 +610,14 @@ function followFree(root: HTMLElement, box: HTMLElement, ms: number) {
     const mbox = root.querySelector<HTMLElement>('.hs-modelbox');
     const svg = mbox?.querySelector<SVGSVGElement>('.hs-model');
     const twin = root.querySelector<HTMLElement>('.hs-twin');
-    if (!stage || !mbox || !svg || !twin || !root.classList.contains('hs-twin-on')) return;
+    if (!stage || !mbox || !svg || !root.classList.contains('hs-end')) return;
     const cardsTop = box.getBoundingClientRect().top - stage.getBoundingClientRect().top;
     // The barrel's visible band in the model's viewBox (0 0 320 112) is about y 34…70.
     const k = (svg.clientWidth / 320) * SCALE;
     const svgTop = cardsTop - GAP - 70 * k;
     root.style.setProperty('--hs-dart-shift', `${Math.round(svgTop - mbox.offsetTop)}px`);
     // The pro rides up with the dart: centred between the top of the frame and the dart.
-    const twinTop = (svgTop + 34 * k - twin.offsetHeight) / 2;
+    const twinTop = (svgTop + 34 * k - (twin?.offsetHeight ?? 0)) / 2;
     root.style.setProperty('--hs-twin-top', `${Math.round(Math.max(6, twinTop))}px`);
     if (performance.now() - t0 < ms) requestAnimationFrame(tick);
   };
@@ -764,20 +764,21 @@ async function play(root: HTMLElement, c: Cast, mode: 'hero' | 'fit' = 'hero'): 
     if (!alive()) return false;
   }
   // 5. Into the shop card, then the other price classes push up beneath it.
-  root.classList.add('hs-end');
-  // First your dart, on its own for a moment; then the pro who throws the same type drops in.
-  await wait(1300);
+  // The final layout from the start, so nothing travels: your dart's card where it stays (the
+  // other price classes keep their room below it), the ideal dart above it.
+  root.classList.add('hs-end', 'hs-stack');
+  followFree(root, cards.box, 1200);
+  await wait(1500);
   if (!alive()) return false;
+  // Then the pro who throws the same type, right where they stay.
   if (twinEl) {
     root.classList.add('hs-twin-on');
-    followFree(root, cards.box, 1700 + (cards.later.length + 1) * 900);
+    await wait(1700);
+    if (!alive()) return false;
   }
-  await wait(twinEl ? 1700 : 300);
-  if (!alive()) return false;
-  root.classList.add('hs-stack');
   for (const x of cards.later) {
     x.classList.add('in');
-    await wait(900);
+    await wait(700);
     if (!alive()) return false;
   }
   return true;

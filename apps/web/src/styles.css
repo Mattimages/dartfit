@@ -2814,18 +2814,14 @@ a.card {
     transform 0.6s var(--ease),
     box-shadow 0.4s ease;
 }
+/* The other price classes keep their place from the start, so nothing above them moves when
+   they appear: they only fade in. */
 .hs-cards .hs-card.later {
-  max-height: 0;
-  margin-top: 0;
-  padding-block: 0;
+  margin-top: 10px;
   opacity: 0;
-  overflow: hidden;
-  transform: translateY(24px);
+  transform: scale(0.97);
 }
 .hs-cards .hs-card.later.in {
-  max-height: 140px;
-  margin-top: 10px;
-  padding-block: 10px;
   opacity: 1;
   transform: none;
 }
@@ -2835,7 +2831,8 @@ a.card {
     0 22px 44px -16px rgb(0 0 0 / 0.6);
 }
 .hs-stack .hs-card b {
-  font-size: 0.95rem;
+  /* Large, but the whole name stays in the card on narrow phones. */
+  font-size: min(1.06rem, 4.9cqw);
 }
 /* Stacked: name on top (two lines if it needs them), price class and weight · price on one line. */
 .hs-stack .hs-card > div {
@@ -4219,10 +4216,11 @@ a.card {
   gap: 6px;
   pointer-events: none;
   opacity: 0;
-  transform: translate(-50%, -110%);
+  /* Appears where it stays: a small pop, no travel. */
+  transform: translate(-50%, 0) scale(0.8);
   transition:
     opacity 0.3s ease,
-    transform 0.7s cubic-bezier(0.34, 1.45, 0.5, 1);
+    transform 0.45s cubic-bezier(0.34, 1.45, 0.5, 1);
 }
 .hs-twin .pro-art {
   width: min(8.6rem, 26cqh);
@@ -4662,7 +4660,7 @@ a.card {
 }
 /* With the pro up top, the ideal dart sits between the name pill and the cards, barrel only: its
    label and name are hidden, the card names the dart anyway. */
-.hs-twin-on .hs-modelbox {
+.hs-end.hs-stack .hs-modelbox {
   transform-origin: 50% 0;
   transform: translateY(var(--hs-dart-shift, 41%)) scale(0.75);
 }
@@ -4670,8 +4668,8 @@ a.card {
   position: relative;
   margin-top: -22px;
 }
-.hs-twin-on .hs-ideal-label,
-.hs-twin-on .hs-name {
+.hs-end.hs-stack .hs-ideal-label,
+.hs-end.hs-stack .hs-name {
   opacity: 0;
 }
 .pro-avatar {
@@ -4747,46 +4745,43 @@ a.card {
 }
 
 .hs-yours {
-  max-height: 2.6rem;
-  margin: 0 0 10px;
-  overflow: hidden;
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: calc(100% + 4.2rem);
+  margin: 0;
   color: #fff;
   font-size: 1.45rem;
   font-weight: 650;
   letter-spacing: -0.035em;
   text-align: center;
-  transition:
-    opacity 0.3s ease,
-    max-height 0.5s var(--ease),
-    margin 0.5s var(--ease);
+  transition: opacity 0.3s ease;
 }
 .hs-twin-on .hs-yours {
-  max-height: 0;
-  margin: 0;
   opacity: 0;
 }
 /* Film ending: your dart, then the pro (one circle, one size), then the other price classes push
    up and carry the ideal dart and the pro with them. hero-scan.ts (followFree) keeps the dart
    10px above the cards and the pro 10px above the dart; the cards drop their part scores. */
-.hs-twin-on .hs-twin {
+.hs-end .hs-twin {
   top: var(--hs-twin-top, 12px);
 }
-.hs-twin-on.hs-stack .hs-s-shape,
-.hs-twin-on.hs-stack .hs-s-style,
-.hs-twin-on.hs-stack .hs-s-total small {
+.hs-end.hs-stack .hs-s-shape,
+.hs-end.hs-stack .hs-s-style,
+.hs-end.hs-stack .hs-s-total small {
   display: none;
 }
-.hs-twin-on.hs-stack .hs-card .hs-split {
+.hs-end.hs-stack .hs-card .hs-split {
   position: absolute;
   right: 14px;
   top: 50%;
   transform: translateY(-50%);
   margin: 0;
 }
-.hs-twin-on.hs-stack .hs-card > div {
+.hs-end.hs-stack .hs-card > div {
   padding-right: 4.2rem;
 }
-.hs-twin-on.hs-stack .hs-card .hs-card-meta {
+.hs-end.hs-stack .hs-card .hs-card-meta {
   font-size: 0.78rem;
 }
 
