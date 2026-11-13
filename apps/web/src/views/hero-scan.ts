@@ -616,7 +616,8 @@ function followFree(root: HTMLElement, box: HTMLElement, ms: number) {
     const k = (svg.clientWidth / 320) * SCALE;
     const svgTop = cardsTop - GAP - 70 * k;
     root.style.setProperty('--hs-dart-shift', `${Math.round(svgTop - mbox.offsetTop)}px`);
-    const twinTop = svgTop + 34 * k - GAP - twin.offsetHeight;
+    // The pro rides up with the dart: centred between the top of the frame and the dart.
+    const twinTop = (svgTop + 34 * k - twin.offsetHeight) / 2;
     root.style.setProperty('--hs-twin-top', `${Math.round(Math.max(6, twinTop))}px`);
     if (performance.now() - t0 < ms) requestAnimationFrame(tick);
   };

@@ -9,9 +9,9 @@
  *   3.2  hand      "Scan je hand": the hand next to a pasje, two measurements
  *   5.6  vragen    "3 vragen": the real questionnaire dart, tapped; the knurling cuts deeper
  *   8.2  rekenen   the numbers fly into the model; three bell curves narrow
- *  11.0  dart      "312 darts" counts down to "1 dart" over a wall of real product photos
- *  13.6  match     darts land on the board, the %
- *  15.2  prof      the ring of faces spins again, slows, and lands: "Je gooit als …"
+ *  11.0  match     darts land on the board, the % (how close the pro's dart is to your fit)
+ *  12.6  prof      the ring of faces spins again, slows, and lands: "Je gooit als …"
+ *  15.0  dart      "312 darts" counts down to "1 dart" over a wall of real product photos
  *  17.6  result    the site's final frame: pro, ideal dart, three price classes
  *  19.4  ask       "Welke prof ben jij?" findyourdarts.com, then the empty board (it loops)
  *
@@ -36,7 +36,7 @@ import { photoUrl } from '../media';
 import { approxEur } from '../money';
 import { castFor, checkoutWin, idealDartPaths } from './hero-scan';
 import { quizDart } from './quiz-dart';
-import { variantArt } from '../score';
+import { matchPct, variantArt } from '../score';
 import { dartName } from './words';
 
 declare global {
@@ -151,7 +151,7 @@ const CSS = `
   background:${RED};font-family:${DISPLAY};font-weight:800;font-size:12vw;box-shadow:0 2vw 5vw #0008;transform:rotate(10deg)}
 .ad-name{margin-top:4.5vw;min-height:15vw;font-family:${DISPLAY};font-weight:800;font-size:12.5vw;letter-spacing:-.03em;line-height:.92;text-align:center;padding:0 5vw;opacity:0}
 .ad-pct{margin-top:3vw;padding:1.4vw 5vw;border-radius:9vw;background:${GREEN};color:${NAVY};font-family:${DISPLAY};font-weight:800;font-size:9vw;letter-spacing:-.03em;opacity:0}
-.ad-credit{position:absolute;z-index:6;left:8vw;right:8vw;top:79.6vh;font-weight:500;font-size:2.3vw;line-height:1.25;color:#ffffff8c;text-align:center;opacity:0}
+.ad-credit{position:absolute;z-index:6;left:8vw;right:8vw;top:81vh;font-weight:500;font-size:2.3vw;line-height:1.25;color:#ffffff8c;text-align:center;opacity:0}
 .ad-handbox{position:relative;width:60vw;height:82vw;
   --skin:#e3b896;--skin-hi:#f3d5be;--skin-shade:#b9805e;--nail:#f4dbd1}
 .ad-handbox svg.hand{position:absolute;inset:0;width:100%;height:100%;filter:drop-shadow(0 3vw 4vw #0007)}
@@ -208,7 +208,7 @@ const CSS = `
 .ad-pcard b{font-weight:650;font-size:4.4vw;line-height:1.08;letter-spacing:-.02em;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden}
 .ad-pcard p{margin:0;display:flex;align-items:center;gap:1.6vw;font-size:3.7vw;color:#5b6b82;white-space:nowrap}
 .ad-pcard em{padding:.5vw 2.4vw;border-radius:9vw;color:#fff;font-style:normal;font-weight:600;font-size:3.3vw}
-.ad-pcard strong{font-family:${DISPLAY};font-weight:800;font-size:9.5vw;letter-spacing:-.03em;color:#0a8f5a}
+.ad-pcard strong{font-family:${DISPLAY};font-weight:800;font-size:8.4vw;letter-spacing:-.03em;color:#0a8f5a}
 .ad-ask{font-family:${DISPLAY};font-weight:800;font-size:17vw;letter-spacing:-.03em;line-height:.9;text-align:center;padding:0 5vw;opacity:0}
 .ad-url{margin-top:8vw;padding:2.8vw 7vw;border-radius:9vw;background:${GREEN};color:${NAVY};font-weight:700;font-size:8vw;letter-spacing:-.03em;opacity:0;box-shadow:0 2vw 8vw #3ee6a055}
 .ad-free{margin-top:4vw;font-family:${HAND};font-weight:700;font-size:8vw;color:${SUN};transform:rotate(-3deg);opacity:0}
@@ -284,9 +284,11 @@ export async function adView(root: HTMLElement, _p: Record<string, string>, q: U
   };
   const result = await createFit(m, a);
   const f = result.fit;
-  const best = result.recommendation.picks[0];
-  if (!best) return;
-  const pool = variants().filter((v) => v.tip === 'steel' && !v.specCheck);
+  // The ad only recommends darts with a proper product photo (bundled into the page); the counter
+  // still counts the whole catalogue.
+  const all = variants().filter((v) => v.tip === 'steel' && !v.specCheck);
+  const catalogueSize = all.length;
+  const pool = all.filter((v) => photoOf(v));
   const c = castFor(
     f,
     pool,
@@ -299,12 +301,14 @@ export async function adView(root: HTMLElement, _p: Record<string, string>, q: U
       tone: 1,
     },
     { hold: a.hold, fingers: a.fingers, throwStyle: a.throwStyle, gripFeel: a.gripFeel },
-    { best, tiers: result.tiers ?? {} },
+    undefined,
     2,
   );
   if (!c?.twin) return;
   const twin = c.twin;
   const top = c.barrels[c.barrels.length - 1]!;
+  // How close the pro's own dart is to your fit: the % on the board and under their name.
+  const proPct = result.proTwin ? Math.round(matchPct(result.proTwin.scored.cost)) : top.m.total;
 
   // The faces: the twin (the renderer's photo, else the site's, else the player card) and seven
   // well-known others from the site's credited photos.
@@ -754,6 +758,43 @@ export async function adView(root: HTMLElement, _p: Record<string, string>, q: U
   cue('pop');
   await wait(380);
 
+  // ── The match: darts on the board and the %.
+  const match = scene('ad-match');
+  const win = checkoutWin(proPct);
+  const wordEl = win.el.querySelector('.bw-word');
+  if (wordEl) wordEl.textContent = `${proPct}%`;
+  match.append(h('div', { class: 'ad-stage' }, win.el));
+  hide(cap, 100);
+  await cut(model, match, 160);
+  for (const d of [150, 500, 850]) setTimeout(() => cue('thud'), d);
+  await wait(Math.max(900, win.ms - 950));
+
+  // ── The pro: the faces spin again, slow down, and land. The hook, answered.
+  const pro = scene();
+  qm.remove();
+  const name = h('div', { class: 'ad-name' }, twin.name);
+  if (twin.name.length > 14) name.style.fontSize = '10vw';
+  const pct = h('div', { class: 'ad-pct' }, `${proPct}% match`);
+  pro.append(h('div', { class: 'ad-stage' }, ring, name, pct));
+  await cut(match, pro, 160);
+  setSeg(3);
+  setCap(`${C.like}…`);
+  show(credit, 300, 'none');
+  await spin(520, 80);
+  for (const step of [110, 150, 200, 270, 350]) {
+    face((at + 1) % (faces.length - 1));
+    await wait(step);
+  }
+  face(faces.length - 1);
+  ring.classList.add('lock');
+  cue('win');
+  bang(0.45);
+  punch(ring, 1.12, 320);
+  show(name, 300, 'translateY(6vw) scale(.7)');
+  await wait(300);
+  show(pct, 240, 'scale(.4)');
+  await wait(950);
+
   // ── The catalogue: a wall of real darts, knocked out until one is left. The caption counts.
   const ranked = pool.map((v) => ({ v, cost: scoreVariant(f, v).cost })).sort((x, y) => x.cost - y.cost);
   const seen = new Set<string>([top.v.modelId]);
@@ -772,11 +813,12 @@ export async function adView(root: HTMLElement, _p: Record<string, string>, q: U
   const search = scene();
   const searchStage = h('div', { class: 'ad-stage' }, wall);
   search.append(searchStage);
-  const countN = h('b', null, String(ranked.length));
+  const countN = h('b', null, String(catalogueSize));
   const countWord = document.createTextNode(` ${C.darts}`);
   hide(cap, 100);
-  await cut(model, search);
-  setSeg(3);
+  hide(credit, 120);
+  await cut(pro, search);
+  setSeg(4);
   setCap(h('span', null, countN, countWord));
   tiles.forEach((tl, i) =>
     tl.animate(
@@ -797,7 +839,7 @@ export async function adView(root: HTMLElement, _p: Record<string, string>, q: U
     tiles[idx]!.classList.add('x');
     cue('tick');
     countN.textContent = String(
-      Math.max(2, Math.round(ranked.length - ((ranked.length - 1) * (i + 1)) / order.length)),
+      Math.max(2, Math.round(catalogueSize - ((catalogueSize - 1) * (i + 1)) / order.length)),
     );
     await wait(Math.max(36, 130 - i * 8));
   }
@@ -827,43 +869,6 @@ export async function adView(root: HTMLElement, _p: Record<string, string>, q: U
   ).finished;
   show(heroName, 220);
   await wait(620);
-
-  // ── The match: darts on the board and the %.
-  const match = scene('ad-match');
-  const win = checkoutWin(top.m.total);
-  const wordEl = win.el.querySelector('.bw-word');
-  if (wordEl) wordEl.textContent = `${top.m.total}%`;
-  match.append(h('div', { class: 'ad-stage' }, win.el));
-  hide(cap, 100);
-  await cut(search, match, 160);
-  for (const d of [150, 500, 850]) setTimeout(() => cue('thud'), d);
-  await wait(Math.max(900, win.ms - 950));
-
-  // ── The pro: the faces spin again, slow down, and land. The hook, answered.
-  const pro = scene();
-  qm.remove();
-  const name = h('div', { class: 'ad-name' }, twin.name);
-  if (twin.name.length > 14) name.style.fontSize = '10vw';
-  const pct = h('div', { class: 'ad-pct' }, `${top.m.total}% match`);
-  pro.append(h('div', { class: 'ad-stage' }, ring, name, pct));
-  await cut(match, pro, 160);
-  setSeg(4);
-  setCap(`${C.like}…`);
-  show(credit, 300, 'none');
-  await spin(520, 80);
-  for (const step of [110, 150, 200, 270, 350]) {
-    face((at + 1) % (faces.length - 1));
-    await wait(step);
-  }
-  face(faces.length - 1);
-  ring.classList.add('lock');
-  cue('win');
-  bang(0.45);
-  punch(ring, 1.12, 320);
-  show(name, 300, 'translateY(6vw) scale(.7)');
-  await wait(300);
-  show(pct, 240, 'scale(.4)');
-  await wait(950);
 
   // ── The result: the site's final frame. The pro, your ideal dart, three price classes.
   const final = scene();
@@ -916,7 +921,8 @@ export async function adView(root: HTMLElement, _p: Record<string, string>, q: U
     ),
   );
   hide(cap, 100);
-  await cut(pro, final);
+  await cut(search, final);
+  show(credit, 300, 'none');
   for (const pc of pcards) {
     show(pc, 260, 'translateY(10vw) scale(.94)');
     cue('pop');
