@@ -295,8 +295,8 @@ const CSS = `
 .ad-match .bw{background:none}
 .ad-match .bw-hit{width:76vw}
 .ad-match .bw-word{font-family:${DISPLAY};font-weight:800;font-size:22vw;letter-spacing:-.04em;color:${GREEN};text-shadow:0 1vw 6vw #3ee6a066}
-.ad-final{position:absolute;left:0;right:0;top:12.5vh;height:65vh;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2.2vw}
-.ad-final .ad-ring{width:30vw;box-shadow:0 0 0 1vw ${INK},0 4vw 10vw #000a}
+.ad-final{position:absolute;left:0;right:0;top:12.5vh;height:65vh;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1.8vw}
+.ad-final .ad-ring{width:27vw;box-shadow:0 0 0 1vw ${INK},0 4vw 10vw #000a}
 .ad-final .ad-ring img{opacity:1}
 .ad-who{margin-top:-6vw;position:relative;padding:1.6vw 4.4vw;border-radius:9vw;background:#0a121fe6;box-shadow:inset 0 0 0 .3vw #ffffff40;font-weight:550;font-size:5.4vw;white-space:nowrap}
 .ad-who b{font-weight:700}
@@ -308,7 +308,7 @@ const CSS = `
 .ad-pcard .ph{position:relative;width:16vw;aspect-ratio:1;border-radius:3vw;background:#edf2f9;overflow:hidden}
 .ad-pcard .ph img,.ad-pcard .ph svg,.ad-tile svg,.ad-hero svg{position:absolute;inset:6%;width:88%;height:88%;object-fit:contain}
 .ad-pcard div{display:grid;gap:.8vw;min-width:0}
-.ad-pcard b{font-weight:650;font-size:4vw;line-height:1.08;letter-spacing:-.02em;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden}
+.ad-pcard b{font-weight:650;font-size:3.9vw;line-height:1.08;letter-spacing:-.025em;text-wrap:balance}
 .ad-pcard p{margin:0;display:flex;align-items:center;gap:1.6vw;font-size:3.7vw;color:#5b6b82;white-space:nowrap}
 .ad-pcard em{padding:.5vw 2.4vw;border-radius:9vw;color:#fff;font-style:normal;font-weight:600;font-size:3.3vw}
 .ad-pcard strong{font-family:${DISPLAY};font-weight:800;font-size:8.4vw;letter-spacing:-.03em;color:#0a8f5a}
@@ -412,7 +412,10 @@ export async function adView(root: HTMLElement, _p: Record<string, string>, q: U
   // still counts the whole catalogue.
   const all = variants().filter((v) => v.tip === 'steel' && !v.specCheck);
   const catalogueSize = all.length;
-  const pool = all.filter((v) => photoOf(v));
+  // Signature darts of players the site no longer lists as pros stay out of the ads.
+  const listed = new Set(pros().map((p) => p.name.split(' ').at(-1)!.toLowerCase()));
+  const unlisted = (v: Variant) => /koltsov/i.test(dartName(v)) && !listed.has('koltsov');
+  const pool = all.filter((v) => photoOf(v) && !unlisted(v));
   const c = castFor(
     f,
     pool,
