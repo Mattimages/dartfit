@@ -19,13 +19,21 @@ if (!file || !out) throw new Error('usage: ad.mjs <index.html> <out-dir> [person
 const LANG = ['nl', 'en', 'de'].includes(process.env.VIDEO_LANG) ? process.env.VIDEO_LANG : 'nl';
 const COUNTRY = { nl: 'NL', en: 'GB', de: 'DE' }[LANG];
 
-/** Hand length (mm), height and answers that land on each pro (scripts/tiktok/search.ts). */
+/** Hand length (mm), height and answers that land on each pro, with the pro's own dart matching
+ *  94–99 % (a grid search over scripts/tiktok/search.ts's space). */
 const PERSONAS = [
-  { id: 'littler', L: 178, h: 180, hold: 'rear', f: 4, throw: 'flat', g: 1 },
-  { id: 'rvb', L: 170, h: 176, hold: 'front', f: 4, throw: 'flat', g: 3 },
-  { id: 'humphries', L: 170, h: 172, hold: 'front', f: 2, throw: 'flat', g: 3 },
+  { id: 'littler', L: 185, h: 170, hold: 'middle', f: 4, throw: 'flat', g: 3 },
+  { id: 'rvb', L: 165, h: 170, hold: 'middle', f: 4, throw: 'flat', g: 3 },
+  { id: 'humphries', L: 182, h: 170, hold: 'middle', f: 2, throw: 'flat', g: 3 },
   { id: 'cross', L: 185, h: 184, hold: 'middle', f: 3, throw: 'flat', g: 3 },
+  // Gift buyers: height and hand type only, "not sure" where they don't know
+  // (scripts/tiktok/search-gift.ts).
+  { id: 'anderson', gift: true, h: 182, ht: 'average', hold: 'unsure', f: 'unsure', throw: 'flat', g: 3 },
+  { id: 'noppert', gift: true, h: 182, ht: 'stubby', hold: 'front', f: 4, throw: 'flat', g: 3 },
+  { id: 'littler-gift', gift: true, h: 175, ht: 'slender', hold: 'unsure', f: 4, throw: 'flat', g: 3 },
 ];
+/** AD_THEME=xmas|wc themes the ad; gift personas make it a gift ad. */
+const THEME = ['xmas', 'wc'].includes(process.env.AD_THEME) ? process.env.AD_THEME : '';
 
 const SLOW = 4;
 const CLOCK = `(() => {
@@ -111,6 +119,25 @@ function soundtrack(cues, seconds) {
         return lp * Math.sin((Math.PI * t) / 0.26) ** 2 * 0.3;
       });
     },
+    // Sleigh bells: bright, quickly decaying partials in a short shaken burst.
+    bell: (at) => {
+      for (let j = 0; j < 7; j++)
+        [2637, 3520, 4186].forEach((f, i) =>
+          put(
+            at + j * 0.055 + i * 0.006,
+            0.35,
+            (t) => Math.sin(2 * Math.PI * f * t) * Math.exp(-t / 0.06) * 0.05,
+          ),
+        );
+    },
+    // An arena: a swelling, filtered noise roar.
+    roar: (at) => {
+      let lp = 0;
+      put(at, 1.6, (t) => {
+        lp += 0.06 * (rnd() - lp);
+        return lp * Math.min(1, t / 0.25) * Math.exp(-Math.max(0, t - 0.4) / 0.5) * 1.6;
+      });
+    },
     win: (at) =>
       [523.25, 659.25, 783.99, 1046.5].forEach((f, i) =>
         put(
@@ -147,8 +174,10 @@ const server = createServer((_q, r) => {
 await mkdir(out, { recursive: true });
 const b = await chromium.launch({ args: ['--force-device-scale-factor=3'] });
 
-for (const P of PERSONAS.filter((x) => !only.length || only.includes(x.id))) {
-  const dir = join(out, `raw-ad-${P.id}`);
+for (const P of PERSONAS.filter((x) => (only.length ? only.includes(x.id) : !x.gift))) {
+  const tag = [THEME, P.gift ? 'gift' : ''].filter(Boolean).join('-');
+  const name = `ad-${tag ? `${tag}-` : ''}${P.id}-${LANG}`;
+  const dir = join(out, `raw-${name}`);
   await rm(dir, { recursive: true, force: true });
   await mkdir(dir, { recursive: true });
   const ctx = await b.newContext({
@@ -185,7 +214,12 @@ for (const P of PERSONAS.filter((x) => !only.length || only.includes(x.id))) {
   });
   await cdp.send('Animation.enable');
   await cdp.send('Animation.setPlaybackRate', { playbackRate: 1 / SLOW });
-  const q = new URLSearchParams({ L: P.L, h: P.h, hold: P.hold, f: P.f, throw: P.throw, g: P.g });
+  const q = new URLSearchParams(
+    P.gift
+      ? { gift: '1', h: P.h, ht: P.ht, hold: P.hold, f: P.f, throw: P.throw, g: P.g }
+      : { L: P.L, h: P.h, hold: P.hold, f: P.f, throw: P.throw, g: P.g },
+  );
+  if (THEME) q.set('theme', THEME);
   await p.evaluate((hash) => (location.hash = hash), `#/ad?${q}`);
   await p.waitForSelector('.ad');
   const adT0 = await p.evaluate(() => performance.now());
@@ -194,7 +228,7 @@ for (const P of PERSONAS.filter((x) => !only.length || only.includes(x.id))) {
   await p.waitForFunction(() => document.body.dataset.adDone === '1', null, { timeout: 60000 * SLOW });
   const end = Date.now() / 1000;
   await cdp.send('Page.stopScreencast');
-  const pro = await p.evaluate(() => document.body.dataset.adPro);
+  const pro = await p.evaluate(() => `${document.body.dataset.adPro} ${document.body.dataset.adPct}%`);
   const cues = (await p.evaluate(() => window.__adCues ?? [])).map((c) => ({
     t: (c.t - adT0) / 1000,
     k: c.k,
@@ -212,7 +246,7 @@ for (const P of PERSONAS.filter((x) => !only.length || only.includes(x.id))) {
   }
   lines.push(lines.at(-2));
   await writeFile(join(dir, 'list.txt'), lines.join('\n'));
-  const mp4 = join(out, `ad-${P.id}-${LANG}.mp4`);
+  const mp4 = join(out, `${name}.mp4`);
   execFileSync('ffmpeg', [
     '-y',
     '-loglevel',

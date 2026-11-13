@@ -23,7 +23,14 @@
  *
  *   #/ad?L=178&h=180&hold=rear&f=4&throw=flat&g=1      (hand length mm, height cm, answers)
  */
-import { scoreVariant, type Answers, type Measurements, type Variant } from '@dartfit/engine';
+import {
+  measurementsFromHeight,
+  scoreVariant,
+  type Answers,
+  type HandType,
+  type Measurements,
+  type Variant,
+} from '@dartfit/engine';
 import { proPhotos } from 'virtual:dartfit-catalogue';
 import { h, s } from '../h';
 import { getLang, num, t } from '../i18n';
@@ -91,6 +98,58 @@ const COPY = {
   },
 };
 
+/** Themed and gift copy. Christmas and the World Championship (11 Dec – 3 Jan, Alexandra Palace)
+ *  without any event branding; gift ads talk to the buyer, who estimates the player's hand. */
+const VARIANT = {
+  nl: {
+    hook: { xmas: 'Wat wil je voor kerst?', wc: 'WK‑koorts?' },
+    giftHook: { '': 'Darts cadeau geven?', xmas: 'Darts onder de boom?', wc: 'Darts cadeau geven?' },
+    giftPromise: 'Welke dart past?',
+    estimate: 'Schat de hand',
+    height: 'lengte',
+    giftLike: 'Gooit als',
+    giftIdeal: 'de ideale dart',
+    ask: { xmas: 'Zet hem op je verlanglijst', wc: 'Welke prof ben jij?' },
+    giftAsk: { '': 'Het perfecte cadeau', xmas: 'Het perfecte kerstcadeau', wc: 'Op tijd voor het WK' },
+    free: { xmas: 'gratis · 1 minuut', wc: 'gratis · klaar voor het WK' },
+    giftFree: 'gratis · zonder meten',
+    dates: 'WK · 11 dec – 3 jan',
+  },
+  en: {
+    hook: { xmas: 'Darts for Christmas?', wc: 'Worlds fever?' },
+    giftHook: { '': 'Buying darts as a gift?', xmas: 'Darts under the tree?', wc: 'Buying darts as a gift?' },
+    giftPromise: 'Which dart fits?',
+    estimate: 'Guess their hand',
+    height: 'height',
+    giftLike: 'Throws like',
+    giftIdeal: 'the ideal dart',
+    ask: { xmas: 'Put it on your wish list', wc: 'Which pro are you?' },
+    giftAsk: { '': 'The perfect gift', xmas: 'The perfect Christmas gift', wc: 'In time for the Worlds' },
+    free: { xmas: 'free · 1 minute', wc: 'free · ready for the Worlds' },
+    giftFree: 'free · no measuring',
+    dates: 'Worlds · 11 Dec – 3 Jan',
+  },
+  de: {
+    hook: { xmas: 'Darts zu Weihnachten?', wc: 'WM‑Fieber?' },
+    giftHook: { '': 'Darts verschenken?', xmas: 'Darts unterm Baum?', wc: 'Darts verschenken?' },
+    giftPromise: 'Welcher Dart passt?',
+    estimate: 'Schätz die Hand',
+    height: 'Größe',
+    giftLike: 'Wirft wie',
+    giftIdeal: 'der ideale Dart',
+    ask: { xmas: 'Ab auf den Wunschzettel', wc: 'Welcher Profi bist du?' },
+    giftAsk: {
+      '': 'Das perfekte Geschenk',
+      xmas: 'Das perfekte Weihnachtsgeschenk',
+      wc: 'Rechtzeitig zur WM',
+    },
+    free: { xmas: 'gratis · 1 Minute', wc: 'gratis · bereit für die WM' },
+    giftFree: 'gratis · ohne Messen',
+    dates: 'WM · 11. Dez – 3. Jan',
+  },
+};
+type Theme = '' | 'xmas' | 'wc';
+
 const NAVY = '#0f1d36';
 const INK = '#fdf8ee';
 const RED = '#ff4d5e';
@@ -133,7 +192,7 @@ const CSS = `
 .ad-prog i.on::after{width:100%}
 .ad-cap{position:absolute;z-index:6;left:6vw;right:6vw;top:13.2vh;height:11vh;display:grid;place-items:center;
   font-family:${DISPLAY};font-weight:800;font-size:13.5vw;letter-spacing:-.03em;line-height:.9;text-align:center;
-  text-shadow:0 1vw 5vw #0009;opacity:0}
+  text-shadow:0 1vw 5vw #0009;text-wrap:balance;opacity:0}
 .ad-cap.hook{font-size:17vw;top:14vh}
 .ad-cap b{font-weight:800;color:${GREEN};font-variant-numeric:tabular-nums}
 .ad-squig{position:absolute;z-index:6;top:calc(14vh + 21vw + 5.5vh);left:20vw;width:60vw;height:6vw;overflow:visible}
@@ -189,6 +248,50 @@ const CSS = `
 .ad-hero{position:absolute;left:50%;top:50%;width:66vw;margin:-40vw 0 0 -33vw;aspect-ratio:1;border-radius:7vw;background:#edf2f9;box-shadow:0 0 0 1.4vw ${GREEN},0 6vw 14vw #000b;opacity:0}
 .ad-hero img{position:absolute;inset:6%;width:88%;height:88%;object-fit:contain}
 .ad-heroname{position:absolute;left:4vw;right:4vw;top:calc(50% + 30vw);font-size:8.4vw;font-weight:650;letter-spacing:-.03em;line-height:1.05;text-align:center;opacity:0}
+.ad-cap.hook.roomy{height:21vh;top:13vh}
+.ad-cap.hook.long{font-size:13.5vw}
+.ad-cap.hook.mid{font-size:15vw}
+.ad-squig.roomy{top:35.5vh}
+.roomy .ad-board{top:42vh}
+.roomy .ad-fly{top:calc(42vh + 21vw)}
+.ad-tag{position:absolute;z-index:6;left:0;right:0;top:calc(14vh + 21vw + 8.5vh);text-align:center;font-family:${HAND};font-weight:700;font-size:8.4vw;color:${SUN};transform:rotate(-3deg);opacity:0}
+.roomy .ad-tag{top:38.2vh}
+.ad-gift .ad-handbox{width:46vw;height:63vw}
+.ad-gift .ad-opts{flex-wrap:wrap;row-gap:2.4vw;margin-top:5vw}
+.ad-gift .ad-opt{font-size:5.2vw;padding:2.4vw 3.8vw}
+.ad-quiz.ad-gift .ad-opt{font-size:5.4vw;padding:2.4vw 4vw}
+.ad-hnote{position:absolute;left:-19vw;top:22%;display:grid;justify-items:center;gap:.6vw;opacity:0}
+.ad-hnote span{font-family:${HAND};font-weight:700;font-size:6.4vw;color:${SUN};line-height:1}
+.ad-hnote .ad-pill{position:static;opacity:1}
+.ad-dring{background:#edf2f9}
+.ad-dring img{object-fit:contain;object-position:50% 50%;inset:12%;width:76%;height:76%;border-radius:0}
+.ad-pcard{position:relative}
+.ad-bow{position:absolute;right:-2.4vw;top:-4.6vw;width:13vw;height:10vw;overflow:visible;filter:drop-shadow(0 1vw 1.4vw #0006)}
+/* Christmas: a warm red glow, falling snow, fairy lights over the top, a hat on the board. */
+.ad.t-xmas{background:radial-gradient(90vw 70vh at 50% 46%,#7d2030 0,#3d1426 42%,transparent 76%),#0a1d1a}
+.ad-snow{position:absolute;inset:0;z-index:5;pointer-events:none;overflow:hidden}
+.ad-snow i{position:absolute;top:-4vh;border-radius:50%;background:#fff;opacity:.85;animation:ad-fall linear infinite}
+@keyframes ad-fall{to{transform:translate3d(var(--dx),110vh,0)}}
+.ad-lights{position:absolute;z-index:5;left:-4vw;right:-4vw;top:2.4vh;width:108vw;height:9vh;overflow:visible;pointer-events:none}
+.ad-lights path{fill:none;stroke:#1d3a2c;stroke-width:3px;vector-effect:non-scaling-stroke}
+.ad-lights circle{animation:ad-blink 1.1s ease-in-out infinite alternate}
+@keyframes ad-blink{from{opacity:.35}to{opacity:1}}
+.ad-hat{position:absolute;z-index:2;left:calc(50% + 16vw);top:calc(var(--bt,35vh) - 9vw);width:40vw;height:34vw;overflow:visible;transform:rotate(24deg);filter:drop-shadow(0 2vw 3vw #0008)}
+.roomy .ad-hat{--bt:42vh}
+.ad-board-wrap{position:absolute;inset:0}
+/* World Championship: a dark arena, sweeping spotlights, camera flashes in the crowd. */
+.ad.t-wc{background:radial-gradient(80vw 60vh at 50% 48%,#3b2b72 0,#1b1340 45%,transparent 78%),#07060f}
+.ad-beams{position:absolute;inset:0;z-index:1;pointer-events:none;overflow:hidden}
+.ad-beams i{position:absolute;top:-8vh;width:60vw;height:120vh;transform-origin:50% 0;
+  background:linear-gradient(to bottom,#fff6d633,#fff6d600 80%);clip-path:polygon(44% 0,56% 0,100% 100%,0 100%);animation:ad-sweep 3.6s ease-in-out infinite alternate}
+.ad-beams i:nth-child(1){left:-22vw;--a:-18deg;--b:10deg}
+.ad-beams i:nth-child(2){right:-22vw;--a:18deg;--b:-10deg;animation-delay:-1.8s}
+@keyframes ad-sweep{from{transform:rotate(var(--a))}to{transform:rotate(var(--b))}}
+.ad-crowd{position:absolute;left:0;right:0;bottom:0;height:20vh;z-index:1;pointer-events:none;
+  background:radial-gradient(60vw 12vh at 50% 100%,#000c,transparent)}
+.ad-crowd i{position:absolute;width:1.6vw;height:1.6vw;border-radius:50%;background:#fff;box-shadow:0 0 3vw 1.4vw #fff8;opacity:0;animation:ad-pop 2.6s ease-out infinite}
+@keyframes ad-pop{0%,86%{opacity:0;transform:scale(.4)}90%{opacity:1;transform:scale(1)}100%{opacity:0;transform:scale(.6)}}
+.t-wc .ad-url{background:#ffcf5a;box-shadow:0 2vw 8vw #ffcf5a55}
 .ad-match .bw{background:none}
 .ad-match .bw-hit{width:76vw}
 .ad-match .bw-word{font-family:${DISPLAY};font-weight:800;font-size:22vw;letter-spacing:-.04em;color:${GREEN};text-shadow:0 1vw 6vw #3ee6a066}
@@ -205,11 +308,11 @@ const CSS = `
 .ad-pcard .ph{position:relative;width:16vw;aspect-ratio:1;border-radius:3vw;background:#edf2f9;overflow:hidden}
 .ad-pcard .ph img,.ad-pcard .ph svg,.ad-tile svg,.ad-hero svg{position:absolute;inset:6%;width:88%;height:88%;object-fit:contain}
 .ad-pcard div{display:grid;gap:.8vw;min-width:0}
-.ad-pcard b{font-weight:650;font-size:4.4vw;line-height:1.08;letter-spacing:-.02em;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden}
+.ad-pcard b{font-weight:650;font-size:4vw;line-height:1.08;letter-spacing:-.02em;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden}
 .ad-pcard p{margin:0;display:flex;align-items:center;gap:1.6vw;font-size:3.7vw;color:#5b6b82;white-space:nowrap}
 .ad-pcard em{padding:.5vw 2.4vw;border-radius:9vw;color:#fff;font-style:normal;font-weight:600;font-size:3.3vw}
 .ad-pcard strong{font-family:${DISPLAY};font-weight:800;font-size:8.4vw;letter-spacing:-.03em;color:#0a8f5a}
-.ad-ask{font-family:${DISPLAY};font-weight:800;font-size:17vw;letter-spacing:-.03em;line-height:.9;text-align:center;padding:0 5vw;opacity:0}
+.ad-ask{font-family:${DISPLAY};font-weight:800;font-size:17vw;letter-spacing:-.03em;line-height:.9;text-align:center;text-wrap:balance;padding:0 5vw;opacity:0}
 .ad-url{margin-top:8vw;padding:2.8vw 7vw;border-radius:9vw;background:${GREEN};color:${NAVY};font-weight:700;font-size:8vw;letter-spacing:-.03em;opacity:0;box-shadow:0 2vw 8vw #3ee6a055}
 .ad-free{margin-top:4vw;font-family:${HAND};font-weight:700;font-size:8vw;color:${SUN};transform:rotate(-3deg);opacity:0}
 `;
@@ -258,30 +361,51 @@ const picture = (v: Variant): Element => {
 };
 
 export async function adView(root: HTMLElement, _p: Record<string, string>, q: URLSearchParams) {
-  const C = COPY[getLang() as keyof typeof COPY] ?? COPY.en;
+  const lang = (getLang() as keyof typeof COPY) in COPY ? (getLang() as keyof typeof COPY) : 'en';
+  const C = COPY[lang];
+  const V = VARIANT[lang];
+  const theme: Theme = q.get('theme') === 'xmas' || q.get('theme') === 'wc' ? (q.get('theme') as Theme) : '';
+  // A gift ad: the buyer guesses (height, hand type, "not sure" where they don't know); the fit
+  // comes from the same estimate the site's gift flow uses.
+  const gift = q.get('gift') === '1';
   const n = (k: string, d: number) => Number(q.get(k) ?? d);
-  const L = n('L', 185);
-  const k = L / 185;
-  const m: Measurements = {
-    handLengthMm: L,
-    palmWidthMm: 78 * k,
-    indexLengthMm: 78 * k,
-    middleLengthMm: 85 * k,
-    thumbIndexSpanMm: 120 * k,
-    spreadMm: 1.2,
-    samples: 18,
-    calibrated: true,
-  };
+  const unsureHold = q.get('hold') === 'unsure';
+  const unsureFingers = q.get('f') === 'unsure';
+  const handType = (
+    ['slender', 'average', 'stubby'].includes(q.get('ht') ?? '') ? q.get('ht') : 'average'
+  ) as HandType;
+  const heightCm = n('h', 180);
+  const L0 = n('L', 185);
+  const k = L0 / 185;
+  const m: Measurements = gift
+    ? measurementsFromHeight(heightCm)
+    : {
+        handLengthMm: L0,
+        palmWidthMm: 78 * k,
+        indexLengthMm: 78 * k,
+        middleLengthMm: 85 * k,
+        thumbIndexSpanMm: 120 * k,
+        spreadMm: 1.2,
+        samples: 18,
+        calibrated: true,
+      };
+  const L = Math.round(m.handLengthMm);
   const a: Answers = {
     tip: 'steel',
-    hold: (q.get('hold') ?? 'middle') as Answers['hold'],
-    fingers: n('f', 3) as Answers['fingers'],
+    hold: (unsureHold ? 'middle' : (q.get('hold') ?? 'middle')) as Answers['hold'],
+    fingers: (unsureFingers ? 3 : n('f', 3)) as Answers['fingers'],
     throwStyle: (q.get('throw') ?? 'flat') as Answers['throwStyle'],
     moisture: 'normal',
     gripFeel: n('g', 3) as Answers['gripFeel'],
     thickness: 'auto',
-    heightCm: n('h', 180),
+    heightCm,
+    ...(gift ? { handType } : {}),
   };
+  const hookText = gift ? V.giftHook[theme] : theme ? V.hook[theme] : C.hook;
+  const promiseText = gift ? V.giftPromise : C.promise;
+  const likeText = gift ? V.giftLike : C.like;
+  const askText = gift ? V.giftAsk[theme] : theme ? V.ask[theme] : C.promise;
+  const freeText = gift ? V.giftFree : theme ? V.free[theme] : C.free;
   const result = await createFit(m, a);
   const f = result.fit;
   // The ad only recommends darts with a proper product photo (bundled into the page); the counter
@@ -327,8 +451,70 @@ export async function adView(root: HTMLElement, _p: Record<string, string>, q: U
 
   const style = document.createElement('style');
   style.textContent = CSS;
-  const ad = h('div', { class: 'ad', 'aria-hidden': 'true' });
+  const ad = h('div', { class: `ad${theme ? ` t-${theme}` : ''}`, 'aria-hidden': 'true' });
   root.append(style, ad);
+  // Themed backdrop: snow and fairy lights, or arena spotlights and camera flashes. Fixed seeds, so
+  // every render is the same.
+  let seed = 11;
+  const rnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
+  if (theme === 'xmas') {
+    const snow = h('div', { class: 'ad-snow' });
+    for (let i = 0; i < 46; i++) {
+      const flake = h('i');
+      const size = 0.7 + rnd() * 1.6;
+      const dur = 6 + rnd() * 6;
+      flake.style.cssText = `left:${(rnd() * 100).toFixed(1)}vw;width:${size.toFixed(2)}vw;height:${size.toFixed(2)}vw;--dx:${((rnd() - 0.5) * 16).toFixed(1)}vw;animation-duration:${dur.toFixed(1)}s;animation-delay:-${(rnd() * dur).toFixed(1)}s;opacity:${(0.45 + rnd() * 0.5).toFixed(2)}`;
+      snow.append(flake);
+    }
+    const bulbs = Array.from({ length: 11 }, (_, i) => {
+      const x = 4 + i * 9.2;
+      const y = 22 + Math.sin((x / 100) * Math.PI) * 26;
+      const col = ['#ff4d5e', '#ffd166', '#3ee6a0', '#7fb4ff'][i % 4]!;
+      const c = s('circle', { cx: x, cy: y + 5, r: 2.3, fill: col });
+      c.style.animationDelay = `${-(i % 3) * 0.37}s`;
+      c.style.filter = `drop-shadow(0 0 1.6px ${col})`;
+      return c;
+    });
+    ad.append(
+      snow,
+      s(
+        'svg',
+        { class: 'ad-lights', viewBox: '0 0 100 60', preserveAspectRatio: 'none' },
+        s('path', { d: 'M0,20Q50,62 100,20' }),
+        ...bulbs,
+      ),
+    );
+  } else if (theme === 'wc') {
+    const crowd = h('div', { class: 'ad-crowd' });
+    for (let i = 0; i < 18; i++) {
+      const f = h('i');
+      f.style.cssText = `left:${(rnd() * 96).toFixed(1)}vw;bottom:${(rnd() * 15).toFixed(1)}vh;animation-delay:-${(rnd() * 2.6).toFixed(2)}s;animation-duration:${(2 + rnd() * 1.6).toFixed(2)}s`;
+      crowd.append(f);
+    }
+    ad.append(h('div', { class: 'ad-beams' }, h('i'), h('i')), crowd);
+  }
+  /** The board, with a Santa hat on it at Christmas. */
+  const board = () => {
+    const wrap = h('div', { class: 'ad-board-wrap' }, boardSvg('ad-board bc-board'));
+    if (theme === 'xmas')
+      wrap.append(
+        s(
+          'svg',
+          { class: 'ad-hat', viewBox: '0 0 100 85' },
+          s('path', {
+            d: 'M14,68C22,36 40,10 70,6C84,4 94,14 92,30C80,22 66,26 60,44L56,68Z',
+            fill: '#e3122c',
+          }),
+          s('path', { d: 'M60,44C66,26 80,22 92,30', fill: 'none', stroke: '#a30b1f', 'stroke-width': 3 }),
+          s('rect', { x: 6, y: 62, width: 60, height: 16, rx: 8, fill: '#fdf8ee' }),
+          s('circle', { cx: 92, cy: 34, r: 9, fill: '#fdf8ee' }),
+        ),
+      );
+    return wrap;
+  };
+  const longHook = hookText.length > 14;
+  // A long hook, or one with the dates under it, needs the board lower.
+  const roomy = longHook || theme === 'wc';
   /** A cut: the old scene pushes towards the viewer and is gone, the new one settles in. */
   const cut = async (from: HTMLElement, to: HTMLElement, ms = 200) => {
     ad.append(to);
@@ -399,7 +585,12 @@ export async function adView(root: HTMLElement, _p: Record<string, string>, q: U
   const sq = squig.querySelector('path') as SVGPathElement;
   sq.style.strokeDasharray = '400';
   sq.style.strokeDashoffset = '400';
-  hook.append(boardSvg('ad-board bc-board'), fly, squig);
+  if (roomy) {
+    hook.classList.add('roomy');
+    squig.classList.add('roomy');
+  }
+  const tag = theme === 'wc' ? h('div', { class: 'ad-tag' }, V.dates) : null;
+  hook.append(board(), fly, squig, ...(tag ? [tag] : []));
   ad.append(hook);
   hook.style.opacity = '1';
   await wait(120);
@@ -423,9 +614,15 @@ export async function adView(root: HTMLElement, _p: Record<string, string>, q: U
     { duration: 200 },
   );
   cap.classList.add('hook');
+  cap.classList.toggle('roomy', roomy);
+  cap.classList.toggle('long', longHook);
+  cap.classList.toggle('mid', !longHook && hookText.length > 9);
   cap.style.transform = 'rotate(-3deg)';
-  setCap(C.hook, 'scale(1.7)');
+  setCap(hookText, 'scale(1.7)');
   drawIn(sq, 220, 160);
+  if (tag) show(tag, 300, 'rotate(-3deg) scale(.6)', 'rotate(-3deg)');
+  if (theme === 'xmas') cue('bell');
+  if (theme === 'wc') cue('roar');
   await fly.animate(
     [
       { transform: 'rotate(26deg)' },
@@ -448,92 +645,168 @@ export async function adView(root: HTMLElement, _p: Record<string, string>, q: U
   // ── Promise: the faces spin. "Welke prof ben jij?"
   const promise = scene();
   const qm = h('div', { class: 'ad-qm' }, '?');
-  ring.append(qm);
-  promise.append(h('div', { class: 'ad-stage' }, ring));
+  // A gift buyer asks which dart, so their ring spins real darts; everyone else's spins pros.
+  const dartPics = pool
+    .slice(0, 40)
+    .filter((_, i) => i % 5 === 0)
+    .slice(0, 8);
+  const dartRing = h(
+    'div',
+    { class: 'ad-ring ad-dring' },
+    ...dartPics.map((v) => h('img', { src: photoOf(v)!, alt: '' })),
+  );
+  const promiseRing = gift ? dartRing : ring;
+  promiseRing.append(qm);
+  promise.append(h('div', { class: 'ad-stage' }, promiseRing));
   face(0);
   hide(cap, 100);
   squig.remove();
+  tag?.remove();
   await cut(hook, promise, 180);
-  cap.classList.remove('hook');
+  cap.classList.remove('hook', 'long', 'roomy', 'mid');
   cap.style.transform = '';
-  setCap(C.promise);
-  show(credit, 300, 'none');
-  await spin(1350);
+  setCap(promiseText);
+  if (gift) {
+    const imgs = [...dartRing.querySelectorAll('img')];
+    for (let i = 0; i < 14; i++) {
+      imgs.forEach((im, j) => im.classList.toggle('on', j === i % imgs.length));
+      cue('tick');
+      await wait(95);
+    }
+  } else {
+    show(credit, 300, 'none');
+    await spin(1350);
+  }
 
-  // ── Hand: scanned next to the pasje, two measurements.
-  const scan = scene();
-  const hand = handArt({ lengthMm: L, dots: true });
-  hand.classList.add('hand');
-  const card = h('div', { class: 'ad-card' });
-  const bar = h('div', { class: 'ad-scanbar' });
-  const dimL = s(
-    'svg',
-    { class: 'ad-dim', viewBox: '0 0 10 100', preserveAspectRatio: 'none' },
-    s('path', { d: 'M5,1V99M1.5,5L5,1L8.5,5M1.5,95L5,99L8.5,95' }),
-  );
-  dimL.style.cssText = 'left:-9vw;top:4%;width:4vw;height:86%';
-  const dimW = s(
-    'svg',
-    { class: 'ad-dim', viewBox: '0 0 100 10', preserveAspectRatio: 'none' },
-    s('path', { d: 'M1,5H99M5,1.5L1,5L5,8.5M95,1.5L99,5L95,8.5' }),
-  );
-  dimW.style.cssText = 'left:22%;top:62%;width:52%;height:4vw';
-  const pillL = h('div', { class: 'ad-pill' }, `${num(L, 0)} mm`);
-  pillL.style.cssText = 'left:-17vw;top:34%';
-  const pillW = h('div', { class: 'ad-pill' }, `${num(m.palmWidthMm, 0)} mm`);
-  pillW.style.cssText = 'left:28%;top:67%';
-  scan.append(
-    h(
-      'div',
-      { class: 'ad-stage' },
-      h('div', { class: 'ad-handbox' }, hand, bar, card, dimL, dimW, pillL, pillW),
-    ),
-  );
-  hand.style.clipPath = 'inset(100% 0 0 0)';
-  for (const d of [dimL, dimW]) {
-    const p = d.querySelector('path') as SVGPathElement;
-    p.style.strokeDasharray = '1000';
-    p.style.strokeDashoffset = '1000';
-  }
+  // ── Hand: scanned next to the pasje, two measurements (a gift buyer estimates it instead).
+  const scan = scene(gift ? 'ad-gift' : '');
   hide(credit, 120);
-  hide(cap, 100);
-  await cut(promise, scan);
-  prog.style.opacity = '1';
-  setSeg(0);
-  setCap(C.scan);
-  hand.animate([{ clipPath: 'inset(100% 0 0 0)' }, { clipPath: 'inset(0 0 0 0)' }], {
-    duration: 600,
-    easing: 'ease-in-out',
-    fill: 'forwards',
-  });
-  bar.animate(
-    [
-      { top: '100%', opacity: 1 },
-      { top: '0%', opacity: 1, offset: 0.92 },
-      { top: '0%', opacity: 0 },
-    ],
-    { duration: 660, easing: 'ease-in-out', fill: 'forwards' },
-  );
-  [...hand.querySelectorAll<SVGElement>('.hand-dot')].forEach((d, i) =>
-    d.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 100, delay: 460 + i * 16, fill: 'both' }),
-  );
-  await wait(420);
-  show(card, 220, 'rotate(-9deg) translateY(8vw)', 'rotate(-9deg)');
-  await wait(380);
-  for (const [dim, label] of [
-    [dimL, pillL],
-    [dimW, pillW],
-  ] as const) {
-    drawIn(dim.querySelector('path')!, 220);
-    await wait(140);
-    show(label, 220);
+  if (gift) {
+    // ── Estimate: the buyer picks the hand type (the drawing follows) and the height.
+    const ghand = handArt({ lengthMm: L, dots: false });
+    ghand.classList.add('hand');
+    const types: HandType[] = ['slender', 'average', 'stubby'];
+    const shape = { slender: 'scale(.84,1.05)', average: 'none', stubby: 'scale(1.14,.9)' };
+    const pills = types.map((x) => h('div', { class: 'ad-opt' }, t(`q.hand.${x}`)));
+    const hnote = h(
+      'div',
+      { class: 'ad-hnote' },
+      h('span', null, V.height),
+      h('div', { class: 'ad-pill' }, `${heightCm} cm`),
+    );
+    const gbox = h('div', { class: 'ad-handbox' }, ghand, hnote);
+    scan.append(h('div', { class: 'ad-stage' }, gbox, h('div', { class: 'ad-opts' }, ...pills)));
+    hide(cap, 100);
+    await cut(promise, scan);
+    prog.style.opacity = '1';
+    setSeg(0);
+    setCap(V.estimate);
+    ghand.style.transformOrigin = '50% 100%';
+    show(ghand, 300, 'translateY(6vw) scale(.9)');
+    pills.forEach((p, i) =>
+      p.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 140, delay: 120 + i * 40, fill: 'both' }),
+    );
+    await wait(420);
+    const taps: HandType[] = handType === 'average' ? ['stubby', 'average'] : ['average', handType];
+    let from = 'none';
+    for (const x of taps) {
+      const pill = pills[types.indexOf(x)]!;
+      pills.forEach((p) => p.classList.toggle('on', p === pill));
+      const dot = h('i', { class: 'ad-tapdot' });
+      pill.append(dot);
+      dot.animate(
+        [
+          { opacity: 0.55, transform: 'scale(.3)' },
+          { opacity: 0, transform: 'scale(2.2)' },
+        ],
+        { duration: 300, easing: OUT, fill: 'forwards' },
+      );
+      cue('pop');
+      ghand.animate([{ transform: from }, { transform: shape[x] }], {
+        duration: 260,
+        easing: POP,
+        fill: 'forwards',
+      });
+      from = shape[x];
+      await wait(420);
+    }
+    show(hnote, 260, 'translateX(-6vw) scale(.8)');
     cue('pop');
-    await wait(200);
+    await wait(700);
+  } else {
+    const hand = handArt({ lengthMm: L, dots: true });
+    hand.classList.add('hand');
+    const card = h('div', { class: 'ad-card' });
+    const bar = h('div', { class: 'ad-scanbar' });
+    const dimL = s(
+      'svg',
+      { class: 'ad-dim', viewBox: '0 0 10 100', preserveAspectRatio: 'none' },
+      s('path', { d: 'M5,1V99M1.5,5L5,1L8.5,5M1.5,95L5,99L8.5,95' }),
+    );
+    dimL.style.cssText = 'left:-9vw;top:4%;width:4vw;height:86%';
+    const dimW = s(
+      'svg',
+      { class: 'ad-dim', viewBox: '0 0 100 10', preserveAspectRatio: 'none' },
+      s('path', { d: 'M1,5H99M5,1.5L1,5L5,8.5M95,1.5L99,5L95,8.5' }),
+    );
+    dimW.style.cssText = 'left:22%;top:62%;width:52%;height:4vw';
+    const pillL = h('div', { class: 'ad-pill' }, `${num(L, 0)} mm`);
+    pillL.style.cssText = 'left:-17vw;top:34%';
+    const pillW = h('div', { class: 'ad-pill' }, `${num(m.palmWidthMm, 0)} mm`);
+    pillW.style.cssText = 'left:28%;top:67%';
+    scan.append(
+      h(
+        'div',
+        { class: 'ad-stage' },
+        h('div', { class: 'ad-handbox' }, hand, bar, card, dimL, dimW, pillL, pillW),
+      ),
+    );
+    hand.style.clipPath = 'inset(100% 0 0 0)';
+    for (const d of [dimL, dimW]) {
+      const p = d.querySelector('path') as SVGPathElement;
+      p.style.strokeDasharray = '1000';
+      p.style.strokeDashoffset = '1000';
+    }
+    hide(credit, 120);
+    hide(cap, 100);
+    await cut(promise, scan);
+    prog.style.opacity = '1';
+    setSeg(0);
+    setCap(C.scan);
+    hand.animate([{ clipPath: 'inset(100% 0 0 0)' }, { clipPath: 'inset(0 0 0 0)' }], {
+      duration: 600,
+      easing: 'ease-in-out',
+      fill: 'forwards',
+    });
+    bar.animate(
+      [
+        { top: '100%', opacity: 1 },
+        { top: '0%', opacity: 1, offset: 0.92 },
+        { top: '0%', opacity: 0 },
+      ],
+      { duration: 660, easing: 'ease-in-out', fill: 'forwards' },
+    );
+    [...hand.querySelectorAll<SVGElement>('.hand-dot')].forEach((d, i) =>
+      d.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 100, delay: 460 + i * 16, fill: 'both' }),
+    );
+    await wait(420);
+    show(card, 220, 'rotate(-9deg) translateY(8vw)', 'rotate(-9deg)');
+    await wait(380);
+    for (const [dim, label] of [
+      [dimL, pillL],
+      [dimW, pillW],
+    ] as const) {
+      drawIn(dim.querySelector('path')!, 220);
+      await wait(140);
+      show(label, 220);
+      cue('pop');
+      await wait(200);
+    }
+    await wait(340);
   }
-  await wait(340);
 
   // ── Three questions: the real questionnaire dart follows every tap.
-  const quiz = scene('ad-quiz');
+  const quiz = scene(gift ? 'ad-quiz ad-gift' : 'ad-quiz');
   const live = quizDart();
   let cur: Answers = {
     ...a,
@@ -556,17 +829,25 @@ export async function adView(root: HTMLElement, _p: Record<string, string>, q: U
   };
   const holds: Answers['hold'][] = ['front', 'middle', 'rear'];
   const fingerOpts = [2, 3, 4, 5];
+  // Gift buyers get "Weet ik niet", which the site reads as the most common answer.
+  const unsure = t('q.hand.unsure');
   const beats: Beat[] = [
     {
       focus: 'hold',
-      options: holds.map((x) => ({ label: t(`q.hold.${x}`), set: { hold: x } })),
-      taps: [holds.indexOf(a.hold)],
+      options: [
+        ...holds.map((x) => ({ label: t(`q.hold.${x}`), set: { hold: x } as Partial<Answers> })),
+        ...(gift ? [{ label: unsure, set: { hold: 'middle' } as Partial<Answers> }] : []),
+      ],
+      taps: [gift && unsureHold ? 3 : holds.indexOf(a.hold)],
       zoom: 1.3,
     },
     {
       focus: 'fingers',
-      options: fingerOpts.map((x) => ({ label: String(x), set: { fingers: x as Answers['fingers'] } })),
-      taps: [fingerOpts.indexOf(a.fingers)],
+      options: [
+        ...fingerOpts.map((x) => ({ label: String(x), set: { fingers: x as Answers['fingers'] } })),
+        ...(gift ? [{ label: unsure, set: { fingers: 3 as Answers['fingers'] } }] : []),
+      ],
+      taps: [gift && unsureFingers ? 4 : fingerOpts.indexOf(a.fingers)],
       zoom: 1.3,
     },
     {
@@ -629,9 +910,9 @@ export async function adView(root: HTMLElement, _p: Record<string, string>, q: U
   );
   const tr = f.trajectory;
   const values = [
-    `${num(L, 0)} mm`,
-    `${num(m.palmWidthMm, 0)} mm`,
-    num(m.middleLengthMm / m.palmWidthMm, 2),
+    `${gift ? '≈ ' : ''}${num(L, 0)} mm`,
+    `${gift ? '≈ ' : ''}${num(m.palmWidthMm, 0)} mm`,
+    gift ? t(`q.hand.${handType}`) : num(m.middleLengthMm / m.palmWidthMm, 2),
     `${a.heightCm} cm`,
     tr ? `${num(tr.angleDeg, 0)}°` : '·',
     `${a.fingers}×`,
@@ -778,7 +1059,7 @@ export async function adView(root: HTMLElement, _p: Record<string, string>, q: U
   pro.append(h('div', { class: 'ad-stage' }, ring, name, pct));
   await cut(match, pro, 160);
   setSeg(3);
-  setCap(`${C.like}…`);
+  setCap(`${likeText}…`);
   show(credit, 300, 'none');
   await spin(520, 80);
   for (const step of [110, 150, 200, 270, 350]) {
@@ -787,7 +1068,8 @@ export async function adView(root: HTMLElement, _p: Record<string, string>, q: U
   }
   face(faces.length - 1);
   ring.classList.add('lock');
-  cue('win');
+  cue(theme === 'xmas' ? 'bell' : 'win');
+  if (theme === 'wc') cue('roar');
   bang(0.45);
   punch(ring, 1.12, 320);
   show(name, 300, 'translateY(6vw) scale(.7)');
@@ -892,6 +1174,19 @@ export async function adView(root: HTMLElement, _p: Record<string, string>, q: U
           h('p', null, tier, `${num(o.v.weightG)} g${eur ? ` · €${eur}` : ''}`),
         ),
         h('strong', null, `${o.m.total}%`),
+        ...(theme === 'xmas' && o.best
+          ? [
+              s(
+                'svg',
+                { class: 'ad-bow', viewBox: '0 0 60 46' },
+                s('path', { d: 'M30,20C18,2 2,4 4,16C6,28 22,26 30,20Z', fill: '#e3122c' }),
+                s('path', { d: 'M30,20C42,2 58,4 56,16C54,28 38,26 30,20Z', fill: '#e3122c' }),
+                s('path', { d: 'M26,22L16,44L24,40L28,46L31,24Z', fill: '#c40d22' }),
+                s('path', { d: 'M34,22L44,44L36,40L32,46L29,24Z', fill: '#c40d22' }),
+                s('circle', { cx: 30, cy: 21, r: 6, fill: '#ff4d5e' }),
+              ),
+            ]
+          : []),
       );
     });
   const ideal = h(
@@ -904,9 +1199,9 @@ export async function adView(root: HTMLElement, _p: Record<string, string>, q: U
       s('path', { d: dp.shaft, fill: '#50627d' }),
       s('path', { d: dp.barrel, fill: '#2ee59d4d', stroke: '#2ee59d', 'stroke-width': 1.6 }),
     ),
-    h('span', null, C.ideal),
+    h('span', null, gift ? V.giftIdeal : C.ideal),
   );
-  const who = h('div', { class: 'ad-who' }, `${C.like}: `, h('b', null, twin.name));
+  const who = h('div', { class: 'ad-who' }, `${likeText}: `, h('b', null, twin.name));
   if (twin.name.length > 14) who.style.fontSize = '4.3vw';
   // Only the twin is on screen now: only their credit.
   credit.textContent = twinFace.credit;
@@ -932,9 +1227,10 @@ export async function adView(root: HTMLElement, _p: Record<string, string>, q: U
 
   // ── The ask, then the empty board again: the first frame, so the video loops.
   const cta = scene();
-  const ask = h('div', { class: 'ad-ask' }, C.promise);
+  const ask = h('div', { class: 'ad-ask' }, askText);
+  if (askText.length > 18) ask.style.fontSize = '12.5vw';
   const url = h('div', { class: 'ad-url' }, 'findyourdarts.com');
-  const free = h('div', { class: 'ad-free' }, C.free);
+  const free = h('div', { class: 'ad-free' }, freeText);
   cta.append(h('div', { class: 'ad-stage' }, ask, url, free));
   hide(prog, 160);
   hide(credit, 160);
@@ -946,10 +1242,11 @@ export async function adView(root: HTMLElement, _p: Record<string, string>, q: U
   await wait(220);
   show(free, 240, 'rotate(-3deg) scale(.6)', 'rotate(-3deg)');
   await wait(1250);
-  const back = scene();
-  back.append(boardSvg('ad-board bc-board'));
+  const back = scene(roomy ? 'roomy' : '');
+  back.append(board());
   await cut(cta, back, 260);
   await wait(320);
   document.body.dataset.adPro = twin.name;
+  document.body.dataset.adPct = String(proPct);
   document.body.dataset.adDone = '1';
 }
