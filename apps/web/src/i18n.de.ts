@@ -176,7 +176,6 @@ export const de: Partial<Record<Key, string>> = {
   'hs.step.model': 'Dein idealer Dart',
   'hs.step.compare': 'Darts vergleichen',
   'hs.step.best': 'Bester Match',
-  'hs.step.yours': 'Dein Dart',
   'fit.s.scan': 'Deine Hand',
   'fit.s.measure': 'Deine Maße',
   'fit.s.ask': 'Deine Antworten',

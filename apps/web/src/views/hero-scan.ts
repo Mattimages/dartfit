@@ -331,8 +331,8 @@ function handLayer(c: Cast) {
     label((p[5]!.x + p[17]!.x) / 2, Math.max(p[5]!.y, p[17]!.y) + 14, mm(c.hand.knuckles), 'middle'),
   );
   groups[2]!.append(
+    // The index finger is traced but not labelled: two numbers on the hand are enough.
     line(`M${p[5]!.x},${p[5]!.y}L${p[6]!.x},${p[6]!.y}L${p[7]!.x},${p[7]!.y}L${p[8]!.x},${p[8]!.y}`),
-    label(p[8]!.x - 6, p[8]!.y - 6, mm(c.hand.index), 'end'),
   );
   over.append(...groups);
   const layer = h('div', { class: 'hs-hand' }, art, over, h('div', { class: 'hs-beam' }));
@@ -467,8 +467,7 @@ function shopCards(c: Cast) {
     );
   });
   return {
-    // "Jouw dart" over your best match until the pro drops in.
-    box: h('div', { class: 'hs-cards' }, h('p', { class: 'hs-yours' }, t('hs.step.yours')), ...cards),
+    box: h('div', { class: 'hs-cards' }, ...cards),
     later: cards.filter((x) => x.classList.contains('later')),
   };
 }
@@ -598,30 +597,32 @@ export function checkoutWin(total: number): { el: HTMLElement; ms: number } {
 }
 
 /**
- * From the moment the pro drops in: keeps your ideal dart 10px above the price cards and the pro
- * 10px above the dart, so both ride up as the other price classes push in (for `ms`).
+ * Lays out the film's ending once, from the cards' final place (layout positions, so nothing
+ * jitters while things animate): the pro as large as fits, the ideal dart under them, and equal
+ * gaps between the top of the frame, the pro, the dart and the cards.
  */
-function followFree(root: HTMLElement, box: HTMLElement, ms: number) {
-  const t0 = performance.now();
+function layoutEnd(root: HTMLElement, box: HTMLElement) {
+  const stage = root.querySelector<HTMLElement>('.hs-stage');
+  const mbox = root.querySelector<HTMLElement>('.hs-modelbox');
+  const svg = mbox?.querySelector<SVGSVGElement>('.hs-model');
+  if (!stage || !mbox || !svg) return;
   const SCALE = 0.75;
-  const GAP = 10;
-  const tick = () => {
-    const stage = root.querySelector('.hs-stage');
-    const mbox = root.querySelector<HTMLElement>('.hs-modelbox');
-    const svg = mbox?.querySelector<SVGSVGElement>('.hs-model');
-    const twin = root.querySelector<HTMLElement>('.hs-twin');
-    if (!stage || !mbox || !svg || !root.classList.contains('hs-end')) return;
-    const cardsTop = box.getBoundingClientRect().top - stage.getBoundingClientRect().top;
-    // The barrel's visible band in the model's viewBox (0 0 320 112) is about y 34…70.
-    const k = (svg.clientWidth / 320) * SCALE;
-    const svgTop = cardsTop - GAP - 70 * k;
-    root.style.setProperty('--hs-dart-shift', `${Math.round(svgTop - mbox.offsetTop)}px`);
-    // The pro rides up with the dart: centred between the top of the frame and the dart.
-    const twinTop = (svgTop + 34 * k - (twin?.offsetHeight ?? 0)) / 2;
-    root.style.setProperty('--hs-twin-top', `${Math.round(Math.max(6, twinTop))}px`);
-    if (performance.now() - t0 < ms) requestAnimationFrame(tick);
-  };
-  requestAnimationFrame(tick);
+  const GAP = 14;
+  const OVERLAP = 22; // the name pill sits over the photo's lower edge
+  const cardsTop = box.offsetTop;
+  // The barrel's visible band in the model's viewBox (0 0 320 112) is about y 34…70.
+  const k = (svg.clientWidth / 320) * SCALE;
+  const dartH = 36 * k;
+  const pill = root.querySelector<HTMLElement>('.hs-twin p')?.offsetHeight ?? 0;
+  const size = Math.max(
+    96,
+    Math.min(stage.clientWidth * 0.62, cardsTop - 3 * GAP - dartH - (pill - OVERLAP)),
+  );
+  const proH = size + pill - OVERLAP;
+  const gap = (cardsTop - proH - dartH) / 3;
+  root.style.setProperty('--hs-pro-size', `${Math.round(size)}px`);
+  root.style.setProperty('--hs-twin-top', `${Math.round(gap)}px`);
+  root.style.setProperty('--hs-dart-shift', `${Math.round(2 * gap + proH - 34 * k - mbox.offsetTop)}px`);
 }
 
 /** One round of the film. Resolves true when it reached the shop card, false when it should stop. */
@@ -638,7 +639,7 @@ async function play(root: HTMLElement, c: Cast, mode: 'hero' | 'fit' = 'hero'): 
   const nameEl = h('p', { class: 'hs-name' });
   const setName = (i: number) => {
     const v = c.barrels[i]!.v;
-    nameEl.replaceChildren(h('span', null, dartName(v)), h('small', null, `${num(v.weightG)} g`));
+    nameEl.replaceChildren(h('span', null, dartName(v)));
     nameEl.classList.remove('in');
     void nameEl.offsetWidth;
     nameEl.classList.add('in');
@@ -690,7 +691,7 @@ async function play(root: HTMLElement, c: Cast, mode: 'hero' | 'fit' = 'hero'): 
     chip.classList.add('best');
     if (twinEl) {
       root.classList.add('hs-twin-on');
-      followFree(root, cards.box, 0);
+      layoutEnd(root, cards.box);
     }
     setStep(label('best'));
     return false;
@@ -767,8 +768,8 @@ async function play(root: HTMLElement, c: Cast, mode: 'hero' | 'fit' = 'hero'): 
   // The final layout from the start, so nothing travels: your dart's card where it stays (the
   // other price classes keep their room below it), the ideal dart above it.
   root.classList.add('hs-end', 'hs-stack');
-  followFree(root, cards.box, 1200);
-  await wait(1500);
+  layoutEnd(root, cards.box);
+  await wait(1000);
   if (!alive()) return false;
   // Then the pro who throws the same type, right where they stay.
   if (twinEl) {
