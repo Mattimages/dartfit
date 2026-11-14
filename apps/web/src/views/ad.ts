@@ -1131,7 +1131,12 @@ export async function adView(root: HTMLElement, _p: Record<string, string>, q: U
       const pick = (avoid: boolean) =>
         scoredPool
           .filter(
-            (x) => !tried.has(x.v.id) && x.m.total < top.m.total - 8 && (!avoid || !brands.has(x.v.brand)),
+            (x) =>
+              !tried.has(x.v.id) &&
+              // Never show the twin's own signature dart as a miss.
+              !dartName(x.v).toLowerCase().includes(twin.name.split(' ').at(-1)!.toLowerCase()) &&
+              x.m.total < top.m.total - 8 &&
+              (!avoid || !brands.has(x.v.brand)),
           )
           .sort((a, b) => Math.abs(a.m.total - target) - Math.abs(b.m.total - target))[0];
       const x = pick(true) ?? pick(false);
