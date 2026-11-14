@@ -24,7 +24,9 @@
  *   #/ad?L=178&h=180&hold=rear&f=4&throw=flat&g=1      (hand length mm, height cm, answers)
  */
 import {
+  matchBreakdown,
   measurementsFromHeight,
+  variantBarrel,
   scoreVariant,
   type Answers,
   type HandType,
@@ -103,8 +105,14 @@ const COPY = {
 const VARIANT = {
   nl: {
     hook: { xmas: 'Wat wil je voor kerst?', wc: 'WK‑koorts?' },
-    giftHook: { '': 'Darts cadeau geven?', xmas: 'Darts onder de boom?', wc: 'Darts cadeau geven?' },
-    giftPromise: 'Welke dart past?',
+    giftHook: {
+      '': 'Kan jouw darter wel wat hulp gebruiken?',
+      xmas: 'Kan jouw darter wel wat hulp gebruiken?',
+      wc: 'Kan jouw darter wel wat hulp gebruiken?',
+    },
+    giftPromise: 'Vind de perfecte dart',
+    fitting: 'Wij passen elke dart',
+    wrapped: 'Ingepakt.',
     estimate: 'Schat de hand',
     height: 'lengte',
     giftLike: 'Gooit als',
@@ -117,8 +125,14 @@ const VARIANT = {
   },
   en: {
     hook: { xmas: 'Darts for Christmas?', wc: 'Worlds fever?' },
-    giftHook: { '': 'Buying darts as a gift?', xmas: 'Darts under the tree?', wc: 'Buying darts as a gift?' },
-    giftPromise: 'Which dart fits?',
+    giftHook: {
+      '': 'Could your darts mate use some help?',
+      xmas: 'Could your darts mate use some help?',
+      wc: 'Could your darts mate use some help?',
+    },
+    giftPromise: 'Find their perfect dart',
+    fitting: 'We try every dart',
+    wrapped: 'Wrapped.',
     estimate: 'Guess their hand',
     height: 'height',
     giftLike: 'Throws like',
@@ -131,8 +145,14 @@ const VARIANT = {
   },
   de: {
     hook: { xmas: 'Darts zu Weihnachten?', wc: 'WM‑Fieber?' },
-    giftHook: { '': 'Darts verschenken?', xmas: 'Darts unterm Baum?', wc: 'Darts verschenken?' },
-    giftPromise: 'Welcher Dart passt?',
+    giftHook: {
+      '': 'Braucht dein Darts-Freund Hilfe?',
+      xmas: 'Braucht dein Darts-Freund Hilfe?',
+      wc: 'Braucht dein Darts-Freund Hilfe?',
+    },
+    giftPromise: 'Finde den perfekten Dart',
+    fitting: 'Wir testen jeden Dart',
+    wrapped: 'Eingepackt.',
     estimate: 'Schätz die Hand',
     height: 'Größe',
     giftLike: 'Wirft wie',
@@ -292,6 +312,30 @@ const CSS = `
 .ad-crowd i{position:absolute;width:1.6vw;height:1.6vw;border-radius:50%;background:#fff;box-shadow:0 0 3vw 1.4vw #fff8;opacity:0;animation:ad-pop 2.6s ease-out infinite}
 @keyframes ad-pop{0%,86%{opacity:0;transform:scale(.4)}90%{opacity:1;transform:scale(1)}100%{opacity:0;transform:scale(.6)}}
 .t-wc .ad-url{background:#ffcf5a;box-shadow:0 2vw 8vw #ffcf5a55}
+.ad-cap.hook.xlong{font-size:11.6vw}
+/* Gift: real darts tried over the ideal outline, then the winner wrapped. */
+.ad-fitlabel{font-family:${HAND};font-weight:700;font-size:7.4vw;color:#7ef2c4;margin-bottom:1vw}
+.ad-fitsvg{width:94vw;height:auto;overflow:visible}
+.ad-fitsvg .ideal{fill:#2ee59d26;stroke:#2ee59d;stroke-width:1.6;stroke-dasharray:5 3}
+.ad-fitsvg .cand{fill:#ffffff40;stroke:#fff;stroke-width:2;transition:fill .18s,stroke .18s}
+.ad-fitsvg .cand.miss{stroke:${RED};fill:#ff4d5e38}
+.ad-fitsvg .cand.hit{stroke:${GREEN};fill:#3ee6a070}
+.ad-fitrow{display:grid;grid-template-columns:20vw minmax(0,1fr) auto;align-items:center;gap:3.4vw;width:88vw;margin-top:8vw;padding:2.4vw 4.4vw 2.4vw 2.4vw;border-radius:5vw;background:#fff;color:#0f1b2d;box-shadow:0 3vw 8vw #0009;opacity:0}
+.ad-fitrow .ph{position:relative;width:20vw;aspect-ratio:1;border-radius:3.4vw;background:#edf2f9;overflow:hidden}
+.ad-fitrow .ph img,.ad-fitrow .ph svg{position:absolute;inset:6%;width:88%;height:88%;object-fit:contain}
+.ad-fitrow b{font-weight:650;font-size:5vw;line-height:1.08;letter-spacing:-.02em;text-wrap:balance}
+.ad-fitrow strong{font-family:${DISPLAY};font-weight:800;font-size:11vw;letter-spacing:-.03em;color:#9aa6b8;font-variant-numeric:tabular-nums}
+.ad-fitrow.hit{box-shadow:0 0 0 1.2vw ${GREEN},0 3vw 8vw #0009}
+.ad-fitrow.hit strong{color:#0a8f5a}
+.ad-box{position:relative;width:70vw;height:92vw}
+.ad-boxpic{position:absolute;z-index:1;left:12vw;top:0;width:46vw;aspect-ratio:1;border-radius:5vw;background:#edf2f9;box-shadow:0 0 0 1vw ${GREEN},0 4vw 10vw #000a;overflow:hidden}
+.ad-boxpic img,.ad-boxpic svg{position:absolute;inset:6%;width:88%;height:88%;object-fit:contain}
+.ad-boxbody{position:absolute;z-index:2;left:0;bottom:0;width:70vw;height:42vw;overflow:visible;filter:drop-shadow(0 4vw 7vw #000b)}
+.ad-lid{position:absolute;z-index:3;left:-3vw;top:28vw;width:76vw;height:26.6vw;overflow:visible;opacity:0;filter:drop-shadow(0 2vw 3vw #0008)}
+.ad-bigbow{position:absolute;z-index:4;left:20vw;top:12vw;width:30vw;height:23vw;overflow:visible;opacity:0;transform-origin:50% 90%}
+.ad-spark{position:absolute;z-index:5;left:50%;top:44%;width:5vw;height:5vw;margin:-2.5vw 0 0 -2.5vw;opacity:0}
+.ad-spark path{fill:${SUN}}
+.ad-boxname{margin-top:5vw;font-size:6.4vw;font-weight:650;letter-spacing:-.03em;line-height:1.08;text-align:center;text-wrap:balance;padding:0 6vw;opacity:0}
 .ad-match .bw{background:none}
 .ad-match .bw-hit{width:76vw}
 .ad-match .bw-word{font-family:${DISPLAY};font-weight:800;font-size:22vw;letter-spacing:-.04em;color:${GREEN};text-shadow:0 1vw 6vw #3ee6a066}
@@ -619,6 +663,7 @@ export async function adView(root: HTMLElement, _p: Record<string, string>, q: U
   cap.classList.add('hook');
   cap.classList.toggle('roomy', roomy);
   cap.classList.toggle('long', longHook);
+  cap.classList.toggle('xlong', hookText.length > 26);
   cap.classList.toggle('mid', !longHook && hookText.length > 9);
   cap.style.transform = 'rotate(-3deg)';
   setCap(hookText, 'scale(1.7)');
@@ -643,7 +688,8 @@ export async function adView(root: HTMLElement, _p: Record<string, string>, q: U
     ],
     { duration: 520, easing: 'cubic-bezier(0.5, 0, 0.9, 0.5)', fill: 'forwards' },
   ).finished;
-  await wait(120);
+  // A question takes longer to read than "Verkeerde dart?".
+  await wait(gift ? 650 : 120);
 
   // ── Promise: the faces spin. "Welke prof ben jij?"
   const promise = scene();
@@ -666,7 +712,7 @@ export async function adView(root: HTMLElement, _p: Record<string, string>, q: U
   squig.remove();
   tag?.remove();
   await cut(hook, promise, 180);
-  cap.classList.remove('hook', 'long', 'roomy', 'mid');
+  cap.classList.remove('hook', 'long', 'roomy', 'mid', 'xlong');
   cap.style.transform = '';
   setCap(promiseText);
   if (gift) {
@@ -808,98 +854,102 @@ export async function adView(root: HTMLElement, _p: Record<string, string>, q: U
     await wait(340);
   }
 
-  // ── Three questions: the real questionnaire dart follows every tap.
-  const quiz = scene(gift ? 'ad-quiz ad-gift' : 'ad-quiz');
-  const live = quizDart();
-  let cur: Answers = {
-    ...a,
-    hold: a.hold === 'front' ? 'rear' : 'front',
-    fingers: a.fingers === 2 ? 4 : 2,
-    gripFeel: 1,
-  };
-  live.update(cur, 'hold');
-  const opts = h('div', { class: 'ad-opts' });
-  quiz.append(h('div', { class: 'ad-stage' }, live.el, opts));
-  hide(cap, 100);
-  await cut(scan, quiz);
-  setSeg(1);
-  setCap(C.quiz);
-  type Beat = {
-    focus: 'hold' | 'fingers' | 'gripFeel';
-    options: Array<{ label: string; set: Partial<Answers> }>;
-    taps: number[];
-    zoom: number;
-  };
-  const holds: Answers['hold'][] = ['front', 'middle', 'rear'];
-  const fingerOpts = [2, 3, 4, 5];
-  // Gift buyers get "Weet ik niet", which the site reads as the most common answer.
-  const unsure = t('q.hand.unsure');
-  const beats: Beat[] = [
-    {
-      focus: 'hold',
-      options: [
-        ...holds.map((x) => ({ label: t(`q.hold.${x}`), set: { hold: x } as Partial<Answers> })),
-        ...(gift ? [{ label: unsure, set: { hold: 'middle' } as Partial<Answers> }] : []),
-      ],
-      taps: [gift && unsureHold ? 3 : holds.indexOf(a.hold)],
-      zoom: 1.3,
-    },
-    {
-      focus: 'fingers',
-      options: [
-        ...fingerOpts.map((x) => ({ label: String(x), set: { fingers: x as Answers['fingers'] } })),
-        ...(gift ? [{ label: unsure, set: { fingers: 3 as Answers['fingers'] } }] : []),
-      ],
-      taps: [gift && unsureFingers ? 4 : fingerOpts.indexOf(a.fingers)],
-      zoom: 1.3,
-    },
-    {
-      focus: 'gripFeel',
-      options: [1, 2, 3, 4, 5].map((x) => ({
-        label: String(x),
-        set: { gripFeel: x as Answers['gripFeel'] },
-      })),
-      // Up through every cut, then back to the answer.
-      taps: [1, 2, 3, 4, a.gripFeel - 1],
-      zoom: 1.9,
-    },
-  ];
-  let zoomAt = 1;
-  for (const beat of beats) {
-    const pills = beat.options.map((o) => h('div', { class: 'ad-opt' }, o.label));
-    opts.replaceChildren(...pills);
-    pills.forEach((p, i) =>
-      p.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 120, delay: i * 22, fill: 'both' }),
-    );
-    live.update(cur, beat.focus);
-    live.el
-      .querySelector('svg')!
-      .animate([{ transform: `scale(${zoomAt})` }, { transform: `scale(${beat.zoom})` }], {
-        duration: 300,
-        easing: OUT,
-        fill: 'forwards',
-      });
-    zoomAt = beat.zoom;
-    await wait(240);
-    for (const [ti, idx] of beat.taps.entries()) {
-      const pill = pills[idx]!;
-      pills.forEach((p) => p.classList.toggle('on', p === pill));
-      const dot = h('i', { class: 'ad-tapdot' });
-      pill.append(dot);
-      dot.animate(
-        [
-          { opacity: 0.55, transform: 'scale(.3)' },
-          { opacity: 0, transform: 'scale(2.2)' },
+  // ── Three questions (not in the gift ad: the buyer's story is the hand, the maths, the dart).
+  let prev: HTMLElement = scan;
+  if (!gift) {
+    const quiz = scene(gift ? 'ad-quiz ad-gift' : 'ad-quiz');
+    const live = quizDart();
+    let cur: Answers = {
+      ...a,
+      hold: a.hold === 'front' ? 'rear' : 'front',
+      fingers: a.fingers === 2 ? 4 : 2,
+      gripFeel: 1,
+    };
+    live.update(cur, 'hold');
+    const opts = h('div', { class: 'ad-opts' });
+    quiz.append(h('div', { class: 'ad-stage' }, live.el, opts));
+    hide(cap, 100);
+    await cut(scan, quiz);
+    setSeg(1);
+    setCap(C.quiz);
+    type Beat = {
+      focus: 'hold' | 'fingers' | 'gripFeel';
+      options: Array<{ label: string; set: Partial<Answers> }>;
+      taps: number[];
+      zoom: number;
+    };
+    const holds: Answers['hold'][] = ['front', 'middle', 'rear'];
+    const fingerOpts = [2, 3, 4, 5];
+    // Gift buyers get "Weet ik niet", which the site reads as the most common answer.
+    const unsure = t('q.hand.unsure');
+    const beats: Beat[] = [
+      {
+        focus: 'hold',
+        options: [
+          ...holds.map((x) => ({ label: t(`q.hold.${x}`), set: { hold: x } as Partial<Answers> })),
+          ...(gift ? [{ label: unsure, set: { hold: 'middle' } as Partial<Answers> }] : []),
         ],
-        { duration: 300, easing: OUT, fill: 'forwards' },
+        taps: [gift && unsureHold ? 3 : holds.indexOf(a.hold)],
+        zoom: 1.3,
+      },
+      {
+        focus: 'fingers',
+        options: [
+          ...fingerOpts.map((x) => ({ label: String(x), set: { fingers: x as Answers['fingers'] } })),
+          ...(gift ? [{ label: unsure, set: { fingers: 3 as Answers['fingers'] } }] : []),
+        ],
+        taps: [gift && unsureFingers ? 4 : fingerOpts.indexOf(a.fingers)],
+        zoom: 1.3,
+      },
+      {
+        focus: 'gripFeel',
+        options: [1, 2, 3, 4, 5].map((x) => ({
+          label: String(x),
+          set: { gripFeel: x as Answers['gripFeel'] },
+        })),
+        // Up through every cut, then back to the answer.
+        taps: [1, 2, 3, 4, a.gripFeel - 1],
+        zoom: 1.9,
+      },
+    ];
+    let zoomAt = 1;
+    for (const beat of beats) {
+      const pills = beat.options.map((o) => h('div', { class: 'ad-opt' }, o.label));
+      opts.replaceChildren(...pills);
+      pills.forEach((p, i) =>
+        p.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 120, delay: i * 22, fill: 'both' }),
       );
-      cue('pop');
-      cur = { ...cur, ...beat.options[idx]!.set };
       live.update(cur, beat.focus);
-      await wait(beat.focus === 'gripFeel' && ti < beat.taps.length - 1 ? 160 : 320);
+      live.el
+        .querySelector('svg')!
+        .animate([{ transform: `scale(${zoomAt})` }, { transform: `scale(${beat.zoom})` }], {
+          duration: 300,
+          easing: OUT,
+          fill: 'forwards',
+        });
+      zoomAt = beat.zoom;
+      await wait(240);
+      for (const [ti, idx] of beat.taps.entries()) {
+        const pill = pills[idx]!;
+        pills.forEach((p) => p.classList.toggle('on', p === pill));
+        const dot = h('i', { class: 'ad-tapdot' });
+        pill.append(dot);
+        dot.animate(
+          [
+            { opacity: 0.55, transform: 'scale(.3)' },
+            { opacity: 0, transform: 'scale(2.2)' },
+          ],
+          { duration: 300, easing: OUT, fill: 'forwards' },
+        );
+        cue('pop');
+        cur = { ...cur, ...beat.options[idx]!.set };
+        live.update(cur, beat.focus);
+        await wait(beat.focus === 'gripFeel' && ti < beat.taps.length - 1 ? 160 : 320);
+      }
     }
+    await wait(120);
+    prev = quiz;
   }
-  await wait(120);
 
   // ── The maths: every number flies into the model, and three bell curves narrow.
   const core = scene();
@@ -948,8 +998,8 @@ export async function adView(root: HTMLElement, _p: Record<string, string>, q: U
   coreStage.style.display = 'block';
   core.append(coreStage);
   hide(cap, 100);
-  await cut(quiz, core);
-  setSeg(2);
+  await cut(prev, core);
+  setSeg(gift ? 1 : 2);
   setCap(C.maths);
   orbit.animate([{ transform: 'rotate(0) scale(.6)' }, { transform: 'rotate(260deg) scale(1)' }], {
     duration: 1150,
@@ -1042,118 +1092,231 @@ export async function adView(root: HTMLElement, _p: Record<string, string>, q: U
   cue('pop');
   await wait(380);
 
-  // ── The match: darts on the board and the %.
-  const match = scene('ad-match');
-  const win = checkoutWin(proPct);
-  const wordEl = win.el.querySelector('.bw-word');
-  if (wordEl) wordEl.textContent = `${proPct}%`;
-  match.append(h('div', { class: 'ad-stage' }, win.el));
-  hide(cap, 100);
-  await cut(model, match, 160);
-  for (const d of [150, 500, 850]) setTimeout(() => cue('thud'), d);
-  await wait(Math.max(900, win.ms - 950));
-
-  // ── The pro: the faces spin again, slow down, and land. The hook, answered.
-  const pro = scene();
-  qm.remove();
-  const name = h('div', { class: 'ad-name' }, twin.name);
-  if (twin.name.length > 14) name.style.fontSize = '10vw';
-  const pct = h('div', { class: 'ad-pct' }, `${proPct}% match`);
-  pro.append(h('div', { class: 'ad-stage' }, ring, name, pct));
-  await cut(match, pro, 160);
-  setSeg(3);
-  setCap(`${likeText}…`);
-  show(credit, 300, 'none');
-  await spin(520, 80);
-  for (const step of [110, 150, 200, 270, 350]) {
-    face((at + 1) % (faces.length - 1));
-    await wait(step);
-  }
-  face(faces.length - 1);
-  ring.classList.add('lock');
-  cue(theme === 'xmas' ? 'bell' : 'win');
-  if (theme === 'wc') cue('roar');
-  bang(0.45);
-  punch(ring, 1.12, 320);
-  show(name, 300, 'translateY(6vw) scale(.7)');
-  await wait(300);
-  show(pct, 240, 'scale(.4)');
-  await wait(950);
-
-  // ── The catalogue: a wall of real darts, knocked out until one is left. The caption counts.
-  const ranked = pool.map((v) => ({ v, cost: scoreVariant(f, v).cost })).sort((x, y) => x.cost - y.cost);
-  const seen = new Set<string>([top.v.modelId]);
-  const rest = ranked
-    .filter((x) => photoOf(x.v) && !seen.has(x.v.modelId) && seen.add(x.v.modelId))
-    .map((x) => x.v);
-  const field = Array.from({ length: 15 }, (_, i) => rest[Math.floor((i * rest.length) / 15)]!).filter(
-    Boolean,
-  );
-  const winAt = 9;
-  const wallDarts: Variant[] = [...field.slice(0, winAt), top.v, ...field.slice(winAt)].slice(0, 16);
-  const tiles = wallDarts.map((v) => {
-    return h('div', { class: 'ad-tile' }, picture(v));
-  });
-  const wall = h('div', { class: 'ad-wall' }, ...tiles);
-  const search = scene();
-  const searchStage = h('div', { class: 'ad-stage' }, wall);
-  search.append(searchStage);
-  const countN = h('b', null, String(catalogueSize));
-  const countWord = document.createTextNode(` ${C.darts}`);
-  hide(cap, 100);
-  hide(credit, 120);
-  await cut(pro, search);
-  setSeg(4);
-  setCap(h('span', null, countN, countWord));
-  tiles.forEach((tl, i) =>
-    tl.animate(
-      [
-        { opacity: 0, transform: 'scale(.6)' },
-        { opacity: 1, transform: 'none' },
-      ],
-      { duration: 200, delay: i * 18, easing: POP, fill: 'backwards' },
-    ),
-  );
-  await wait(520);
-  const order = tiles.map((_, i) => i).filter((i) => i !== winAt);
-  for (let i = order.length - 1; i > 0; i--) {
-    const j = Math.floor((((i * 7919) % 104729) / 104729) * (i + 1));
-    [order[i], order[j]] = [order[j]!, order[i]!];
-  }
-  for (const [i, idx] of order.entries()) {
-    tiles[idx]!.classList.add('x');
-    cue('tick');
-    countN.textContent = String(
-      Math.max(2, Math.round(catalogueSize - ((catalogueSize - 1) * (i + 1)) / order.length)),
+  let beforeFinal: HTMLElement;
+  if (gift) {
+    // ── Fitting: real darts tried over the ideal outline, one by one, until one fits.
+    const fitScene = scene();
+    const dpI = idealDartPaths(c.ideal);
+    const overlay = s('path', { class: 'cand' }) as unknown as SVGPathElement;
+    const fitSvg = s(
+      'svg',
+      { class: 'ad-fitsvg', viewBox: '0 24 320 56' },
+      s('path', { d: dpI.point, fill: '#b8c0cc' }),
+      s('path', { d: dpI.shaft, fill: '#50627d' }),
+      s('path', { d: dpI.barrel, class: 'ideal' }),
+      overlay,
     );
-    await wait(Math.max(36, 130 - i * 8));
+    const fitPic = h('span', { class: 'ph' });
+    const fitName = h('b');
+    const fitPct = h('strong', null, '0%');
+    const fitRow = h('div', { class: 'ad-fitrow' }, fitPic, h('div', null, fitName), fitPct);
+    fitScene.append(
+      h('div', { class: 'ad-stage' }, h('span', { class: 'ad-fitlabel' }, V.giftIdeal), fitSvg, fitRow),
+    );
+    hide(cap, 100);
+    await cut(model, fitScene);
+    setSeg(2);
+    setCap(V.fitting);
+    await wait(200);
+    // Clear misses first (about 55, 70 and 84 %, other brands where possible), then the winner, so
+    // a red "no" never sits a few points under the green "yes".
+    const tried = new Set([top.v.id]);
+    const brands = new Set([top.v.brand]);
+    const scoredPool = pool.map((v) => ({
+      v,
+      shape: variantBarrel(v),
+      m: { total: matchBreakdown(scoreVariant(f, v)).total },
+    }));
+    const ladder = [55, 70, 84].flatMap((target) => {
+      const pick = (avoid: boolean) =>
+        scoredPool
+          .filter(
+            (x) => !tried.has(x.v.id) && x.m.total < top.m.total - 8 && (!avoid || !brands.has(x.v.brand)),
+          )
+          .sort((a, b) => Math.abs(a.m.total - target) - Math.abs(b.m.total - target))[0];
+      const x = pick(true) ?? pick(false);
+      if (!x) return [];
+      tried.add(x.v.id);
+      brands.add(x.v.brand);
+      return [x];
+    });
+    const trials = [...ladder.sort((a, b) => a.m.total - b.m.total), top];
+    for (const [i, b] of trials.entries()) {
+      const last = i === trials.length - 1;
+      overlay.setAttribute('d', idealDartPaths(b.shape).barrel);
+      overlay.classList.remove('miss', 'hit');
+      fitPic.replaceChildren(picture(b.v));
+      fitName.textContent = dartName(b.v);
+      fitPct.textContent = '0%';
+      cue('whoosh');
+      overlay.animate(
+        [
+          { transform: 'translateX(320px)', opacity: 0 },
+          { transform: 'translateX(0)', opacity: 1 },
+        ],
+        { duration: 280, easing: OUT, fill: 'forwards' },
+      );
+      fitRow.animate(
+        [
+          { opacity: 0, transform: 'translateY(6vw)' },
+          { opacity: 1, transform: 'none' },
+        ],
+        { duration: 240, easing: OUT, fill: 'forwards' },
+      );
+      await wait(200);
+      const t1 = performance.now();
+      for (;;) {
+        const p = Math.min(1, (performance.now() - t1) / (last ? 600 : 420));
+        fitPct.textContent = `${Math.round(b.m.total * (1 - Math.pow(1 - p, 3)))}%`;
+        if (p >= 1) break;
+        await wait(30);
+      }
+      if (!last) {
+        overlay.classList.add('miss');
+        cue('tick');
+        overlay.animate(
+          [
+            { transform: 'translateX(0)' },
+            { transform: 'translateX(-4px)' },
+            { transform: 'translateX(4px)' },
+            { transform: 'translateX(0)' },
+          ],
+          { duration: 200 },
+        );
+        await wait(240);
+        overlay.animate(
+          [
+            { transform: 'translateX(0)', opacity: 1 },
+            { transform: 'translateX(-320px)', opacity: 0 },
+          ],
+          { duration: 220, easing: 'ease-in', fill: 'forwards' },
+        );
+        await fitRow.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 180, fill: 'forwards' }).finished;
+      } else {
+        overlay.classList.add('hit');
+        fitRow.classList.add('hit');
+        cue(theme === 'xmas' ? 'bell' : 'win');
+        bang(0.35);
+        punch(fitRow, 1.06, 300);
+        await wait(950);
+      }
+    }
+    beforeFinal = fitScene;
+  } else {
+    // ── The match: darts on the board and the %.
+    const match = scene('ad-match');
+    const win = checkoutWin(proPct);
+    const wordEl = win.el.querySelector('.bw-word');
+    if (wordEl) wordEl.textContent = `${proPct}%`;
+    match.append(h('div', { class: 'ad-stage' }, win.el));
+    hide(cap, 100);
+    await cut(model, match, 160);
+    for (const d of [150, 500, 850]) setTimeout(() => cue('thud'), d);
+    await wait(Math.max(900, win.ms - 950));
+
+    // ── The pro: the faces spin again, slow down, and land. The hook, answered.
+    const pro = scene();
+    qm.remove();
+    const name = h('div', { class: 'ad-name' }, twin.name);
+    if (twin.name.length > 14) name.style.fontSize = '10vw';
+    const pct = h('div', { class: 'ad-pct' }, `${proPct}% match`);
+    pro.append(h('div', { class: 'ad-stage' }, ring, name, pct));
+    await cut(match, pro, 160);
+    setSeg(3);
+    setCap(`${likeText}…`);
+    show(credit, 300, 'none');
+    await spin(520, 80);
+    for (const step of [110, 150, 200, 270, 350]) {
+      face((at + 1) % (faces.length - 1));
+      await wait(step);
+    }
+    face(faces.length - 1);
+    ring.classList.add('lock');
+    cue(theme === 'xmas' ? 'bell' : 'win');
+    if (theme === 'wc') cue('roar');
+    bang(0.45);
+    punch(ring, 1.12, 320);
+    show(name, 300, 'translateY(6vw) scale(.7)');
+    await wait(300);
+    show(pct, 240, 'scale(.4)');
+    await wait(950);
+
+    // ── The catalogue: a wall of real darts, knocked out until one is left. The caption counts.
+    const ranked = pool.map((v) => ({ v, cost: scoreVariant(f, v).cost })).sort((x, y) => x.cost - y.cost);
+    const seen = new Set<string>([top.v.modelId]);
+    const rest = ranked
+      .filter((x) => photoOf(x.v) && !seen.has(x.v.modelId) && seen.add(x.v.modelId))
+      .map((x) => x.v);
+    const field = Array.from({ length: 15 }, (_, i) => rest[Math.floor((i * rest.length) / 15)]!).filter(
+      Boolean,
+    );
+    const winAt = 9;
+    const wallDarts: Variant[] = [...field.slice(0, winAt), top.v, ...field.slice(winAt)].slice(0, 16);
+    const tiles = wallDarts.map((v) => {
+      return h('div', { class: 'ad-tile' }, picture(v));
+    });
+    const wall = h('div', { class: 'ad-wall' }, ...tiles);
+    const search = scene();
+    const searchStage = h('div', { class: 'ad-stage' }, wall);
+    search.append(searchStage);
+    const countN = h('b', null, String(catalogueSize));
+    const countWord = document.createTextNode(` ${C.darts}`);
+    hide(cap, 100);
+    hide(credit, 120);
+    await cut(pro, search);
+    setSeg(4);
+    setCap(h('span', null, countN, countWord));
+    tiles.forEach((tl, i) =>
+      tl.animate(
+        [
+          { opacity: 0, transform: 'scale(.6)' },
+          { opacity: 1, transform: 'none' },
+        ],
+        { duration: 200, delay: i * 18, easing: POP, fill: 'backwards' },
+      ),
+    );
+    await wait(520);
+    const order = tiles.map((_, i) => i).filter((i) => i !== winAt);
+    for (let i = order.length - 1; i > 0; i--) {
+      const j = Math.floor((((i * 7919) % 104729) / 104729) * (i + 1));
+      [order[i], order[j]] = [order[j]!, order[i]!];
+    }
+    for (const [i, idx] of order.entries()) {
+      tiles[idx]!.classList.add('x');
+      cue('tick');
+      countN.textContent = String(
+        Math.max(2, Math.round(catalogueSize - ((catalogueSize - 1) * (i + 1)) / order.length)),
+      );
+      await wait(Math.max(36, 130 - i * 8));
+    }
+    countN.textContent = '1';
+    countWord.textContent = ` ${C.dart}`;
+    punch(cap, 1.18, 260);
+    const winTile = tiles[winAt]!;
+    winTile.classList.add('win');
+    cue('pop');
+    await wait(260);
+    const heroTile = h('div', { class: 'ad-hero' }, picture(top.v));
+    const heroName = h('div', { class: 'ad-heroname' }, dartName(top.v));
+    searchStage.append(heroTile, heroName);
+    const wr = winTile.getBoundingClientRect();
+    const hr = heroTile.getBoundingClientRect();
+    wall.animate([{ opacity: 1 }, { opacity: 0.12 }], { duration: 220, fill: 'forwards' });
+    await heroTile.animate(
+      [
+        {
+          opacity: 1,
+          transform: `translate(${wr.left - hr.left}px, ${wr.top - hr.top}px) scale(${wr.width / hr.width})`,
+          transformOrigin: '0 0',
+        },
+        { opacity: 1, transform: 'none', transformOrigin: '0 0' },
+      ],
+      { duration: 320, easing: POP, fill: 'forwards' },
+    ).finished;
+    show(heroName, 220);
+    await wait(620);
+    beforeFinal = search;
   }
-  countN.textContent = '1';
-  countWord.textContent = ` ${C.dart}`;
-  punch(cap, 1.18, 260);
-  const winTile = tiles[winAt]!;
-  winTile.classList.add('win');
-  cue('pop');
-  await wait(260);
-  const heroTile = h('div', { class: 'ad-hero' }, picture(top.v));
-  const heroName = h('div', { class: 'ad-heroname' }, dartName(top.v));
-  searchStage.append(heroTile, heroName);
-  const wr = winTile.getBoundingClientRect();
-  const hr = heroTile.getBoundingClientRect();
-  wall.animate([{ opacity: 1 }, { opacity: 0.12 }], { duration: 220, fill: 'forwards' });
-  await heroTile.animate(
-    [
-      {
-        opacity: 1,
-        transform: `translate(${wr.left - hr.left}px, ${wr.top - hr.top}px) scale(${wr.width / hr.width})`,
-        transformOrigin: '0 0',
-      },
-      { opacity: 1, transform: 'none', transformOrigin: '0 0' },
-    ],
-    { duration: 320, easing: POP, fill: 'forwards' },
-  ).finished;
-  show(heroName, 220);
-  await wait(620);
 
   // ── The result: the site's final frame. The pro, your ideal dart, three price classes.
   const final = scene();
@@ -1219,7 +1382,8 @@ export async function adView(root: HTMLElement, _p: Record<string, string>, q: U
     ),
   );
   hide(cap, 100);
-  await cut(search, final);
+  await cut(beforeFinal, final);
+  if (gift) setSeg(3);
   show(credit, 300, 'none');
   for (const pc of pcards) {
     show(pc, 260, 'translateY(10vw) scale(.94)');
@@ -1227,6 +1391,110 @@ export async function adView(root: HTMLElement, _p: Record<string, string>, q: U
     await wait(180);
   }
   await wait(1100);
+
+  // ── Gift: the top dart drops into a box, the lid comes down, the bow pops. "Ingepakt."
+  let beforeAsk: HTMLElement = final;
+  if (gift) {
+    const boxScene = scene();
+    const boxPic = h('div', { class: 'ad-boxpic' }, picture(top.v));
+    const body = s(
+      'svg',
+      { class: 'ad-boxbody', viewBox: '0 0 200 120' },
+      s('rect', { x: 0, y: 0, width: 200, height: 120, rx: 8, fill: '#e3122c' }),
+      s('rect', { x: 150, y: 0, width: 50, height: 120, rx: 8, fill: '#b70d22' }),
+      s('rect', { x: 88, y: 0, width: 24, height: 120, fill: '#ffd166' }),
+      s('rect', { x: 0, y: 0, width: 200, height: 10, fill: '#000', 'fill-opacity': 0.18 }),
+    );
+    const lid = s(
+      'svg',
+      { class: 'ad-lid', viewBox: '0 0 200 70' },
+      s('rect', { x: 0, y: 10, width: 200, height: 52, rx: 9, fill: '#ff2e45' }),
+      s('rect', { x: 150, y: 10, width: 50, height: 52, rx: 9, fill: '#d0142b' }),
+      s('rect', { x: 88, y: 10, width: 24, height: 52, fill: '#ffd166' }),
+    );
+    const bigBow = s(
+      'svg',
+      { class: 'ad-bigbow', viewBox: '0 0 60 46' },
+      s('path', { d: 'M30,24C16,2 0,6 2,18C4,30 22,30 30,24Z', fill: '#ffd166' }),
+      s('path', { d: 'M30,24C44,2 60,6 58,18C56,30 38,30 30,24Z', fill: '#ffd166' }),
+      s('path', { d: 'M30,24C22,10 12,12 13,18C14,24 24,26 30,24Z', fill: '#e8b23f' }),
+      s('path', { d: 'M30,24C38,10 48,12 47,18C46,24 36,26 30,24Z', fill: '#e8b23f' }),
+      s('circle', { cx: 30, cy: 25, r: 6.5, fill: '#f5c04f' }),
+    );
+    const sparks = Array.from({ length: 10 }, () =>
+      s(
+        'svg',
+        { class: 'ad-spark', viewBox: '0 0 20 20' },
+        s('path', { d: 'M10,0L12,8L20,10L12,12L10,20L8,12L0,10L8,8Z' }),
+      ),
+    );
+    const box = h('div', { class: 'ad-box' }, boxPic, body, lid, bigBow, ...sparks);
+    const boxName = h('div', { class: 'ad-boxname' }, dartName(top.v));
+    boxScene.append(h('div', { class: 'ad-stage' }, box, boxName));
+    hide(cap, 100);
+    hide(credit, 120);
+    await cut(final, boxScene);
+    setSeg(4);
+    show(boxPic, 280, 'scale(.6)');
+    body.animate(
+      [
+        { transform: 'translateY(30vw)', opacity: 0 },
+        { transform: 'none', opacity: 1 },
+      ],
+      { duration: 320, easing: OUT, fill: 'forwards' },
+    );
+    await wait(560);
+    // In it goes, behind the front of the box.
+    cue('whoosh');
+    await boxPic.animate(
+      [
+        { transform: 'none' },
+        { transform: 'translateY(-4vw) rotate(-6deg)', offset: 0.3 },
+        { transform: 'translateY(24vw) scale(.7) rotate(3deg)', opacity: 1, offset: 0.85 },
+        { transform: 'translateY(28vw) scale(.68) rotate(3deg)', opacity: 0 },
+      ],
+      { duration: 420, easing: 'ease-in', fill: 'forwards' },
+    ).finished;
+    // The lid comes down with a bounce.
+    await lid.animate(
+      [
+        { transform: 'translateY(-70vw) rotate(-10deg)', opacity: 1 },
+        { transform: 'translateY(2vw) rotate(1deg)', opacity: 1, offset: 0.75 },
+        { transform: 'none', opacity: 1 },
+      ],
+      { duration: 380, easing: 'ease-in', fill: 'forwards' },
+    ).finished;
+    cue('thud');
+    box.animate([{ transform: 'none' }, { transform: 'scale(1.04,.96)' }, { transform: 'none' }], {
+      duration: 220,
+      easing: OUT,
+    });
+    bigBow.animate(
+      [
+        { transform: 'scale(0) rotate(-20deg)', opacity: 1 },
+        { transform: 'scale(1) rotate(0)', opacity: 1 },
+      ],
+      { duration: 360, easing: POP, fill: 'forwards' },
+    );
+    cue(theme === 'xmas' ? 'bell' : 'win');
+    bang(0.3);
+    sparks.forEach((sp, i) => {
+      const ang = (i / sparks.length) * Math.PI * 2;
+      sp.animate(
+        [
+          { transform: 'translate(0,0) scale(.3)', opacity: 1 },
+          { transform: `translate(${Math.cos(ang) * 42}vw, ${Math.sin(ang) * 36}vw) scale(1)`, opacity: 0 },
+        ],
+        { duration: 700, delay: 80, easing: OUT, fill: 'forwards' },
+      );
+    });
+    setCap(V.wrapped);
+    await wait(260);
+    show(boxName, 260);
+    await wait(1250);
+    hide(cap, 100);
+    beforeAsk = boxScene;
+  }
 
   // ── The ask, then the empty board again: the first frame, so the video loops.
   const cta = scene();
@@ -1237,7 +1505,7 @@ export async function adView(root: HTMLElement, _p: Record<string, string>, q: U
   cta.append(h('div', { class: 'ad-stage' }, ask, url, free));
   hide(prog, 160);
   hide(credit, 160);
-  await cut(final, cta);
+  await cut(beforeAsk, cta);
   show(ask, 320, 'scale(.6) rotate(4deg)');
   await wait(320);
   show(url, 260);
