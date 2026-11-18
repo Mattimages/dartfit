@@ -67,10 +67,10 @@ const WEB_DIST = join(dirname(fileURLToPath(import.meta.url)), '..', '..', 'web'
 function parse<T>(schema: ZodType<T>, data: unknown, res: Response): T | null {
   const r = schema.safeParse(data);
   if (!r.success) {
-    res.status(400).json({
-      error: 'invalid_request',
-      issues: r.error.issues.map((i) => `${i.path.join('.')}: ${i.message}`),
-    });
+    const issues = r.error.issues.map((i) => `${i.path.join('.')}: ${i.message}`);
+    // Field names and messages only, never the values (they can be hand sizes).
+    console.warn('invalid_request', issues.join('; '));
+    res.status(400).json({ error: 'invalid_request', issues });
     return null;
   }
   return r.data;
@@ -167,6 +167,13 @@ export function createApp(deps: AppDeps) {
 
   // ── Health & catalogue ───────────────────────────────────────────────
   app.get('/api/health', (_req, res) => res.json({ ok: true, engine: ENGINE_VERSION, db: db.kind }));
+  // The visitor's country from the hosting's IP lookup, for a first guess (nothing is stored).
+  app.get('/api/geo', (req, res) => {
+    const c =
+      (req.headers['x-vercel-ip-country'] as string | undefined) ??
+      (req.headers['cf-ipcountry'] as string | undefined);
+    res.set('cache-control', 'private, no-store').json({ country: c ? c.toUpperCase() : null });
+  });
   app.use(photoRouter(env, deps.photoFetch));
 
   // Vercel Cron calls this with "Authorization: Bearer $CRON_SECRET". Without a secret it does not exist.

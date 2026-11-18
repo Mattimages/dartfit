@@ -72,5 +72,22 @@ export function setCountry(c: string) {
   }
 }
 
+/**
+ * Until the player picks a country, guess it from their connection: the server reads the country
+ * the hosting already knows from the IP address (no location permission, so no browser pop-up).
+ * Only kept in memory, so the questionnaire still asks and the player still decides.
+ */
+export async function guessCountryFromNetwork(): Promise<void> {
+  if (hasChosenCountry()) return;
+  try {
+    const r = await fetch('/api/geo', { headers: { accept: 'application/json' } });
+    if (!r.ok) return;
+    const { country: c } = (await r.json()) as { country?: string };
+    if (c && known.has(c.toUpperCase()) && !hasChosenCountry()) country = c.toUpperCase();
+  } catch {
+    /* offline or no API: keep the browser-language guess */
+  }
+}
+
 /** The server explains in Dutch or English; German falls back to English there. */
 export const apiLang = (): 'nl' | 'en' => (getLang() === 'nl' ? 'nl' : 'en');

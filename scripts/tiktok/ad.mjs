@@ -84,7 +84,20 @@ const FONT_CSS =
   (await face('AdHand', 'caveat', 'caveat-SUB-700-normal.woff2')) +
   (await face('AdDisplay', 'bricolage-grotesque', 'bricolage-grotesque-SUB-800-normal.woff2'));
 
-/** A mono 16-bit WAV with one synthesised sound per cue. */
+/**
+ * Jingle Bells (James Lord Pierpont, 1857: public domain), the chorus twice, as [note, beats].
+ * Played as a soft celesta bed with sleigh bells on the beat, under the Christmas ads.
+ */
+const JINGLE = (() => {
+  const f = { C: 523.25, D: 587.33, E: 659.25, F: 698.46, G: 783.99 };
+  const a = [['E',1],['E',1],['E',2],['E',1],['E',1],['E',2],['E',1],['G',1],['C',1.5],['D',0.5],['E',4]];
+  const b = [['F',1],['F',1],['F',1.5],['F',0.5],['F',1],['E',1],['E',1],['E',0.5],['E',0.5]];
+  const end1 = [['E',1],['D',1],['D',1],['E',1],['D',2],['G',2]];
+  const end2 = [['G',1],['G',1],['F',1],['D',1],['C',4]];
+  return [...a, ...b, ...end1, ...a, ...b, ...end2].map(([n, d]) => [f[n], d]);
+})();
+
+/** A mono 16-bit WAV with one synthesised sound per cue (and, for Christmas, a music bed). */
 function soundtrack(cues, seconds) {
   const SR = 44100;
   const out = new Float32Array(Math.ceil((seconds + 0.5) * SR));
@@ -138,6 +151,71 @@ function soundtrack(cues, seconds) {
         return lp * Math.min(1, t / 0.25) * Math.exp(-Math.max(0, t - 0.4) / 0.5) * 1.6;
       });
     },
+    // A short, airy cut sound (the old whoosh, half as long and brighter).
+    swish: (at) => {
+      let lp = 0;
+      let hp = 0;
+      put(at - 0.03, 0.16, (t) => {
+        lp += (0.25 + 1.5 * t) * (rnd() - lp);
+        hp = lp - hp * 0.6;
+        return hp * Math.sin((Math.PI * t) / 0.16) ** 2 * 0.22;
+      });
+    },
+    // A cut at Christmas: a quick shake of sleigh bells.
+    shake: (at) => {
+      for (let j = 0; j < 4; j++)
+        [3136, 3951, 4699].forEach((f, i) =>
+          put(at - 0.04 + j * 0.035 + i * 0.004, 0.18, (t) => Math.sin(2 * Math.PI * f * t) * Math.exp(-t / 0.035) * 0.045),
+        );
+    },
+    // A dart sliding over the outline: a rising, filtered zip.
+    slide: (at) => {
+      let ph = 0;
+      put(at, 0.22, (t) => {
+        ph += (2 * Math.PI * (220 + 900 * t)) / SR;
+        return (Math.sin(ph) * 0.5 + 0.5 * Math.sin(ph * 2.01)) * Math.sin((Math.PI * t) / 0.22) * 0.08;
+      });
+    },
+    // A miss: a friendly two-note "uh-uh", down a minor third.
+    nope: (at) =>
+      [[392, 0], [330, 0.13]].forEach(([f, d]) =>
+        put(at + d, 0.16, (t) => (Math.sin(2 * Math.PI * f * t) + 0.25 * Math.sin(6 * Math.PI * f * t)) * Math.exp(-t / 0.06) * 0.14),
+      ),
+    // A hit: one bright bell.
+    ding: (at) =>
+      [1568, 3136, 4704].forEach((f, i) =>
+        put(at, 1.2, (t) => Math.sin(2 * Math.PI * f * t) * Math.exp(-t / (0.5 - i * 0.12)) * (0.14 / (i + 1))),
+      ),
+    // A rising glockenspiel arpeggio.
+    chime: (at) =>
+      [1046.5, 1318.5, 1568, 2093].forEach((f, i) =>
+        put(at + i * 0.07, 0.8, (t) => (Math.sin(2 * Math.PI * f * t) + 0.2 * Math.sin(4 * Math.PI * f * t)) * Math.exp(-t / 0.25) * 0.09),
+      ),
+    // A price card landing: a soft marimba pluck, a step higher each time.
+    pluck: (() => {
+      let n = 0;
+      const notes = [659.25, 783.99, 1046.5];
+      return (at) => {
+        const f = notes[n++ % notes.length];
+        put(at, 0.35, (t) => (Math.sin(2 * Math.PI * f * t) + 0.35 * Math.sin(2 * Math.PI * 4 * f * t) * Math.exp(-t / 0.02)) * Math.exp(-t / 0.12) * 0.16);
+      };
+    })(),
+    // The lid: a springy boing with a soft knock.
+    boing: (at) => {
+      let ph = 0;
+      put(at, 0.5, (t) => {
+        ph += (2 * Math.PI * (180 + 60 * Math.sin(2 * Math.PI * 14 * t) * Math.exp(-t / 0.2))) / SR;
+        return Math.sin(ph) * Math.exp(-t / 0.18) * 0.22;
+      });
+      sounds.thud(at);
+    },
+    // Twinkles: a few random high bells.
+    sparkle: (at) => {
+      for (let j = 0; j < 9; j++) {
+        const f = 2600 + 2200 * ((j * 0.618) % 1);
+        put(at + j * 0.045, 0.3, (t) => Math.sin(2 * Math.PI * f * t) * Math.exp(-t / 0.08) * 0.05);
+      }
+    },
     win: (at) =>
       [523.25, 659.25, 783.99, 1046.5].forEach((f, i) =>
         put(
@@ -149,6 +227,27 @@ function soundtrack(cues, seconds) {
       ),
   };
   for (const c of cues) sounds[c.k]?.(c.t);
+  if (THEME === 'xmas') {
+    // The bed: celesta melody, a soft bass on the beat and sleigh bells, looped to the end.
+    const beat = 60 / 138;
+    let at = 0.35;
+    const bass = [130.81, 98.0];
+    for (let k = 0; at < seconds; k++) {
+      for (const [f, d] of JINGLE) {
+        if (at >= seconds) break;
+        put(at, Math.min(1.2, d * beat + 0.4), (t) =>
+          (Math.sin(2 * Math.PI * f * t) + 0.3 * Math.sin(4 * Math.PI * f * t) + 0.12 * Math.sin(6 * Math.PI * f * t)) *
+          Math.exp(-t / 0.35) * 0.055,
+        );
+        at += d * beat;
+      }
+    }
+    for (let i = 0, t0 = 0.35; t0 < seconds; i++, t0 += beat) {
+      const bf = bass[Math.floor(i / 2) % 2];
+      put(t0, 0.35, (t) => Math.sin(2 * Math.PI * bf * t) * Math.exp(-t / 0.15) * 0.07);
+      [3520, 4435].forEach((f) => put(t0 + 0.002, 0.12, (t) => Math.sin(2 * Math.PI * f * t) * Math.exp(-t / 0.03) * (i % 2 ? 0.018 : 0.03)));
+    }
+  }
   const buf = Buffer.alloc(44 + out.length * 2);
   buf.write('RIFF', 0);
   buf.writeUInt32LE(36 + out.length * 2, 4);

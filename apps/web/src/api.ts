@@ -135,6 +135,12 @@ function resolveCurrent(answers: Answers): Answers {
   };
 }
 
+/** Shop links for a fit worked out in the browser: through /go on the live site (tagged there). */
+function localOffers(v: Variant): Offer[] {
+  const offers = demoOffers(v);
+  return DEMO ? offers : offers.map((o) => ({ ...o, goUrl: `/go/${encodeURIComponent(o.id)}` }));
+}
+
 function localFit(m: Measurements | undefined, answers: Answers): FitResult {
   const a = resolveCurrent(answers);
   const f = runFit(m, a);
@@ -143,16 +149,16 @@ function localFit(m: Measurements | undefined, answers: Answers): FitResult {
     id: 'local',
     saved: false,
     fit: f,
-    recommendation: { ...rec, picks: rec.picks.map((p) => ({ ...p, offers: demoOffers(p.variant) })) },
+    recommendation: { ...rec, picks: rec.picks.map((p) => ({ ...p, offers: localOffers(p.variant) })) },
     tiers: Object.fromEntries(
-      Object.entries(photoTiers(f)).map(([k, s]) => [k, s ? { ...s, offers: demoOffers(s.variant) } : null]),
+      Object.entries(photoTiers(f)).map(([k, s]) => [k, s ? { ...s, offers: localOffers(s.variant) } : null]),
     ) as FitResult['tiers'],
     proTwin: proTwin(f, catalogue.pros, catalogue.variants),
     whatIf: sensitivity(m, a, catalogue.variants, { budgetUsd: a.budgetUsd }).slice(0, 4),
     country: getCountry(),
     measurements: m ?? null,
     answers: a,
-    demo: true,
+    demo: DEMO,
   };
   try {
     sessionStorage.setItem(LOCAL_KEY, JSON.stringify({ m: m ?? null, a }));
@@ -165,10 +171,16 @@ function localFit(m: Measurements | undefined, answers: Answers): FitResult {
 // ── Public API ─────────────────────────────────────────────────────────
 export async function createFit(m: Measurements | undefined, answers: Answers): Promise<FitResult> {
   if (DEMO) return localFit(m, answers);
-  return json<FitResult>('/api/fit', {
-    method: 'POST',
-    body: JSON.stringify({ measurements: m, answers, lang: apiLang(), country: getCountry() }),
-  });
+  try {
+    return await json<FitResult>('/api/fit', {
+      method: 'POST',
+      body: JSON.stringify({ measurements: m, answers, lang: apiLang(), country: getCountry() }),
+    });
+  } catch {
+    // Never leave a player on an error (owner, 18 Nov): the engine and the catalogue are in the page,
+    // so the phone works the fit out itself. It just can't be saved to an account from here.
+    return localFit(m, answers);
+  }
 }
 
 export async function getFit(id: string): Promise<FitResult> {
