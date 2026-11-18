@@ -163,8 +163,7 @@ export function homeView(root: HTMLElement, _params?: Record<string, string>, qu
         h('a', { class: 'btn block', href: '#/scan', onclick: start }, t('land.cta')),
         doors([{ label: t('start.gift'), picture: giftPicture(), href: '#/gift' }]),
       ),
-      // The warm intro sits under the buttons, never above the film (owner, 18 Nov).
-      h('p', { class: 'land-lead' }, t('land.lead')),
+      // No intro paragraph (owner, 18 Nov); only the one-line reassurance under the buttons.
       h('p', { class: 'land-note small' }, t('land.note', { n: variants().length })),
     ),
 

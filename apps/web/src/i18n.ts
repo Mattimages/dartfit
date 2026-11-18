@@ -42,7 +42,7 @@ const nl = {
   'land.chip.match': 'match',
   'land.tiers.title': 'Drie mooie matches, wat je ook wilt uitgeven',
   'land.tiers.sub':
-    'Elke dart die we voorstellen past bij je hand en je grip, en met meer geld koop je mooie coatings, puntsystemen en een bekende naam op de doos, geen dart die rechter vliegt.',
+    'Elke dart die we voorstellen past bij je hand en je grip, en hoe hoger je gaat, hoe mooier het wordt: fijnere grip, meer tungsten voor een slankere barrel en de echte darts van de profs op tv.',
   'land.tier.budget': 'Kroegheld',
   'land.tier.standard': 'Clubavond',
   'land.tier.premium': 'Profeditie',
@@ -104,7 +104,7 @@ const nl = {
   'scan.without': 'Geen pasje bij de hand',
   'scan.card.title': 'Houd je pasgegevens lekker voor jezelf',
   'scan.card.body':
-    'Plak een post-it over je naam en pasnummer, maar laat de vier hoeken zien, want daaraan meten we je hand.',
+    'Bedek je naam en je pasnummer, maar laat de vier hoeken zien, want daaraan meten we je hand.',
   'scan.back': 'Terug',
   'scan.nocard.back': 'Ik pak even een pasje',
   'analyse.unscaled':
@@ -161,7 +161,7 @@ const nl = {
   'q.tip': 'Welk bord?',
   'q.tip.steel': 'Sisal',
   'q.tip.soft': 'Elektronisch',
-  'q.hold': 'Waar liggen je vingers meestal op de barrel?',
+  'q.hold': 'Waar houd je hem vast?',
   'q.hold.front': 'Voorin',
   'q.hold.middle': 'In het midden',
   'q.hold.rear': 'Achterin',
@@ -713,7 +713,7 @@ const en: Record<Key, string> = {
   'land.chip.match': 'match',
   'land.tiers.title': 'Three great matches, whatever you want to spend',
   'land.tiers.sub':
-    'Every dart we suggest is picked to fit your hand and your grip, and spending more buys you fancy coatings, point systems and a famous name on the box rather than a dart that flies any straighter.',
+    'Every dart we suggest fits your hand and your grip, and the higher you go the better it gets: finer grip, more tungsten for a slimmer barrel and the very darts the pros throw on telly.',
   'land.tier.budget': 'Pub hero',
   'land.tier.standard': 'League night',
   'land.tier.premium': 'Pro edition',
@@ -774,7 +774,7 @@ const en: Record<Key, string> = {
   'scan.without': 'No card at hand',
   'scan.card.title': 'Keep your card details to yourself',
   'scan.card.body':
-    'Pop a sticky note over your name and card number, but leave all four corners showing, because those are what we measure against.',
+    'Cover your name and your card number, but leave all four corners showing, because those are what we measure against.',
   'scan.back': 'Back',
   'scan.nocard.back': 'I’ll grab a card',
   'analyse.unscaled':
@@ -831,7 +831,7 @@ const en: Record<Key, string> = {
   'q.tip': 'Which board?',
   'q.tip.steel': 'Bristle',
   'q.tip.soft': 'Electronic',
-  'q.hold': 'Where do your fingers usually rest on the barrel?',
+  'q.hold': 'Where do you hold it?',
   'q.hold.front': 'Near the front',
   'q.hold.middle': 'In the middle',
   'q.hold.rear': 'Towards the back',

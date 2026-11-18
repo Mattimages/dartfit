@@ -211,7 +211,7 @@ export const de: Partial<Record<Key, string>> = {
   'land.chip.match': 'Match',
   'land.tiers.title': 'Drei Optionen, jedes Budget',
   'land.tiers.sub':
-    'Du bekommst immer einen günstigen, einen mittleren und den besten, den es gibt. Alle drei passen zu deiner Hand.',
+    'Jeder Dart, den wir vorschlagen, passt zu deiner Hand und deinem Griff, und je höher du gehst, desto feiner wird es: besserer Grip, mehr Wolfram für ein schlankeres Barrel und genau die Darts der Profis aus dem Fernsehen.',
   'land.tier.budget': 'Kneipenheld',
   'land.tier.standard': 'Ligaabend',
   'land.tier.premium': 'Profi-Edition',
