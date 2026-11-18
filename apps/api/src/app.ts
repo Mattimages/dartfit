@@ -67,10 +67,10 @@ const WEB_DIST = join(dirname(fileURLToPath(import.meta.url)), '..', '..', 'web'
 function parse<T>(schema: ZodType<T>, data: unknown, res: Response): T | null {
   const r = schema.safeParse(data);
   if (!r.success) {
-    res.status(400).json({
-      error: 'invalid_request',
-      issues: r.error.issues.map((i) => `${i.path.join('.')}: ${i.message}`),
-    });
+    const issues = r.error.issues.map((i) => `${i.path.join('.')}: ${i.message}`);
+    // Field names and messages only, never the values (they can be hand sizes).
+    console.warn('invalid_request', issues.join('; '));
+    res.status(400).json({ error: 'invalid_request', issues });
     return null;
   }
   return r.data;

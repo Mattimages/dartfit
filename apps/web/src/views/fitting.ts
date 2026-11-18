@@ -105,7 +105,8 @@ export async function fittingView(root: HTMLElement) {
   const best = result.recommendation.picks[0];
   status.textContent = best ? t('fit.found') : t('fit.none');
   const askSave = () => {
-    if (session().saveAsked || result.saved) return false;
+    // A fit worked out on the phone (server unreachable) has nothing to save to an account.
+    if (session().saveAsked || result.saved || result.id === 'local') return false;
     update({ saveAsked: true });
     saveFitPopup(result.id, () => go(target.slice(1)));
     return true;
