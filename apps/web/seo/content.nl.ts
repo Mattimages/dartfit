@@ -24,6 +24,12 @@ export const nl: Site = {
     disclosure: 'Winkellinks kunnen ons commissie opleveren. Dat verandert de ranglijst nooit.',
     langName: 'Nederlands',
     skip: 'Naar de inhoud',
+    welcome: {
+      kicker: 'Eindelijk een goede toepassing van AI',
+      title: 'Welkom bij Find Your Darts',
+      sub: 'We modelleren de vorm van je hand en rekenen uit welke dart daar wiskundig het best bij past.',
+      cta: 'Meet mijn hand',
+    },
   },
   pages: [
     {

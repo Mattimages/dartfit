@@ -14,9 +14,10 @@ const files = buildGuides(stats, base, cat);
 const html = Object.entries(files).filter(([f]) => f.endsWith('.html'));
 
 describe('guide pages (SEO)', () => {
-  it('has a hub, eight guides, a pro index and a page per pro in every language', () => {
-    expect(html).toHaveLength(LANGS.length * (1 + 11 + 1 + cat.pros.length));
-    for (const s of SITES) expect(new Set(s.pages.map((p) => p.key)).size).toBe(11);
+  it('has a hub, eighteen guides, a pro index and a page per pro in every language', () => {
+    expect(html).toHaveLength(LANGS.length * (1 + 18 + 1 + cat.pros.length));
+    for (const s of SITES) expect(new Set(s.pages.map((p) => p.key)).size).toBe(18);
+    for (const s of SITES) expect(new Set(s.pages.map((p) => p.slug)).size).toBe(18);
     expect(cat.pros.length).toBeGreaterThan(20);
   });
 
@@ -72,6 +73,19 @@ describe('guide pages (SEO)', () => {
     expect(lower('de/welcher-dart-passt-zu-mir/index.html')).toContain('welcher dart passt zu mir');
     expect(lower('nl/welk-gewicht-dart/index.html')).toContain('welk gewicht dart');
     expect(lower('nl/barrelvormen-uitgelegd/index.html')).toContain('torpedo of rechte barrel');
+    expect(lower('nl/darts-voor-beginners/index.html')).toContain('welk gewicht darts voor een beginner');
+    expect(lower('nl/dartbord-ophangen/index.html')).toContain('hoe hoog hangt een dartbord');
+    expect(lower('en/how-to-hang-a-dartboard/index.html')).toContain('how high should a dartboard be from the floor');
+    expect(lower('en/best-darts-for-beginners/index.html')).toContain('what weight darts should a beginner use');
+    expect(lower('de/dartscheibe-aufhaengen/index.html')).toContain('wie hoch hängt eine dartscheibe');
+    expect(lower('de/steeldart-oder-softdart/index.html')).toContain('steeldart oder softdart');
+  });
+
+  it('opens every page with the welcome banner', () => {
+    for (const [file, page] of html) expect(page, file).toContain('class="welcome"');
+    expect(files['nl/index.html']).toContain('Welkom bij Find Your Darts');
+    expect(files['en/how-to-throw-darts/index.html']).toContain('Finally, a good use of AI');
+    expect(files['de/darts-pflegen/index.html']).toContain('Willkommen bei Find Your Darts');
   });
 
   it('quotes catalogue facts from the live catalogue, with no placeholders left', () => {

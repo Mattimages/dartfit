@@ -24,6 +24,12 @@ export const en: Site = {
     disclosure: 'Shop links may earn us a commission. It never changes the ranking.',
     langName: 'English',
     skip: 'Skip to content',
+    welcome: {
+      kicker: 'Finally, a good use of AI',
+      title: 'Welcome to Find Your Darts',
+      sub: 'We model the shape of your hand and calculate the dart that fits it best, mathematically.',
+      cta: 'Measure my hand',
+    },
   },
   pages: [
     {

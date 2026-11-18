@@ -25,6 +25,12 @@ export const de: Site = {
     disclosure: 'Shop-Links können uns eine Provision bringen. Das ändert nie die Rangfolge.',
     langName: 'Deutsch',
     skip: 'Zum Inhalt',
+    welcome: {
+      kicker: 'Endlich eine gute Anwendung von KI',
+      title: 'Willkommen bei Find Your Darts',
+      sub: 'Wir modellieren die Form deiner Hand und berechnen, welcher Dart mathematisch am besten dazu passt.',
+      cta: 'Hand messen',
+    },
   },
   pages: [
     {

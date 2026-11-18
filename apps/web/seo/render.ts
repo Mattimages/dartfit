@@ -11,16 +11,17 @@ import { nl } from './content.nl';
 import { de } from './content.de';
 import { TOPICS } from './topics';
 import { EVENTS, SOURCES } from './events';
+import { ARTICLES } from './articles';
 import { checkout, hitLabel } from '../src/draw/checkout';
 import { proHubItem, renderProIndex, renderProPage, proPaths, type CatalogueRows } from './pro-pages';
 
 export const SITES: Site[] = [nl, en, de].map((s) => ({
   ...s,
-  pages: [...s.pages, ...TOPICS[s.lang], ...EVENTS[s.lang]],
+  pages: [...s.pages, ...ARTICLES[s.lang], ...TOPICS[s.lang], ...EVENTS[s.lang]],
 }));
 export const LANGS: Lang[] = ['nl', 'en', 'de'];
 /** Shown on every page and used as dateModified; bump when the guides change. */
-export const UPDATED = '2026-10-25';
+export const UPDATED = '2026-11-18';
 
 /** Catalogue facts quoted in the guides, computed from the live catalogue at build time. */
 export interface Stats {
@@ -170,6 +171,12 @@ export function chrome(site: Site, inner: string, langLinks: string, crumbs: str
 <a class="brand" href="/">${LOGO}<span>DartFit</span></a>
 <nav class="langs" aria-label="Language">${langLinks}</nav>
 </div></header>
+<aside class="welcome" aria-label="${esc(u.welcome.title)}"><div class="wrap">
+<p class="welcome-kicker">${esc(u.welcome.kicker)}</p>
+<p class="welcome-title">${esc(u.welcome.title)}</p>
+<p class="welcome-sub">${esc(u.welcome.sub)}</p>
+<a class="welcome-cta" href="/#/scan">${esc(u.welcome.cta)}</a>
+</div></aside>
 <main id="main" class="wrap">
 ${crumbs}
 ${inner}
@@ -554,6 +561,13 @@ body{margin:0;background:var(--ground);color:var(--ink);font-family:'Geist Varia
 .logo{width:22px;height:22px}.logo-r{fill:var(--red)}.logo-k{fill:var(--ink)}
 .langs{display:flex;gap:.25rem}.langs a,.langs span{padding:.35rem .6rem;border-radius:999px;font-size:.85rem;font-weight:600;color:var(--ink-2);text-decoration:none}
 .langs span{background:var(--stage);color:var(--ink)}
+.welcome{background:var(--navy);color:#fff;padding-block:1.4rem 1.5rem;background-image:radial-gradient(120% 140% at 100% 0,rgb(227 18 44/.28),transparent 55%)}
+.welcome .wrap{display:grid;gap:.45rem;justify-items:start}
+.welcome p{margin:0;max-width:34rem}
+.welcome-kicker{display:inline-block;padding:.25rem .7rem;border-radius:999px;background:var(--red);font-size:.8rem;font-weight:600;letter-spacing:-.005em}
+.welcome-title{font-size:clamp(1.55rem,6vw,2.1rem);font-weight:650;letter-spacing:-.04em;line-height:1.08;text-wrap:balance}
+.welcome-sub{color:#c5d1e2;line-height:1.5}
+.welcome-cta{margin-top:.35rem;color:#fff;font-weight:600;text-underline-offset:4px}
 .crumbs{margin:1.25rem 0 0;font-size:.85rem;color:var(--ink-2)}.crumbs a{color:var(--ink-2)}
 h1,h2,h3{line-height:1.08;letter-spacing:-.035em;font-weight:620;text-wrap:balance;margin:0}
 h1{font-size:clamp(2rem,8vw,2.9rem);letter-spacing:-.045em;margin:1rem 0 1rem}

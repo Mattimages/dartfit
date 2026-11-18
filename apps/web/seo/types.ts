@@ -17,7 +17,14 @@ export type PageKey =
   | 'tungsten'
   | 'events'
   | 'rules'
-  | 'checkout';
+  | 'checkout'
+  | 'beginners'
+  | 'setup'
+  | 'technique'
+  | 'steelsoft'
+  | 'size'
+  | 'care'
+  | 'board';
 
 export interface Section {
   /** Phrased the way people ask it, so it can be quoted as the answer. */
@@ -100,5 +107,7 @@ export interface Site {
     disclosure: string;
     langName: string;
     skip: string;
+    /** The banner every guide page opens with. */
+    welcome: { kicker: string; title: string; sub: string; cta: string };
   };
 }
