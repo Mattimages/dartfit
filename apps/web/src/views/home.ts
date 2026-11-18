@@ -1,5 +1,5 @@
 import { giftRequestBanner } from './share';
-import { giftIcon } from '../draw/icons';
+import { doors, giftPicture } from '../draw/doors';
 import type { Variant } from '@dartfit/engine';
 import { h } from '../h';
 import { num, t, type Key } from '../i18n';
@@ -119,28 +119,20 @@ export function homeView(root: HTMLElement, _params?: Record<string, string>, qu
       'section',
       { class: 'land-hero' },
       banner,
-      h('h1', null, t('land.title')),
-      h('p', { class: 'lead' }, t('land.lead')),
+      // No visible title or intro above the film (owner's call 18 Nov): the buttons come first.
+      // The heading stays for screen readers and search engines.
+      h('h1', { class: 'visually-hidden' }, t('land.title')),
+      h(
+        'div',
+        { class: 'hero-cta' },
+        h('a', { class: 'btn block', href: '#/scan', onclick: start }, t('land.cta')),
+        doors([{ label: t('start.gift'), picture: giftPicture(), href: '#/gift' }]),
+      ),
       // The film itself starts the measurement when tapped.
       ((film) =>
         film
           ? h('a', { class: 'hs-link', href: '#/scan', onclick: start, 'aria-label': t('land.cta') }, film)
           : heroFan(fanDarts))(heroScan(all)),
-      h(
-        'div',
-        { class: 'hero-cta' },
-        h('a', { class: 'btn block', href: '#/scan', onclick: start }, t('land.cta')),
-        h(
-          'div',
-          { class: 'alt-starts' },
-          h(
-            'a',
-            { class: 'btn ghost ico-btn', href: '#/gift' },
-            giftIcon(),
-            h('span', null, t('start.gift')),
-          ),
-        ),
-      ),
     ),
 
     h(

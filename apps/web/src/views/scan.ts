@@ -1,4 +1,5 @@
-import { giftIcon, noCardIcon } from '../draw/icons';
+import { doors, giftPicture, noCardPicture } from '../draw/doors';
+import { handArt } from '../draw/art';
 import { checkHandFrame, type Landmark, type Pt } from '@dartfit/engine';
 import { h, s } from '../h';
 import { t, type Key } from '../i18n';
@@ -46,63 +47,46 @@ function cover(src: { w: number; h: number }, box: DOMRect) {
 }
 
 /** Top view of the set-up: the phone's frame, the card in its guide, a flat hand with spread fingers. */
+/**
+ * How to lay it out: the pasje at the top of the frame, the hand flat below it, both at their real
+ * sizes relative to each other (a card is 85.6 mm wide, a hand about 185 mm long). The hand is the
+ * same skin-toned drawing as the landing film.
+ */
 function setupDiagram(): SVGElement {
-  // Approximate landmark positions (mm) of a flat right hand, palm down, fingers spread.
-  const P = [
-    [0, 0],
-    [-22, -18],
-    [-40, -38],
-    [-54, -58],
-    [-66, -76],
-    [-22, -88],
-    [-31, -121],
-    [-36, -144],
-    [-40, -164],
-    [-2, -92],
-    [-3, -130],
-    [-4, -155],
-    [-5, -180],
-    [17, -88],
-    [24, -121],
-    [29, -144],
-    [33, -162],
-    [33, -78],
-    [45, -101],
-    [52, -117],
-    [58, -132],
-  ];
-  const k = 1.15;
-  const X = (i: number) => 170 + P[i]![0]! * k;
-  const Y = (i: number) => 470 + P[i]![1]! * k;
-  const bones = BONES.map(([a, b]) =>
-    s('line', {
-      x1: X(a),
-      y1: Y(a),
-      x2: X(b),
-      y2: Y(b),
-      stroke: 'var(--steel)',
-      'stroke-width': 7,
-      'stroke-linecap': 'round',
-    }),
-  );
-  const cardW = 150;
+  // Side by side (owner, 18 Nov: shorter): the pasje on the left, the drawn hand on the right,
+  // both at about real scale (a 185 mm hand is a little over twice the card's 85.6 mm).
+  const cardW = 112;
   const cardH = cardW / (85.6 / 53.98);
+  const cardX = 40;
+  const cardY = 100 - cardH / 2;
+  const hand = handArt({ lengthMm: 185 });
+  hand.setAttribute('x', '160');
+  hand.setAttribute('y', '16');
+  hand.setAttribute('width', '150');
+  hand.setAttribute('height', '176');
+  hand.setAttribute('preserveAspectRatio', 'xMidYMax meet');
+  // The label on two lines, split at the last space, so longer languages still fit the card.
+  const label = t('scan.card_any');
+  const cut = label.lastIndexOf(' ');
+  const lines = cut > 0 ? [label.slice(0, cut), label.slice(cut + 1)] : [label];
+  const cx = cardX + cardW / 2;
+  const top = cardY + cardH / 2 - ((lines.length - 1) * 16) / 2 + 4.5;
   return s(
     'svg',
-    { class: 'drawing', viewBox: '0 0 340 520', role: 'img', 'aria-label': t('scan.setup') },
+    { class: 'drawing', viewBox: '0 0 340 200', role: 'img', 'aria-label': t('scan.setup') },
     s('rect', {
       x: 20,
-      y: 10,
+      y: 8,
       width: 300,
-      height: 500,
-      rx: 26,
+      height: 184,
+      rx: 24,
       fill: 'none',
       stroke: 'var(--ink)',
       'stroke-width': 2,
     }),
     s('rect', {
-      x: 95,
-      y: 40,
+      x: cardX,
+      y: cardY,
       width: cardW,
       height: cardH,
       rx: 6,
@@ -113,11 +97,10 @@ function setupDiagram(): SVGElement {
     }),
     s(
       'text',
-      { x: 170, y: 40 + cardH / 2 + 5, 'text-anchor': 'middle', class: 'dimtext' },
-      t('scan.card_here'),
+      { x: cx, y: top, 'text-anchor': 'middle', class: 'dimtext cardtext' },
+      ...lines.map((l, i) => s('tspan', { x: cx, dy: i ? 16 : 0 }, l)),
     ),
-    ...bones,
-    ...P.map((_, i) => s('circle', { cx: X(i), cy: Y(i), r: 4.5, fill: 'var(--red)' })),
+    hand,
   );
 }
 
@@ -154,18 +137,12 @@ export function scanView(root: HTMLElement, _params?: Record<string, string>, qu
 
   const startBtn = h('button', { class: 'btn', type: 'button' }, t('scan.camera'));
   // No card at hand: proportions only, with a clear warning first.
-  const noCardBtn = h(
-    'button',
-    { class: 'btn ghost ico-btn', type: 'button' },
-    noCardIcon(),
-    h('span', null, t('start.nocard')),
-  );
-  const giftBtn = h(
-    'a',
-    { class: 'btn ghost ico-btn', href: '#/gift' },
-    giftIcon(),
-    h('span', null, t('start.gift')),
-  );
+  const sideDoors = doors([
+    { label: t('start.nocard'), picture: noCardPicture() },
+    { label: t('start.gift'), picture: giftPicture(), href: '#/gift' },
+  ]);
+  const noCardBtn = sideDoors.querySelector('button')!;
+  const giftOnly = doors([{ label: t('start.gift'), picture: giftPicture(), href: '#/gift' }]);
   const noCardGo = h('button', { class: 'btn', type: 'button' }, t('scan.nocard.go'));
   const noCardBack = h('button', { class: 'btn ghost', type: 'button' }, t('scan.nocard.back'));
   const noCardBox = h(
@@ -190,15 +167,16 @@ export function scanView(root: HTMLElement, _params?: Record<string, string>, qu
         { class: 'stack scan-intro' },
         h('p', { class: 'lead' }, t('scan.unavailable')),
         h('div', { class: 'actions' }, h('a', { class: 'btn', href: '#/manual' }, t('scan.manual'))),
-        h('div', { class: 'alt-starts' }, giftBtn),
+        giftOnly,
       )
     : h(
         'div',
         { class: 'stack scan-intro' },
         h('figure', { class: 'sheet narrow' }, setupDiagram()),
+        // The side doors first, so nobody without a pasje starts the camera for nothing.
+        sideDoors,
         h('div', { class: 'actions' }, startBtn, photoBtn, photoInput),
         h('p', { class: 'small' }, t('scan.photo.hint')),
-        h('div', { class: 'alt-starts' }, noCardBtn, giftBtn),
         h('p', { class: 'small' }, t('scan.privacy')),
       );
 

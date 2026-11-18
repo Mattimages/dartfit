@@ -4793,3 +4793,68 @@ a.card {
   outline: 2px solid var(--ink);
   outline-offset: 2px;
 }
+
+/* Picture buttons for the side doors (draw/doors.ts): a drawing on top, the label under it; a
+   single one goes full width with the drawing on the left. */
+.doors {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--s2);
+  width: 100%;
+}
+.doors.single {
+  grid-template-columns: 1fr;
+}
+.door {
+  display: grid;
+  justify-items: center;
+  align-content: start;
+  gap: 0.4rem;
+  padding: 0.7rem 0.75rem 0.85rem;
+  border: 0;
+  border-radius: var(--r-tile);
+  background: var(--stage);
+  color: var(--ink);
+  font: inherit;
+  font-size: 0.95rem;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  line-height: 1.2;
+  text-align: center;
+  text-decoration: none;
+  cursor: pointer;
+}
+.door:hover {
+  background: var(--stage-2);
+}
+.door-pic {
+  display: grid;
+  place-items: center;
+  width: 100%;
+  height: 4.6rem;
+}
+.door-art {
+  display: block;
+  width: auto;
+  height: 4.6rem;
+  max-width: 100%;
+  overflow: visible;
+}
+.doors.single .door {
+  grid-template-columns: 5.5rem minmax(0, 1fr);
+  justify-items: start;
+  align-items: center;
+  text-align: left;
+  padding: 0.55rem 1rem 0.55rem 0.6rem;
+}
+.doors.single .door-pic,
+.doors.single .door-art {
+  height: 3.4rem;
+}
+.hero-cta .doors {
+  max-width: 30rem;
+}
+.drawing .cardtext {
+  font-size: 13px;
+  font-weight: 600;
+}
