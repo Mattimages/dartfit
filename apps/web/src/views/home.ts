@@ -5,7 +5,7 @@ import { h } from '../h';
 import { num, t, type Key } from '../i18n';
 import { pros, variants } from '../api';
 import { clearSession, session, update } from '../store';
-import { approxEur, PRICE_CLASS_EUR } from '../money';
+import { boundLabel, priceLabel, approxEur, PRICE_CLASS_EUR } from '../money';
 import { dartMedia, photoUrl } from '../media';
 import { dartName } from './words';
 import { heroScan } from './hero-scan';
@@ -52,6 +52,31 @@ function tierPicks(all: Variant[]): Record<Tier, Variant | undefined> {
   return out;
 }
 
+/**
+ * The shop shelf leads with everyday prices (owner's brief, 18 Nov): darts of about €45 to €90
+ * first, cheapest first, then the rest by price. Collector boxes come last.
+ */
+function everyday(list: Variant[]): Variant[] {
+  const e = (v: Variant) => eur(v) ?? 999;
+  const inRange = (v: Variant) => e(v) >= 45 && e(v) <= 90;
+  return [
+    ...list.filter(inRange).sort((a, b) => e(a) - e(b)),
+    ...list.filter((v) => !inRange(v)).sort((a, b) => e(a) - e(b)),
+  ];
+}
+
+/** "A 23 g straight barrel with a medium ring grip, which suits almost any middle grip." */
+function shelfLine(v: Variant): string | null {
+  if (!v.shape || !v.gripIntensity) return null;
+  const hold = v.balance === 'front' ? 'front' : v.balance === 'rear' ? 'rear' : 'middle';
+  return t('shelf.line', {
+    w: num(v.weightG),
+    shape: t(`shelf.shape.${v.shape}` as Key),
+    grip: t(`shelf.grip.${Math.min(5, Math.max(1, Math.round(v.gripIntensity)))}` as Key),
+    hold: t(`shelf.hold.${hold}` as Key),
+  });
+}
+
 /** Three real darts fanned out from their points, like a set in your hand. */
 function heroFan(picks: Variant[]) {
   const fan = h('div', { class: 'fan', 'aria-hidden': 'true' });
@@ -95,7 +120,13 @@ export function homeView(root: HTMLElement, _params?: Record<string, string>, qu
         'div',
         { class: 'tier-top' },
         h('b', null, t(`land.tier.${tier}` as Key)),
-        h('span', null, max ? t('land.tier.upto', { eur: max }) : t('land.tier.top')),
+        h(
+          'span',
+          null,
+          max
+            ? t('land.tier.upto', { price: boundLabel(max) })
+            : t('land.tier.top', { price: boundLabel(PRICE_CLASS_EUR.standardMax) }),
+        ),
       ),
       dartMedia(v),
       h('p', { class: 'tier-name' }, dartName(v)),
@@ -103,7 +134,7 @@ export function homeView(root: HTMLElement, _params?: Record<string, string>, qu
         'p',
         { class: 'tier-meta' },
         `${num(v.weightG)} g`,
-        eur(v) ? h('span', { class: 'eur' }, `≈ €${eur(v)}`) : null,
+        v.priceUsd ? h('span', { class: 'eur' }, priceLabel(v.priceUsd)) : null,
       ),
     );
   };
@@ -132,6 +163,9 @@ export function homeView(root: HTMLElement, _params?: Record<string, string>, qu
         h('a', { class: 'btn block', href: '#/scan', onclick: start }, t('land.cta')),
         doors([{ label: t('start.gift'), picture: giftPicture(), href: '#/gift' }]),
       ),
+      // The warm intro sits under the buttons, never above the film (owner, 18 Nov).
+      h('p', { class: 'land-lead' }, t('land.lead')),
+      h('p', { class: 'land-note small' }, t('land.note', { n: variants().length })),
     ),
 
     h(
@@ -198,9 +232,7 @@ export function homeView(root: HTMLElement, _params?: Record<string, string>, qu
       h(
         'div',
         { class: 'rail' },
-        ...all
-          .filter((v) => !fanDarts.includes(v))
-          .sort((a, b) => (b.priceUsd ?? 0) - (a.priceUsd ?? 0))
+        ...everyday(all.filter((v) => !fanDarts.includes(v)))
           .slice(0, 10)
           .map((v) =>
             h(
@@ -212,8 +244,9 @@ export function homeView(root: HTMLElement, _params?: Record<string, string>, qu
                 'p',
                 { class: 'specline' },
                 h('span', null, `${num(v.weightG)} g`),
-                eur(v) ? h('span', { class: 'eur' }, `≈ €${eur(v)}`) : null,
+                v.priceUsd ? h('span', { class: 'eur' }, priceLabel(v.priceUsd)) : null,
               ),
+              shelfLine(v) ? h('p', { class: 'small shelf-line' }, shelfLine(v)) : null,
             ),
           ),
       ),

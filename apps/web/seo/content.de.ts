@@ -10,7 +10,7 @@ export const de: Site = {
       'Welcher Dart passt zu dir? Ratgeber zu Dartgewicht, Barrelform, Grip und wie DartFit Darts zu deiner Hand findet. Auch: Darts als Geschenk.',
     h1: 'Ratgeber zur Wahl deiner Darts',
     intro:
-      'Kurze, ehrliche Ratgeber, um einen Dart zu finden, der zu dir passt: welches Gewicht, welche Barrelform zu deinem Griff gehört und wie DartFit deine Hand neben einer Bankkarte misst, um dich mit {models} echten Dartmodellen abzugleichen.',
+      'Kurze, ehrliche Ratgeber, um einen Dart zu finden, der zu dir passt: welches Gewicht, welche Barrelform zu deinem Griff gehört und wie DartFit deine Hand neben einer Bankkarte misst, um dich mit {darts} echten Darts abzugleichen.',
   },
   ui: {
     cta: 'Meinen Dart finden',

@@ -14,11 +14,11 @@ import { DEMO, explain, getFit, type FitResult, type Offer } from '../api';
 import { dartDrawing } from '../draw/dart';
 import { bandRow } from '../draw/bands';
 import { balanceName, dartName, reasonText, shapeName } from './words';
-import { approxEur } from '../money';
+import { priceLabel } from '../money';
 import { matchPct } from '../score';
 import { dartMedia } from '../media';
 import { alertSignup } from './alert-signup';
-import { matchSplit } from './match-split';
+import { fitNotes } from './fit-notes';
 import { partnerBanner } from './partner';
 import { proPortrait } from '../draw/pro-photo';
 import { resultShare, shareBox } from './share';
@@ -26,7 +26,7 @@ import { resultShare, shareBox } from './share';
 const k = (s: string) => s as Key;
 type FullPick = RecPick & { offers: Offer[] };
 
-const priceText = (usd: number) => `≈ €${approxEur(usd)}`;
+const priceText = (usd: number) => priceLabel(usd);
 
 function offerLink(o: Offer, fitId: string | null, primary: boolean): HTMLElement {
   const href = DEMO || !fitId ? o.goUrl : `${o.goUrl}?fit=${encodeURIComponent(fitId)}`;
@@ -186,7 +186,7 @@ function tierHero(r: FitResult, start: TierKey | null): HTMLElement | null {
     const kids: Array<HTMLElement | null> = [
       h('h2', { class: 'dart-name' }, dartName(v)),
       productMedia(r.fit, v),
-      matchSplit(sv),
+      fitNotes(sv, r.fit.barrel),
       h(
         'div',
         { class: 'specs3' },
@@ -355,7 +355,7 @@ export async function resultView(root: HTMLElement, params: Record<string, strin
             { class: 'r-hero' },
             h('h1', null, dartName(v)),
             productMedia(f, v),
-            matchSplit(best),
+            fitNotes(best, f.barrel),
             h(
               'div',
               { class: 'specs3' },

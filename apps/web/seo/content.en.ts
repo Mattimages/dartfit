@@ -10,7 +10,7 @@ export const en: Site = {
       'Which darts are right for you? Guides on dart weight, barrel shape, grip and how DartFit matches darts to your hand, plus buying darts as a gift.',
     h1: 'Guides to choosing darts',
     intro:
-      'Short, honest guides to finding darts that fit you: what weight to pick, which barrel shape suits your grip, and how DartFit measures your hand next to a bank card to match you to {models} real dart models.',
+      'Short, honest guides to finding darts that fit you: what weight to pick, which barrel shape suits your grip, and how DartFit measures your hand next to a bank card to match you to {darts} real darts.',
   },
   ui: {
     cta: 'Find my dart',
@@ -35,9 +35,9 @@ export const en: Site = {
     {
       key: 'guide',
       slug: 'which-darts-are-right-for-me',
-      title: 'Which darts are right for me? Find darts that fit your hand',
+      title: 'How to pick darts that actually feel good in your hand',
       description:
-        'How to choose darts that fit: weight, length, thickness, barrel shape and grip, matched to your hand and how you hold the dart. Free fitting with DartFit.',
+        'You don’t need to copy whoever won on the telly last night. Here’s a friendly guide to finding the barrel weight, length and grip that suit your throw.',
       h1: 'Which darts are right for me?',
       answer:
         'The darts that suit you are the ones whose weight, length, thickness, barrel shape and grip match your hand and the way you hold and throw. A good start for steel tip is 22 to 24 g ({share2224} of the {darts} darts in our catalogue sit in that range), a barrel long enough for the fingers you grip with, and a shape that matches where you hold it. DartFit works this out for you: you measure your hand next to a bank card, answer five questions and get your ideal dart plus the closest real darts in three price classes.',
@@ -125,9 +125,9 @@ export const en: Site = {
     {
       key: 'algorithm',
       slug: 'how-dartfit-works',
-      title: 'How DartFit works: the dart fitting algorithm explained',
+      title: 'How DartFit measures your hand (without rocket science)',
       description:
-        'How DartFit turns a photo of your hand next to a bank card into your ideal dart: hand measurement, uncertainty, barrel physics and match scores.',
+        'Wondering how a photo next to a bank card helps us pick your darts? Take a peek at how we size your fingers and match {darts} real darts.',
       h1: 'How the DartFit algorithm picks your dart',
       answer:
         'DartFit measures your hand with your phone camera, using a bank card as the ruler, and combines those measurements with your answers into an estimate of the weight, length and thickness that suit you, each with an uncertainty. A physics model of a real barrel (tungsten density, bores, shape) makes sure the ideal dart can actually be made. Every dart in the catalogue then gets a match score against that ideal.',
@@ -197,9 +197,9 @@ export const en: Site = {
     {
       key: 'why',
       slug: 'why-dart-fit-matters',
-      title: 'Why a dart that fits you matters',
+      title: 'Why the right barrel makes darts so much easier to throw',
       description:
-        'Why darts that fit your hand help: a repeatable grip, a cleaner release and less fatigue. What a poorly fitting dart does, and how to find one that fits.',
+        'If your darts keep landing crooked, bouncing off the wire or slipping out of your fingers, the barrel shape is often the culprit rather than your aim.',
       h1: 'Why you want a dart that fits you',
       answer:
         'A dart that fits your hand lets you hold it the same way every throw, which is what consistent darts is built on. If the barrel is too short your fingers crowd it, too long and they spread onto the shaft; too heavy and your arm tires, too light and small mistakes show. A fitting dart removes those variables so practice goes into your throw, not into fighting the dart.',
@@ -257,9 +257,9 @@ export const en: Site = {
     {
       key: 'weight',
       slug: 'what-weight-darts',
-      title: 'What weight darts should I use? A guide for steel tip',
+      title: 'Should you throw 21 g, 23 g or 26 g darts?',
       description:
-        'What dart weight to choose: most steel-tip darts are 20 to 26 g. How your throw, grip and hand change the right weight, with data from {darts} darts.',
+        'Most players settle happily between 22 and 24 g, yet a couple of grams either way can change your throw, so here’s how to find your own sweet spot.',
       h1: 'What weight darts should I use?',
       answer:
         'For steel tip, start between 22 and 24 g: {share2224} of the {darts} darts in the DartFit catalogue are in that range and the median is {medW} g. A flat, fast throw often suits a slightly heavier dart; an arcing throw a slightly lighter one. Your current dart is the best clue: if it feels too light or too heavy, move about 2 g.',
@@ -318,9 +318,9 @@ export const en: Site = {
     {
       key: 'gift',
       slug: 'darts-as-a-gift',
-      title: 'Darts as a gift: choose without measuring their hand',
+      title: 'Buying darts as a present when you know nothing about darts',
       description:
-        'Buying darts as a present? Pick a set that fits from their height, hand type and how they hold the dart. Free gift fitting with DartFit.',
+        'Skip the cheap brass pub sets and surprise them with proper tungsten darts they’ll love throwing: a few easy questions and we’ll handle the rest.',
       h1: 'Buying darts as a gift',
       answer:
         'To buy darts that fit someone else, you need four things you probably know: how tall they are, whether their hands are long and slender or short and stubby, where they hold the dart and how it flies. DartFit has a gift mode that asks exactly this, without a hand scan, and shows the best matching darts in three price classes.',

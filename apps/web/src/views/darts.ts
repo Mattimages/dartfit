@@ -1,7 +1,7 @@
 import { h } from '../h';
 import { num, t, type Key } from '../i18n';
 import { shopFor, shopLink, variants } from '../api';
-import { approxEur } from '../money';
+import { priceLabel } from '../money';
 import { dartMedia, photoUrl, viewToggle } from '../media';
 import { dartName } from './words';
 
@@ -66,7 +66,7 @@ export function dartsView(root: HTMLElement) {
             { class: 'specline' },
             h('span', null, `${num(v.weightG)} g`),
             h('span', null, `${num(v.lengthMm)} mm`),
-            v.priceUsd ? h('span', { class: 'eur' }, `≈ €${approxEur(v.priceUsd)}`) : null,
+            v.priceUsd ? h('span', { class: 'eur' }, priceLabel(v.priceUsd)) : null,
           ),
           v.specCheck ? h('p', { class: 'flag small' }, t('darts.check')) : null,
           (() => {

@@ -28,7 +28,7 @@ import { handArt, SKIN_TONES, templateHand, type MmPoint } from '../draw/art';
 import { h } from '../h';
 import { pros, variants } from '../api';
 import { num, t } from '../i18n';
-import { approxEur } from '../money';
+import { priceLabel } from '../money';
 import { photoUrl } from '../media';
 import { dartName } from './words';
 import { quizDart } from './quiz-dart';
@@ -447,7 +447,7 @@ function askPanel(who: Who) {
 function shopCards(c: Cast) {
   const cards = c.options.map((o) => {
     const src = photoUrl(o.v.modelId, 400);
-    const eur = o.v.priceUsd ? approxEur(o.v.priceUsd) : null;
+    const eur = o.v.priceUsd ? priceLabel(o.v.priceUsd, { approx: false }) : null;
     return h(
       'a',
       { class: `hs-card${o.best ? ' best' : ' later'}`, href: '#/scan' },
@@ -461,7 +461,7 @@ function shopCards(c: Cast) {
           h('span', { class: `hs-tier tier-${o.tier}` }, t(`land.tier.${o.tier}`)),
         ),
         h('b', null, dartName(o.v)),
-        h('span', { class: 'hs-card-meta' }, `${num(o.v.weightG)} g${eur ? ` · €${eur}` : ''}`),
+        h('span', { class: 'hs-card-meta' }, `${num(o.v.weightG)} g${eur ? ` · ${eur}` : ''}`),
         splitRow(o.m),
       ),
     );

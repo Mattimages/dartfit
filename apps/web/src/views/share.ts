@@ -15,7 +15,7 @@ import { pros, shopFor, variants, type FitResult } from '../api';
 import { matchPct } from '../score';
 import { dartMedia, photoUrl } from '../media';
 import { dartName } from './words';
-import { approxEur } from '../money';
+import { priceLabel } from '../money';
 import { idealDartPaths } from './hero-scan';
 import { giftIcon } from '../draw/icons';
 import { monogram, proArtUrl } from '../draw/pro-art';
@@ -356,10 +356,10 @@ async function resultCard(o: {
     g.fill();
     g.fillStyle = '#ffffff';
     g.fillText(label, tx + 16, ry + 29);
-    const eur = x.v.priceUsd ? approxEur(x.v.priceUsd) : null;
+    const eur = x.v.priceUsd ? priceLabel(x.v.priceUsd, { approx: false }) : null;
     g.fillStyle = '#5b6b82';
     g.font = font(500, 32);
-    g.fillText(`${num(x.v.weightG)} g${eur ? ` · €${eur}` : ''}`, tx + lw + 14, ry + 30);
+    g.fillText(`${num(x.v.weightG)} g${eur ? ` · ${eur}` : ''}`, tx + lw + 14, ry + 30);
   });
 
   // The ask, with the address standing out.

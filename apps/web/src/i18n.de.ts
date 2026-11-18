@@ -171,9 +171,9 @@ export const de: Partial<Record<Key, string>> = {
 
   'r.title': 'Dein Dart',
   'r.tiers': 'Preisklasse',
-  'r.tier.budget': 'Budget',
-  'r.tier.standard': 'Standard',
-  'r.tier.premium': 'Premium',
+  'r.tier.budget': 'Kneipenheld',
+  'r.tier.standard': 'Ligaabend',
+  'r.tier.premium': 'Profi-Edition',
   'r.tier.none': 'kein Match',
   'r.guide': 'Richtpreis',
   'hs.tap': 'Tippe, um deine Hand zu scannen',
@@ -212,11 +212,11 @@ export const de: Partial<Record<Key, string>> = {
   'land.tiers.title': 'Drei Optionen, jedes Budget',
   'land.tiers.sub':
     'Du bekommst immer einen günstigen, einen mittleren und den besten, den es gibt. Alle drei passen zu deiner Hand.',
-  'land.tier.budget': 'Budget',
-  'land.tier.standard': 'Standard',
-  'land.tier.premium': 'Premium',
-  'land.tier.upto': 'bis €{eur}',
-  'land.tier.top': 'das Beste',
+  'land.tier.budget': 'Kneipenheld',
+  'land.tier.standard': 'Ligaabend',
+  'land.tier.premium': 'Profi-Edition',
+  'land.tier.upto': 'bis {price}',
+  'land.tier.top': 'ab {price}',
   'land.how.title': 'So funktioniert’s',
   'land.how1': 'Leg deine Hand neben eine Bankkarte',
   'land.how1.s': 'Die Karte ist dein Lineal. Das Foto bleibt auf deinem Handy.',
@@ -476,4 +476,38 @@ export const de: Partial<Record<Key, string>> = {
   'region.close': 'Schließen',
   'fit.pThrow': 'Dein Wurf',
   'fit.est': 'aus Größe geschätzt',
+  'land.note':
+    'Es ist kostenlos, dauert etwa eine Minute, du musst nichts herunterladen, dein Foto bleibt auf deinem Handy, und wir vergleichen {n} echte Darts.',
+  'shelf.line': 'Ein {shape} Barrel mit {w} g und {grip}, gut für {hold}.',
+  'shelf.grip.1': 'glatter Oberfläche',
+  'shelf.grip.2': 'leichter Ringrändelung',
+  'shelf.grip.3': 'mittlerer Ringrändelung',
+  'shelf.grip.4': 'festem Grip',
+  'shelf.grip.5': 'richtig viel Grip',
+  'shelf.hold.front': 'einen Griff vorne',
+  'shelf.hold.middle': 'fast jeden Griff in der Mitte',
+  'shelf.hold.rear': 'einen Griff hinten',
+  'r.notes.title': 'Warum dieses Barrel zu deiner Hand passt',
+  'r.note.len.same': 'Mit {L} mm Länge haben deine Finger genau genug Platz.',
+  'r.note.len.longer':
+    'Mit {L} mm ist es {d} mm länger als dein Ideal, also hast du etwas mehr Platz, wenn du die Finger gern verteilst.',
+  'r.note.len.shorter':
+    'Mit {L} mm ist es {d} mm kürzer als dein Ideal, so bleibt dein Griff schön kompakt.',
+  'r.note.w.same': 'Mit {w} g wiegt es genau so viel, wie dein Wurf verlangt.',
+  'r.note.w.heavier':
+    'Mit {w} g ist es {d} g schwerer als dein Ideal, es fühlt sich also etwas satter an.',
+  'r.note.w.lighter':
+    'Mit {w} g ist es {d} g leichter als dein Ideal, es fühlt sich also etwas flinker an.',
+  'r.note.shape.same': 'Die Form ({shape}) ist genau die, die wir für deinen Griff wählen würden.',
+  'r.note.shape.diff':
+    'Die Form ist {shape}, wo wir {ideal} gezeichnet hatten, es liegt also etwas anders unter deinen Fingern.',
+  'r.note.match': '{n}% Match',
+  'shelf.shape.straight': 'gerades',
+  'shelf.shape.torpedo': 'torpedoförmiges',
+  'shelf.shape.tapered': 'konisches',
+  'shelf.shape.bomb': 'bauchiges',
+  'shelf.shape.scalloped': 'tailliertes',
+  'meta.title': 'DartFit: Steeldarts finden, die gut in deiner Hand liegen',
+  'meta.desc':
+    'Fotografiere deine Hand neben einer Bankkarte, beantworte ein paar einfache Fragen und finde kostenlos echte Steeldarts, die zu Hand und Griff passen. Dein Foto bleibt auf deinem Handy.',
 };

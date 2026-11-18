@@ -1,19 +1,24 @@
 /*
- * DartFit — a pro-shop fitting bay. Bright white page, every dart shown like a product shot on a
- * light studio backdrop with a real contact shadow. Board red is for buying and for YOUR
- * measurements (the red dimension lines); board green is for how well a dart matches.
- * One typeface (Geist), tight tracking, hairline rules, a short radius scale. One light look.
+ * DartFit — the friendly local darts shop (owner's "jovial, human" brief, 18 Nov). A warm cream
+ * page with charcoal text, sisal-green buttons and pub-brass highlights; board red stays for YOUR
+ * measurements (the red dimension lines) and the dartboard itself; match green for how well a
+ * dart fits. One typeface (Geist), hairline rules, a short radius scale. One light look.
  */
 :root {
   color-scheme: light;
-  --ground: #ffffff;
-  --stage: #edf2f9;
-  --stage-2: #dce5f1;
-  --ink: #0d1626;
-  --ink-2: #5d6676;
-  --ink-3: #9299a6;
-  --line: #e7e9ee;
-  --glass: rgb(255 255 255 / 0.78);
+  --ground: #faf8f5;
+  --stage: #f1ece3;
+  --stage-2: #e5ddcf;
+  --ink: #1f2937;
+  --ink-2: #5e636b;
+  --ink-3: #9a968f;
+  --line: #e7e0d5;
+  --glass: rgb(250 248 245 / 0.82);
+  /* Buttons: dartboard-sisal green. Highlights: pub brass. */
+  --cta: #1e4d3b;
+  --cta-ink: #163a2c;
+  --brass: #b45309;
+  --brass-soft: #fbefdf;
   --red: #e3122c;
   --red-ink: #c10f25;
   --red-soft: #fdecee;
@@ -288,8 +293,8 @@ section + section {
   min-height: 3.5rem;
   padding: 0 var(--s5);
   border-radius: 999px;
-  border: 1.5px solid var(--red);
-  background: var(--red);
+  border: 1.5px solid var(--cta);
+  background: var(--cta);
   color: #fff;
   font: inherit;
   font-weight: 600;
@@ -298,16 +303,16 @@ section + section {
   text-decoration: none;
   cursor: pointer;
   box-shadow:
-    inset 0 1px 0 rgb(255 255 255 / 0.18),
-    0 1px 2px rgb(193 15 37 / 0.25);
+    inset 0 1px 0 rgb(255 255 255 / 0.16),
+    0 1px 2px rgb(22 58 44 / 0.28);
   transition:
     background 160ms ease,
     border-color 160ms ease,
     transform 80ms ease;
 }
 .btn:hover {
-  background: var(--red-ink);
-  border-color: var(--red-ink);
+  background: var(--cta-ink);
+  border-color: var(--cta-ink);
 }
 .btn:active {
   transform: scale(0.98);
@@ -2717,13 +2722,13 @@ a.card {
   background: #edf2f9;
 }
 
-/* Steps: red numbers, the brand colour doing a job. */
+/* Steps: pub-brass numbers. */
 .steps li::before {
   border: 0;
-  background: var(--red);
+  background: var(--brass);
   color: #fff;
   font-weight: 600;
-  box-shadow: 0 6px 14px -6px rgb(227 18 44 / 0.6);
+  box-shadow: 0 6px 14px -6px rgb(180 83 9 / 0.55);
 }
 .proof b {
   color: var(--red);
@@ -2748,11 +2753,11 @@ a.card {
   background: var(--red);
   color: #fff;
 }
-/* The close: a bold red band. */
+/* The close: a sisal-green band with a warm brass glow. */
 .land-end {
   background:
-    radial-gradient(120% 140% at 100% 0%, rgb(255 255 255 / 0.18), transparent 55%),
-    linear-gradient(150deg, #ff2a40 0%, #c10f25 100%);
+    radial-gradient(120% 140% at 100% 0%, rgb(180 83 9 / 0.45), transparent 55%),
+    linear-gradient(150deg, #24604a 0%, #163a2c 100%);
 }
 .land-end p {
   color: rgb(255 255 255 / 0.85);
@@ -2760,7 +2765,7 @@ a.card {
 .land-end .btn {
   background: #fff;
   border-color: #fff;
-  color: var(--red-ink);
+  color: var(--cta-ink);
   box-shadow: 0 10px 24px -10px rgb(0 0 0 / 0.4);
 }
 .land-end .btn:hover {
@@ -4983,4 +4988,57 @@ a.card {
 }
 .save-fit .alert-msg:empty {
   display: none;
+}
+
+/* Jovial overhaul (18 Nov): fit notes on the result, the warm intro on home, shelf one-liners. */
+.fit-notes {
+  display: grid;
+  gap: var(--s2);
+  padding: var(--s4);
+  border: 1px solid var(--line);
+  border-radius: var(--r-tile);
+  background: #fff;
+}
+.fit-notes-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: var(--s3);
+  margin: 0;
+}
+.fit-notes-head b {
+  font-weight: 650;
+  letter-spacing: -0.015em;
+}
+.fit-notes-pct {
+  flex: none;
+  padding: 0.15rem 0.6rem;
+  border-radius: 999px;
+  background: var(--green-soft);
+  color: var(--green);
+  font-weight: 650;
+  font-size: 0.9rem;
+  font-variant-numeric: tabular-nums;
+}
+.fit-notes ul {
+  margin: 0;
+  padding-left: 1.1rem;
+  display: grid;
+  gap: 0.35rem;
+  line-height: 1.45;
+}
+.land-lead {
+  margin: 0;
+  font-size: 1.05rem;
+  line-height: 1.55;
+  max-width: 34rem;
+}
+.land-note {
+  margin: 0;
+  color: var(--ink-2);
+}
+.shelf-line {
+  margin: 0.25rem 0 0;
+  color: var(--ink-2);
+  line-height: 1.4;
 }

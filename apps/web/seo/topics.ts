@@ -9,9 +9,9 @@ export const TOPICS: Record<Lang, Page[]> = {
     {
       key: 'shapes',
       slug: 'barrel-shapes-explained',
-      title: 'Dart barrel shapes explained: torpedo, straight, bomb',
+      title: 'Straight, torpedo or bomb? Barrel shapes made simple',
       description:
-        'Straight, torpedo, bomb, tapered or scalloped: what each dart barrel shape does, where the weight sits and which grip it suits. With catalogue data.',
+        'Every barrel shape puts the weight in a slightly different place, so here’s how each one feels in your fingers and how neatly they pack into the treble 20.',
       h1: 'Dart barrel shapes explained',
       answer:
         'A barrel’s shape decides where its weight sits under your fingers. Straight barrels spread it evenly and suit a middle grip; torpedoes put it at the front for a front grip; tapered barrels thin towards the back for a rear grip; a bomb has one fat point for a compact grip with short fingers; scalloped barrels add a waist to give your fingers a fixed spot. {straightPct} of the darts in the DartFit catalogue are straight.',
@@ -78,9 +78,9 @@ export const TOPICS: Record<Lang, Page[]> = {
     {
       key: 'grip',
       slug: 'dart-grip-knurling',
-      title: 'Dart grip and knurling: how much grip do you need?',
+      title: 'Smooth, ringed or knurled: a grip that won’t slip or stick',
       description:
-        'Smooth, ringed or knurled: how much grip your darts need depends on your skin and release. How to choose, and what too much or too little grip does.',
+        'Whether your hands get warm in a busy pub or stay dry in the garage, the right grip keeps your darts steady without catching on your skin.',
       h1: 'How much grip should my darts have?',
       answer:
         'Enough that the dart does not slip, and no more: too little grip and the dart slides as you release, too much and it sticks to your fingers or wears your skin. Dry hands usually need more grip, as do players who throw hard. DartFit rates grip from 1 (smooth) to 5 (very grippy) and matches it to your preference.',
@@ -121,9 +121,9 @@ export const TOPICS: Record<Lang, Page[]> = {
     {
       key: 'tungsten',
       slug: 'tungsten-percentage-darts',
-      title: '80, 90 or 95% tungsten darts: what is the difference?',
+      title: '80, 90 or 95% tungsten: what are you really paying for?',
       description:
-        'What the tungsten percentage of a dart changes: a slimmer barrel at the same weight. 90% versus 95% versus brass, with densities and catalogue data.',
+        'Higher tungsten lets makers build slimmer barrels that group tighter, and here’s why 90% is usually the happiest sweet spot for your wallet.',
       h1: '80, 90 or 95% tungsten: what is the difference?',
       answer:
         'The tungsten percentage changes how dense the barrel is, and so how slim it can be at the same weight. At the same weight and length, a 95% barrel is about 3% thinner than a 90% one, and a brass barrel is about 40% thicker. 90% is the standard ({w90Pct} of the DartFit catalogue); 95% is worth it for heavy darts that you want to keep slim.',
@@ -173,9 +173,9 @@ export const TOPICS: Record<Lang, Page[]> = {
     {
       key: 'shapes',
       slug: 'barrelvormen-uitgelegd',
-      title: 'Barrelvormen uitgelegd: torpedo, recht, bomb en taps',
+      title: 'Recht, torpedo of bom? Barrelvormen simpel uitgelegd',
       description:
-        'Recht, torpedo, bomb, taps of scalloped: wat elke barrelvorm doet, waar het gewicht zit en bij welke grip hij past. Met data uit onze catalogus.',
+        'Elke barrelvorm legt het gewicht net ergens anders, dus zo voelt elke vorm in je vingers en zo netjes passen ze samen in de triple 20.',
       h1: 'Barrelvormen van darts uitgelegd',
       answer:
         'De vorm van een barrel bepaalt waar het gewicht onder je vingers zit. Een rechte barrel verdeelt het gelijk en past bij een grip in het midden; een torpedo legt het voorin voor een grip voorin; een tapse barrel loopt dunner naar achteren voor een grip achterin; een bomb heeft één dik punt voor een compacte grip met korte vingers; een scalloped barrel heeft een taille die je vingers een vaste plek geeft. {straightPct} van de darts in de DartFit-catalogus is recht.',
@@ -242,9 +242,9 @@ export const TOPICS: Record<Lang, Page[]> = {
     {
       key: 'grip',
       slug: 'grip-en-knurling',
-      title: 'Grip en knurling van darts: hoeveel grip heb je nodig?',
+      title: 'Glad, ringen of knurling: grip die niet glipt of plakt',
       description:
-        'Glad, met ringen of geknurld: hoeveel grip je darts nodig hebben hangt af van je huid en je release. Zo kies je, en dit doet te veel of te weinig grip.',
+        'Of je handen nou warm worden in een volle kroeg of droog blijven in de schuur, de juiste grip houdt je darts stil zonder aan je huid te haken.',
       h1: 'Hoeveel grip moeten mijn darts hebben?',
       answer:
         'Genoeg dat de dart niet glipt, en niet meer: te weinig grip en de dart schuift weg bij het loslaten, te veel en hij blijft aan je vingers hangen of schuurt je huid. Droge handen hebben meestal meer grip nodig, net als spelers die hard gooien. DartFit geeft grip een cijfer van 1 (glad) tot 5 (heel ruw) en zoekt darts bij wat jij fijn vindt.',
@@ -285,9 +285,9 @@ export const TOPICS: Record<Lang, Page[]> = {
     {
       key: 'tungsten',
       slug: 'tungsten-percentage',
-      title: '80, 90 of 95% tungsten darts: wat is het verschil?',
+      title: '80, 90 of 95% tungsten: waar betaal je eigenlijk voor?',
       description:
-        'Wat het tungstenpercentage van een dart verandert: een slankere barrel bij hetzelfde gewicht. 90% tegen 95% tegen messing, met dichtheden en data.',
+        'Meer tungsten maakt slankere barrels die strakker groeperen, en daarom is 90% meestal het fijnste midden voor je portemonnee en je spel.',
       h1: '80, 90 of 95% tungsten: wat is het verschil?',
       answer:
         'Het tungstenpercentage bepaalt hoe zwaar de barrel is voor zijn formaat, en dus hoe slank hij kan zijn bij hetzelfde gewicht. Bij hetzelfde gewicht en dezelfde lengte is een barrel van 95% ongeveer 3% dunner dan een van 90%, en een messing barrel ongeveer 40% dikker. 90% is de standaard ({w90Pct} van de DartFit-catalogus); 95% loont bij zware darts die je slank wilt houden.',

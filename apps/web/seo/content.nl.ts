@@ -10,7 +10,7 @@ export const nl: Site = {
       'Welke dart past bij jou? Gidsen over dartgewicht, barrelvorm, grip en hoe DartFit darts bij je hand zoekt. Ook: darts kopen als cadeau.',
     h1: 'Gidsen voor het kiezen van darts',
     intro:
-      'Korte, eerlijke gidsen om een dart te vinden die bij je past: welk gewicht, welke barrelvorm bij je grip hoort en hoe DartFit je hand naast een pasje meet om je te matchen met {models} echte dartmodellen.',
+      'Korte, eerlijke gidsen om een dart te vinden die bij je past: welk gewicht, welke barrelvorm bij je grip hoort en hoe DartFit je hand naast een pasje meet om je te matchen met {darts} echte darts.',
   },
   ui: {
     cta: 'Vind mijn dart',
@@ -35,9 +35,9 @@ export const nl: Site = {
     {
       key: 'guide',
       slug: 'welke-dart-past-bij-mij',
-      title: 'Welke dart past bij mij? Vind een dart die bij je hand past',
+      title: 'Zo kies je darts die echt lekker in je hand liggen',
       description:
-        'Zo vind je een dart die bij je past: gewicht, lengte, dikte, barrelvorm en grip, afgestemd op je hand en hoe je de dart vasthoudt. Gratis met DartFit.',
+        'Je hoeft niet te kopiëren wie gisteren op tv won. Een vriendelijke gids om het gewicht, de lengte en de grip te vinden die bij jouw worp passen.',
       h1: 'Welke dart past bij mij?',
       answer:
         'De dart die bij je past, is de dart waarvan het gewicht, de lengte, de dikte, de barrelvorm en de grip passen bij je hand en bij hoe je vasthoudt en gooit. Een goed startpunt voor steeltip is 22 tot 24 gram ({share2224} van de {darts} darts in onze catalogus zit daartussen), een barrel die lang genoeg is voor de vingers waarmee je grijpt, en een vorm die past bij waar je hem vasthoudt. DartFit rekent dit voor je uit: je meet je hand naast een pasje, beantwoordt vijf vragen en krijgt je ideale dart plus de echte darts die er het dichtst bij komen, in drie prijsklassen.',
@@ -129,9 +129,9 @@ export const nl: Site = {
     {
       key: 'algorithm',
       slug: 'hoe-werkt-dartfit',
-      title: 'Hoe werkt DartFit? Het dart-fitting-algoritme uitgelegd',
+      title: 'Zo meet DartFit je hand (zonder raketwetenschap)',
       description:
-        'Hoe DartFit van een foto van je hand naast een pasje je ideale dart maakt: handmeting, onzekerheid, barrelnatuurkunde en matchscores.',
+        'Benieuwd hoe een foto naast een pasje ons helpt je darts te kiezen? Kijk even hoe we je vingers meten en {darts} echte darts vergelijken.',
       h1: 'Hoe het DartFit-algoritme je dart kiest',
       answer:
         'DartFit meet je hand met de camera van je telefoon, met een pasje als liniaal, en combineert die maten met je antwoorden tot een schatting van het gewicht, de lengte en de dikte die bij je passen, elk met een onzekerheid. Een natuurkundig model van een echte barrel (dichtheid van tungsten, boringen, vorm) zorgt dat je ideale dart ook echt gemaakt kan worden. Daarna krijgt elke dart in de catalogus een matchscore ten opzichte van dat ideaal.',
@@ -201,9 +201,9 @@ export const nl: Site = {
     {
       key: 'why',
       slug: 'waarom-een-passende-dart',
-      title: 'Waarom een dart die bij je past beter gooit',
+      title: 'Waarom de juiste barrel darten zoveel makkelijker maakt',
       description:
-        'Waarom een dart die bij je hand past helpt: een herhaalbare grip, een schone release en minder vermoeidheid. Wat een slecht passende dart doet.',
+        'Landen je darts scheef, ketsen ze op de draad of glippen ze uit je vingers? Dan ligt het vaak aan de vorm van de barrel en niet aan je richten.',
       h1: 'Waarom je een dart wilt die bij je past',
       answer:
         'Met een dart die bij je hand past, pak je hem elke worp op dezelfde manier vast, en daar is constant darten op gebouwd. Is de barrel te kort, dan zitten je vingers op elkaar; te lang, en ze schuiven naar de shaft. Te zwaar vermoeit je arm, te licht laat elke kleine fout zien. Een passende dart haalt die variabelen weg, zodat je oefening in je worp gaat en niet in vechten met je dart.',
@@ -261,9 +261,9 @@ export const nl: Site = {
     {
       key: 'weight',
       slug: 'welk-gewicht-dart',
-      title: 'Welk gewicht dart moet ik nemen? Gids voor steeltip',
+      title: 'Gooi je beter met 21, 23 of 26 gram darts?',
       description:
-        'Welk dartgewicht kies je: de meeste steeltip darts wegen 20 tot 26 gram. Hoe je worp, grip en hand het juiste gewicht bepalen, met data van {darts} darts.',
+        'De meeste spelers voelen zich thuis tussen 22 en 24 gram, maar een paar gram meer of minder kan je worp flink veranderen, dus zo vind je jouw gewicht.',
       h1: 'Welk gewicht dart moet ik nemen?',
       answer:
         'Begin bij steeltip tussen de 22 en 24 gram: {share2224} van de {darts} darts in de DartFit-catalogus zit daartussen en de mediaan is {medW} gram. Een vlakke, snelle worp past vaak bij een iets zwaardere dart, een worp met een boog bij een iets lichtere. Je huidige dart is de beste aanwijzing: voelt hij te licht of te zwaar, schuif dan ongeveer 2 gram op.',
@@ -322,9 +322,9 @@ export const nl: Site = {
     {
       key: 'gift',
       slug: 'darts-als-cadeau',
-      title: 'Darts als cadeau: kiezen zonder zijn hand te meten',
+      title: 'Darts als cadeau, ook als je niets van darts weet',
       description:
-        'Darts cadeau geven? Kies een set die past op basis van lengte, handtype en hoe hij de dart vasthoudt. Gratis cadeau-fitting met DartFit.',
+        'Sla de goedkope messing setjes over en verras ze met echte tungsten darts waar ze graag mee gooien: een paar makkelijke vragen en wij doen de rest.',
       h1: 'Darts kopen als cadeau',
       answer:
         'Om darts te kopen die bij iemand anders passen, heb je vier dingen nodig die je waarschijnlijk weet: hoe lang de speler is, of zijn handen lang en slank of kort en stevig zijn, waar hij de dart vasthoudt en hoe die vliegt. DartFit heeft een cadeaustand die precies dit vraagt, zonder handscan, en laat de best passende darts zien in drie prijsklassen.',

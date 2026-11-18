@@ -21,9 +21,9 @@ export const EVENTS: Record<Lang, Page[]> = {
     {
       key: 'events',
       slug: 'darts-calendar',
-      title: 'Darts calendar 2026/27: big tournaments and dates',
+      title: 'The big darts calendar 2026/27: every major TV tournament',
       description:
-        'When are the big darts tournaments? Dates and venues of the Grand Slam, Players Championship Finals and the 2027 World Darts Championship at Ally Pally.',
+        'Never miss a night of the Premier League, the World Matchplay or the World Championship, with the dates and venues of this season’s biggest tournaments.',
       h1: 'Darts calendar 2026/27',
       answer:
         'The 2027 PDC World Darts Championship runs from Friday 11 December 2026 to Sunday 3 January 2027 at Alexandra Palace in London, for the first time in the Great Hall, with 128 players and a Christmas break from 24 to 27 December. Before that come the Grand Slam of Darts (14–22 November, Wolverhampton) and the Players Championship Finals (27–29 November, Minehead).',
@@ -84,9 +84,9 @@ export const EVENTS: Record<Lang, Page[]> = {
     {
       key: 'rules',
       slug: 'darts-rules',
-      title: 'Darts rules: board height, oche distance and 501',
+      title: 'Darts rules and board setup: everything to play properly',
       description:
-        'How high does a dartboard hang and how far is the oche? The official measurements (1.73 m, 2.37 m), how 501 double-out works and what a bust is.',
+        'Hang your board at the official height, learn how 501 double-out works, and settle those friendly arguments about what counts as a bust.',
       h1: 'Darts rules explained',
       answer:
         'A dartboard hangs with the centre of the bull 1.73 m above the floor, and the oche (throw line) is 2.37 m from the face of the board; the diagonal from the bull to the oche at floor level is 2.93 m. In 501 you count down from 501 and must finish exactly on a double or the bull. A dart may be at most 30.5 cm long and 50 g heavy.',
@@ -130,9 +130,9 @@ export const EVENTS: Record<Lang, Page[]> = {
     {
       key: 'checkout',
       slug: 'darts-checkout-chart',
-      title: 'Darts checkout chart: every finish from 170 to 2',
+      title: 'The complete darts checkout chart, from 170 to double 1',
       description:
-        'Every darts checkout from 170 down to 2, in the fewest darts and ending on a double, plus the numbers you cannot finish in three darts.',
+        'Keep this list handy and you’ll always know the smartest finish, from the 170 big fish down to double 1, plus which bogey numbers to avoid leaving.',
       h1: 'Darts checkout chart',
       answer:
         'The highest checkout in darts is 170: treble 20, treble 20, bull. Every score from 2 to 170 can be finished in three darts except 169, 168, 166, 165, 163, 162 and 159. The chart below gives one route for each score, in the fewest darts and ending on a double.',
@@ -154,9 +154,9 @@ export const EVENTS: Record<Lang, Page[]> = {
     {
       key: 'events',
       slug: 'darts-kalender',
-      title: 'Darts kalender 2026/27: de grote toernooien en data',
+      title: 'De grote dartskalender 2026/27: alle tv-toernooien',
       description:
-        'Wanneer zijn de grote darttoernooien? Data en locaties van de Grand Slam, de Players Championship Finals en het WK darts 2027 in Ally Pally.',
+        'Mis geen avond Premier League, World Matchplay of WK darts, met de data en locaties van de grootste toernooien van dit seizoen op een rij.',
       h1: 'Darts kalender 2026/27',
       answer:
         'Het WK darts 2027 van de PDC is van vrijdag 11 december 2026 tot en met zondag 3 januari 2027 in Alexandra Palace in Londen, voor het eerst in de Great Hall, met 128 spelers en een kerstpauze van 24 tot en met 27 december. Daarvoor zijn de Grand Slam of Darts (14–22 november, Wolverhampton) en de Players Championship Finals (27–29 november, Minehead).',
@@ -213,9 +213,9 @@ export const EVENTS: Record<Lang, Page[]> = {
     {
       key: 'rules',
       slug: 'darts-regels',
-      title: 'Darts regels: hoogte van het bord, afstand en 501',
+      title: 'Dartsregels en je bord ophangen: zo speel je het goed',
       description:
-        'Hoe hoog hangt een dartbord en hoe ver is de oche? De officiële maten (1,73 m, 2,37 m), hoe 501 met dubbel uitgooien werkt en wat een bust is.',
+        'Hang je bord op de officiële hoogte, leer hoe 501 met dubbel uit werkt, en beslecht die gezellige discussies over wat er telt als bust.',
       h1: 'Darts regels uitgelegd',
       answer:
         'Een dartbord hangt met het midden van de bull 1,73 m boven de vloer, en de oche (werplijn) ligt 2,37 m van de voorkant van het bord; de schuine afstand van de bull naar de oche op de vloer is 2,93 m. Bij 501 tel je af van 501 en moet je precies uitgooien op een dubbel of de bull. Een dart mag maximaal 30,5 cm lang en 50 gram zwaar zijn.',
@@ -259,9 +259,9 @@ export const EVENTS: Record<Lang, Page[]> = {
     {
       key: 'checkout',
       slug: 'uitgooitabel',
-      title: 'Uitgooitabel darts: alle finishes van 170 tot 2',
+      title: 'De complete uitgooitabel, van 170 tot dubbel 1',
       description:
-        'Alle uitgooiers bij darts van 170 tot 2, in zo min mogelijk darts en eindigend op een dubbel, plus de scores die je niet in drie darts kunt uitgooien.',
+        'Houd deze lijst bij de hand, dan weet je altijd de slimste finish, van de big fish 170 tot dubbel 1, en welke lastige getallen je beter niet overlaat.',
       h1: 'Uitgooitabel darts',
       answer:
         'De hoogste uitgooi bij darts is 170: triple 20, triple 20, bull. Elke score van 2 tot 170 is in drie darts uit te gooien, behalve 169, 168, 166, 165, 163, 162 en 159. De tabel hieronder geeft per score een route, in zo min mogelijk darts en eindigend op een dubbel (T = triple, D = dubbel).',
