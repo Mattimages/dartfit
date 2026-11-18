@@ -1465,7 +1465,10 @@ export async function adView(root: HTMLElement, _p: Record<string, string>, q: U
   // ── The ask, then the empty board again: the first frame, so the video loops.
   const cta = scene();
   const ask = h('div', { class: 'ad-ask' }, askText);
-  if (askText.length > 18) ask.style.fontSize = '12.5vw';
+  // Sized by the longest word as well, so "Weihnachtsgeschenk" never runs off the screen.
+  const longest = Math.max(...askText.split(/\s+/).map((w) => w.length));
+  const askVw = Math.min(askText.length > 18 ? 12.5 : 17, 88 / (longest * 0.56));
+  ask.style.fontSize = `${askVw.toFixed(1)}vw`;
   const url = h('div', { class: 'ad-url' }, 'findyourdarts.com');
   const free = h('div', { class: 'ad-free' }, freeText);
   const worlds = theme === 'xmas' ? h('div', { class: 'ad-worlds' }, V.worlds) : null;
