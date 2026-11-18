@@ -167,6 +167,13 @@ export function createApp(deps: AppDeps) {
 
   // ── Health & catalogue ───────────────────────────────────────────────
   app.get('/api/health', (_req, res) => res.json({ ok: true, engine: ENGINE_VERSION, db: db.kind }));
+  // The visitor's country from the hosting's IP lookup, for a first guess (nothing is stored).
+  app.get('/api/geo', (req, res) => {
+    const c =
+      (req.headers['x-vercel-ip-country'] as string | undefined) ??
+      (req.headers['cf-ipcountry'] as string | undefined);
+    res.set('cache-control', 'private, no-store').json({ country: c ? c.toUpperCase() : null });
+  });
   app.use(photoRouter(env, deps.photoFetch));
 
   // Vercel Cron calls this with "Authorization: Bearer $CRON_SECRET". Without a secret it does not exist.

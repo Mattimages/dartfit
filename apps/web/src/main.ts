@@ -2,7 +2,7 @@ import '@fontsource-variable/geist/wght.css';
 import './styles.css';
 import { h, mount } from './h';
 import { getLang, LANGS, t } from './i18n';
-import { COUNTRIES, getCountry } from './region';
+import { COUNTRIES, getCountry, guessCountryFromNetwork } from './region';
 import { openRegionPicker } from './views/region-picker';
 import { route, start, render, current } from './router';
 import { inject, pageview } from '@vercel/analytics';
@@ -138,6 +138,18 @@ start((path) => {
 });
 // No pop-up on the first visit: the questionnaire asks where they buy (browser guess pre-selected).
 void refreshCatalogue();
+// First visit: a better country guess from the connection; redraw only where it shows.
+if (!DEMO) {
+  const before = getCountry();
+  void guessCountryFromNetwork().then(() => {
+    if (getCountry() === before) return;
+    if (['', '#', '#/'].includes(location.hash)) refreshAll();
+    else {
+      const b = document.querySelector('.region-btn');
+      if (b?.lastChild) b.lastChild.textContent = getCountry();
+    }
+  });
+}
 
 if (!DEMO && 'serviceWorker' in navigator && import.meta.env.PROD) {
   navigator.serviceWorker.register('/sw.js').catch(() => {});

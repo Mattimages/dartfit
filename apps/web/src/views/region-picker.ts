@@ -66,11 +66,15 @@ export function openRegionPicker(onDone: () => void, first = false) {
         { type: 'button', role: 'radio', 'aria-checked': String(l.id === lang), 'data-lang': l.id },
         l.name,
       );
+      // A language applies at once (owner, 18 Nov: tapping one used to do nothing until a country
+      // was picked): the page and this picker redraw in it, and the picker stays open.
       b.addEventListener('click', () => {
+        if (l.id === getLang()) return;
         lang = l.id;
-        langRow
-          .querySelectorAll('button')
-          .forEach((x) => x.setAttribute('aria-checked', String(x.dataset.lang === lang)));
+        setLang(lang);
+        close();
+        onDone();
+        openRegionPicker(onDone, first);
       });
       return b;
     }),
