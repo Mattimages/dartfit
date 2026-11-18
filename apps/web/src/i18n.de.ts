@@ -31,10 +31,18 @@ export const de: Partial<Record<Key, string>> = {
   'scan.no_model': 'Die Handerkennung lädt nicht. Prüfe deine Verbindung oder miss selbst.',
   'scan.manual': 'Lieber mit dem Lineal messen',
   'scan.nocard': 'Keine Bankkarte zur Hand?',
-  'scan.nocard.title': 'Ohne Karte scannen',
+  'scan.nocard.title': 'Die Karte ist unser Lineal',
   'scan.nocard.warn':
-    'Ohne Karte wissen wir nicht, wie groß deine Hand ist, nur wie sie gebaut ist: wie lang deine Finger im Verhältnis zur Handfläche sind. Die Größe schätzen wir aus deiner Körpergröße oder aus einer durchschnittlichen Hand. Dein Ergebnis wird dadurch deutlich ungenauer: Gewicht und Länge deines Darts können spürbar danebenliegen.',
-  'scan.nocard.go': 'Trotzdem ohne Karte scannen',
+    'Mit Karte messen wir deine Hand in Millimetern, und das macht dein Ergebnis viel genauer.',
+  'scan.nocard.go': 'Trotzdem ohne Karte',
+  'scan.start': 'Scan starten',
+  'scan.choose': 'Hast du eine Karte zur Hand?',
+  'scan.with': 'Mit Karte',
+  'scan.without': 'Ohne Karte',
+  'scan.card.title': 'Halte deine Daten aus dem Bild',
+  'scan.card.body':
+    'Decke Namen und Kartennummer ab, zum Beispiel mit einem Haftzettel, aber lass alle vier Ecken der Karte im Bild.',
+  'scan.back': 'Zurück',
   'scan.nocard.back': 'Ich hole eine Karte',
   'analyse.unscaled':
     'Ohne Karte gemessen: Wir wissen, wie deine Hand gebaut ist, aber nicht, wie groß sie ist. Im nächsten Schritt schätzen wir das aus deiner Körpergröße. Das ist deutlich ungenauer als mit Karte.',
@@ -72,9 +80,8 @@ export const de: Partial<Record<Key, string>> = {
   'scan.tap_count': '{n} von 4 Ecken',
   'scan.tap_failed':
     'Das hat nicht geklappt: Halte deine Hand ein paar Sekunden still im Bild und versuche es erneut.',
-  'scan.privacy': 'Das Bild bleibt auf deinem Handy. Wir verwenden nur die Maße.',
+  'scan.privacy': 'Zeig keine persönlichen Daten auf deiner Karte: Decke Namen und Kartennummer ab.',
   'scan.photo': 'Foto wählen',
-  'scan.photo.hint': 'Lieber ein Foto? Mach es gerade von oben, mit Hand und Karte im Bild.',
   'scan.photo.unreadable': 'Dieses Foto können wir nicht öffnen. Versuche JPG oder PNG.',
   'scan.photo.badcorners':
     'Diese Ecken ergeben eine unmögliche Handgröße. Tippe die vier Kartenecken erneut an.',
@@ -169,6 +176,7 @@ export const de: Partial<Record<Key, string>> = {
   'r.tier.premium': 'Premium',
   'r.tier.none': 'kein Match',
   'r.guide': 'Richtpreis',
+  'hs.tap': 'Tippe, um deine Hand zu scannen',
   'hs.aria':
     'Animation: Eine Hand wird vermessen, der ideale Dart entsteht und drei Darts werden darübergelegt.',
   'hs.step.scan': 'Hand wird gescannt',
@@ -418,19 +426,16 @@ export const de: Partial<Record<Key, string>> = {
     'Der Spieler hat die Messung gemacht. Das ist der Dart, der am besten passt; du kannst ihn hier direkt ansehen.',
   'shared.you': 'Welcher Dart passt zu dir?',
   'gift.title': 'Darts für jemand anderen',
-  'gift.lead': 'Wähle, wie du den richtigen Dart findest.',
   'gift.send.title': 'Den Spieler selbst messen lassen',
-  'gift.send.sub':
-    'Schick einen Link. Der Spieler macht die Messung und schickt dir das Ergebnis zurück. Am genauesten, aber die Überraschung ist dann ein bisschen weg.',
-  'gift.from': 'Dein Vorname (damit der Spieler weiß, von wem es kommt)',
+  'gift.send.sub': 'Schick dem Spieler einen Link zum Selbstmessen: am genauesten, aber weniger überraschend.',
+  'gift.from': 'Dein Vorname',
   'gift.from.placeholder': 'Zum Beispiel Anna',
   'gift.send.make': 'Link erstellen',
   'gift.send.text': 'Hi! Mach diese kurze Messung, dann weiß ich, welcher Dart zu dir passt:',
   'gift.send.text.named':
     'Hi, hier ist {name}! Mach diese kurze Messung, dann weiß ich, welcher Dart zu dir passt:',
   'gift.self.title': 'Selbst schätzen',
-  'gift.self.sub':
-    'Gib ein, was du weißt: Größe, Handtyp und wie der Spieler wirft. Ungenauer, aber es bleibt eine Überraschung.',
+  'gift.self.sub': 'Gib Größe, Handtyp und Wurf des Spielers ein, dann bleibt es eine Überraschung.',
   'gift.self.go': 'Selbst schätzen',
   'gift.banner':
     'Jemand möchte wissen, welcher Dart zu dir passt. Mach die Messung; am Ende schickst du das Ergebnis zurück.',

@@ -497,7 +497,7 @@ export function giftChoiceView(root: HTMLElement) {
     placeholder: t('gift.from.placeholder'),
   }) as HTMLInputElement;
   const linkBox = h('div', { class: 'gift-link', hidden: true });
-  const make = h('button', { class: 'btn block', type: 'button' }, t('gift.send.make'));
+  const make = h('button', { class: 'btn ghost block', type: 'button' }, t('gift.send.make'));
   make.addEventListener('click', () => {
     const from = name.value.trim();
     const url = giftRequestLink(from);
@@ -507,7 +507,7 @@ export function giftChoiceView(root: HTMLElement) {
     linkBox.hidden = false;
     make.hidden = true;
   });
-  const self = h('button', { class: 'btn ghost block', type: 'button' }, t('gift.self.go'));
+  const self = h('button', { class: 'btn block', type: 'button' }, t('gift.self.go'));
   self.addEventListener('click', () => {
     update({
       gift: true,
@@ -523,7 +523,14 @@ export function giftChoiceView(root: HTMLElement) {
       'section',
       { class: 'stack gift-choice' },
       h('h1', null, t('gift.title')),
-      h('p', { class: 'lead' }, t('gift.lead')),
+      // Estimating comes first (owner, 18 Nov): it keeps the surprise. One sentence per block.
+      h(
+        'div',
+        { class: 'gift-opt' },
+        h('h2', null, t('gift.self.title')),
+        h('p', null, t('gift.self.sub')),
+        self,
+      ),
       h(
         'div',
         { class: 'gift-opt' },
@@ -533,13 +540,6 @@ export function giftChoiceView(root: HTMLElement) {
         name,
         make,
         linkBox,
-      ),
-      h(
-        'div',
-        { class: 'gift-opt' },
-        h('h2', null, t('gift.self.title')),
-        h('p', null, t('gift.self.sub')),
-        self,
       ),
     ),
   );

@@ -4083,24 +4083,6 @@ a.card {
 }
 
 /* ── Scanning without a card ─────────────────────────────────────────── */
-.nocard {
-  display: grid;
-  gap: var(--s3);
-  padding: var(--s5);
-  border-radius: var(--r-card);
-  border: 1px solid #f0b8bf;
-  background: #fff4f5;
-  text-align: left;
-}
-.nocard h2 {
-  margin: 0;
-  font-size: 1.25rem;
-  font-weight: 650;
-  letter-spacing: -0.02em;
-}
-.nocard p {
-  margin: 0;
-}
 .unscaled-warn {
   margin: 0;
   padding: var(--s3) var(--s4);
@@ -4857,4 +4839,123 @@ a.card {
 .drawing .cardtext {
   font-size: 13px;
   font-weight: 600;
+}
+
+/* The scan's two pop-ups (with a pasje: keep your details out of view; without: the pasje is our
+   ruler) and the with/without choice. */
+.scan-choice {
+  display: grid;
+  gap: var(--s3);
+}
+.scan-choice h2 {
+  margin: 0;
+  font-size: 1.25rem;
+  font-weight: 650;
+  letter-spacing: -0.02em;
+  text-align: center;
+}
+.pop-dialog {
+  width: min(26rem, calc(100vw - 2rem));
+  margin: auto;
+  padding: 0;
+  border: 0;
+  border-radius: var(--r-stage);
+  background: var(--ground);
+  color: var(--ink);
+  box-shadow: 0 30px 80px -20px rgb(15 27 45 / 0.45);
+}
+.pop-dialog::backdrop {
+  background: rgb(15 27 45 / 0.55);
+  -webkit-backdrop-filter: blur(4px);
+  backdrop-filter: blur(4px);
+}
+.pop-dialog[open] {
+  animation: rp-in 0.25s var(--ease);
+}
+@media (prefers-reduced-motion: reduce) {
+  .pop-dialog[open] {
+    animation: none;
+  }
+}
+.pop {
+  display: grid;
+  gap: var(--s3);
+  padding: var(--s5);
+}
+.pop h2 {
+  margin: 0;
+  font-size: 1.35rem;
+  font-weight: 650;
+  letter-spacing: -0.02em;
+  text-wrap: balance;
+}
+.pop p {
+  margin: 0;
+  line-height: 1.5;
+}
+.pop-actions {
+  display: grid;
+  gap: var(--s2);
+  margin-top: var(--s2);
+}
+.pop-actions .btn {
+  width: 100%;
+}
+
+/* The landing film's last beat: the frame dims and asks you to tap it (it is a link to the scan). */
+.hs-tap {
+  position: absolute;
+  inset: 0;
+  z-index: 20;
+  display: grid;
+  place-items: center;
+  padding: var(--s4);
+  background: rgb(10 18 31 / 0.7);
+  -webkit-backdrop-filter: blur(3px);
+  backdrop-filter: blur(3px);
+  opacity: 0;
+  transition: opacity 0.35s ease;
+}
+.hs-tap.on {
+  opacity: 1;
+}
+.hs-tap-pill {
+  position: relative;
+  padding: 0.95rem 1.5rem;
+  border-radius: 999px;
+  background: var(--red);
+  color: #fff;
+  font-size: 1.15rem;
+  font-weight: 650;
+  letter-spacing: -0.01em;
+  text-align: center;
+  text-wrap: balance;
+  transform: scale(0.9);
+  transition: transform 0.45s var(--ease);
+}
+.hs-tap.on .hs-tap-pill {
+  transform: scale(1);
+}
+.hs-tap.on .hs-tap-pill::after {
+  content: '';
+  position: absolute;
+  inset: -6px;
+  border-radius: inherit;
+  border: 2px solid var(--red);
+  animation: hs-tap-ring 1.4s ease-out 0.4s infinite;
+}
+@keyframes hs-tap-ring {
+  from {
+    opacity: 0.9;
+    transform: scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: scale(1.25);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .hs-tap.on .hs-tap-pill::after {
+    animation: none;
+  }
 }

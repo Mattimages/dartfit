@@ -1,4 +1,4 @@
-import { doors, giftPicture, noCardPicture } from '../draw/doors';
+import { cardPicture, doors, giftPicture, noCardPicture } from '../draw/doors';
 import { handArt } from '../draw/art';
 import { checkHandFrame, type Landmark, type Pt } from '@dartfit/engine';
 import { h, s } from '../h';
@@ -135,23 +135,11 @@ export function scanView(root: HTMLElement, _params?: Record<string, string>, qu
   const camera = h('div', { class: 'camera', hidden: true }, video, freeze, overlay, guide, tapLayer);
   const tapBtn = h('button', { class: 'btn ghost', type: 'button', hidden: true }, t('scan.tap_fallback'));
 
-  const startBtn = h('button', { class: 'btn', type: 'button' }, t('scan.camera'));
-  // No card at hand: proportions only, with a clear warning first.
-  const sideDoors = doors([
-    { label: t('start.nocard'), picture: noCardPicture() },
-    { label: t('start.gift'), picture: giftPicture(), href: '#/gift' },
-  ]);
-  const noCardBtn = sideDoors.querySelector('button')!;
+  // The flow (owner, 18 Nov): "Start scan" → with or without a pasje → a pop-up for each (keep
+  // your details out of view / the pasje is our ruler) → the camera.
+  const startScan = h('button', { class: 'btn', type: 'button' }, t('scan.start'));
+  const startRow = h('div', { class: 'actions' }, startScan);
   const giftOnly = doors([{ label: t('start.gift'), picture: giftPicture(), href: '#/gift' }]);
-  const noCardGo = h('button', { class: 'btn', type: 'button' }, t('scan.nocard.go'));
-  const noCardBack = h('button', { class: 'btn ghost', type: 'button' }, t('scan.nocard.back'));
-  const noCardBox = h(
-    'div',
-    { class: 'nocard', hidden: true, role: 'region', 'aria-labelledby': 'nocard-title' },
-    h('h2', { id: 'nocard-title' }, t('scan.nocard.title')),
-    h('p', null, t('scan.nocard.warn')),
-    h('div', { class: 'actions' }, noCardGo, noCardBack),
-  );
   const photoInput = h('input', {
     type: 'file',
     accept: 'image/*',
@@ -159,6 +147,40 @@ export function scanView(root: HTMLElement, _params?: Record<string, string>, qu
     class: 'visually-hidden',
   }) as HTMLInputElement;
   const photoBtn = h('label', { class: 'btn ghost', for: 'photo' }, t('scan.photo'));
+
+  const popup = (id: string, title: string, body: string, ...actions: HTMLElement[]) => {
+    const d = h(
+      'dialog',
+      { class: 'pop-dialog', 'aria-labelledby': id },
+      h(
+        'div',
+        { class: 'pop' },
+        h('h2', { id }, title),
+        h('p', null, body),
+        h('div', { class: 'pop-actions' }, ...actions),
+      ),
+    ) as HTMLDialogElement;
+    // A tap on the dimmed backdrop closes it, like Esc.
+    d.addEventListener('click', (e) => e.target === d && d.close());
+    return d;
+  };
+  const startBtn = h('button', { class: 'btn', type: 'button' }, t('scan.camera'));
+  const photoPick = h('button', { class: 'btn ghost', type: 'button' }, t('scan.photo'));
+  const withBack = h('button', { class: 'btn link', type: 'button' }, t('scan.back'));
+  const withDlg = popup('card-title', t('scan.card.title'), t('scan.card.body'), startBtn, photoPick, withBack);
+  const getCard = h('button', { class: 'btn', type: 'button' }, t('scan.nocard.back'));
+  const noCardGo = h('button', { class: 'btn ghost', type: 'button' }, t('scan.nocard.go'));
+  const withoutDlg = popup('nocard-title', t('scan.nocard.title'), t('scan.nocard.warn'), getCard, noCardGo);
+  const choice = doors([
+    { label: t('scan.with'), picture: cardPicture(), onclick: () => withDlg.showModal() },
+    { label: t('scan.without'), picture: noCardPicture(), onclick: () => withoutDlg.showModal() },
+  ]);
+  const choiceBox = h(
+    'div',
+    { class: 'scan-choice', hidden: true },
+    h('h2', null, t('scan.choose')),
+    choice,
+  );
   // Builds without the hand model (only the embedded preview) measure with a ruler instead; the
   // real site has no ruler option.
   const intro = NO_CAMERA
@@ -173,11 +195,11 @@ export function scanView(root: HTMLElement, _params?: Record<string, string>, qu
         'div',
         { class: 'stack scan-intro' },
         h('figure', { class: 'sheet narrow' }, setupDiagram()),
-        // The side doors first, so nobody without a pasje starts the camera for nothing.
-        sideDoors,
-        h('div', { class: 'actions' }, startBtn, photoBtn, photoInput),
-        h('p', { class: 'small' }, t('scan.photo.hint')),
+        startRow,
+        choiceBox,
+        giftOnly,
         h('p', { class: 'small' }, t('scan.privacy')),
+        photoInput,
       );
 
   root.append(
@@ -186,11 +208,12 @@ export function scanView(root: HTMLElement, _params?: Record<string, string>, qu
       { class: 'stack scan-page' },
       h('h1', null, t('scan.title')),
       intro,
-      noCardBox,
       camera,
       meter,
       status,
       h('div', { class: 'actions' }, tapBtn),
+      withDlg,
+      withoutDlg,
     ),
   );
   meter.hidden = true;
@@ -324,27 +347,35 @@ export function scanView(root: HTMLElement, _params?: Record<string, string>, qu
 
   // ── Start ───────────────────────────────────────────────────────────
   let noCard = false;
-  noCardBtn.addEventListener('click', () => {
-    intro.hidden = true;
-    noCardBox.hidden = false;
-    noCardGo.focus();
+  const showChoice = () => {
+    startRow.hidden = true;
+    choiceBox.hidden = false;
+  };
+  startScan.addEventListener('click', () => {
+    showChoice();
+    choice.querySelector('button')?.focus();
   });
-  noCardBack.addEventListener('click', () => {
-    noCardBox.hidden = true;
-    intro.hidden = false;
-    noCardBtn.focus();
+  withBack.addEventListener('click', () => withDlg.close());
+  photoPick.addEventListener('click', () => {
+    withDlg.close();
+    photoInput.click();
   });
-  // From "No bank card?" on the home page: straight to the warning.
+  getCard.addEventListener('click', () => {
+    withoutDlg.close();
+    withDlg.showModal();
+  });
+  // From an old "No bank card?" link: straight to that pop-up.
   if (query?.get('nocard') === '1' && !NO_CAMERA) {
-    intro.hidden = true;
-    noCardBox.hidden = false;
+    showChoice();
+    withoutDlg.showModal();
   }
   noCardGo.addEventListener('click', () => {
     noCard = true;
-    noCardBox.hidden = true;
+    withoutDlg.close();
     startBtn.click();
   });
   startBtn.addEventListener('click', async () => {
+    withDlg.close();
     startBtn.setAttribute('disabled', '');
     await askOrientation();
     try {
@@ -355,7 +386,7 @@ export function scanView(root: HTMLElement, _params?: Record<string, string>, qu
     } catch {
       say('scan.no_camera');
       startBtn.removeAttribute('disabled');
-      noCardBox.hidden = true;
+      noCard = false;
       intro.hidden = false;
       return;
     }

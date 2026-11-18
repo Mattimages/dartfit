@@ -486,7 +486,13 @@ export function heroScan(pool: Variant[]): HTMLElement | null {
     for (;;) {
       const finished = await play(root, c);
       if (!finished) return;
-      await wait(4200);
+      await wait(2400);
+      if (!root.isConnected) return;
+      // The round ends on the ask: the film is a link to the scan (play() clears it next round).
+      const tap = h('div', { class: 'hs-tap' }, h('span', { class: 'hs-tap-pill' }, t('hs.tap')));
+      root.append(tap);
+      requestAnimationFrame(() => tap.classList.add('on'));
+      await wait(3400);
       if (!root.isConnected) return;
       root.classList.add('hs-out');
       await wait(450);

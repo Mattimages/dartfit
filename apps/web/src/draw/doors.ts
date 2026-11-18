@@ -6,29 +6,41 @@
 import { h, s } from '../h';
 import { handArt } from './art';
 
-/** The hand alone, with a crossed-out pasje beside it. */
-export function noCardPicture(): SVGElement {
+function handBeside(): SVGElement {
   const hand = handArt({ lengthMm: 185 });
   hand.setAttribute('x', '6');
   hand.setAttribute('y', '4');
   hand.setAttribute('width', '70');
   hand.setAttribute('height', '92');
   hand.setAttribute('preserveAspectRatio', 'xMidYMax meet');
+  return hand;
+}
+
+const card = () =>
+  s('rect', {
+    x: 82,
+    y: 34,
+    width: 50,
+    height: 31.5,
+    rx: 4,
+    fill: 'var(--green-soft)',
+    stroke: 'var(--green)',
+    'stroke-width': 1.6,
+    'stroke-dasharray': '4 3',
+  });
+
+/** The hand with a pasje beside it. */
+export function cardPicture(): SVGElement {
+  return s('svg', { class: 'door-art', viewBox: '0 0 140 100', 'aria-hidden': 'true' }, handBeside(), card());
+}
+
+/** The hand alone, with a crossed-out pasje beside it. */
+export function noCardPicture(): SVGElement {
   return s(
     'svg',
     { class: 'door-art', viewBox: '0 0 140 100', 'aria-hidden': 'true' },
-    hand,
-    s('rect', {
-      x: 82,
-      y: 34,
-      width: 50,
-      height: 31.5,
-      rx: 4,
-      fill: 'var(--green-soft)',
-      stroke: 'var(--green)',
-      'stroke-width': 1.6,
-      'stroke-dasharray': '4 3',
-    }),
+    handBeside(),
+    card(),
     s('line', {
       x1: 80,
       y1: 70,
