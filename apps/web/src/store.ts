@@ -12,8 +12,10 @@ export interface Session {
   priceClass?: 'budget' | 'standard' | 'premium' | 'any';
   /** Buying for someone else: no scan, the questions ask about "the player". */
   gift?: boolean;
-  /** The email sign-up was shown at the start of a fitting film this visit. */
+  /** The email sign-up was shown at the start of a fitting film this visit (no longer asked there). */
   alertsAsked?: boolean;
+  /** "Sla je fit op" was shown after a fitting film this visit. */
+  saveAsked?: boolean;
   /** Opened from a gift link: the buyer's first name (may be empty); the result offers to send the dart back. */
   giftRequest?: { from: string };
   /** They signed up for alerts this visit (confirmation mail on its way). */

@@ -21,7 +21,7 @@ import { alertSignup } from './alert-signup';
 import { matchSplit } from './match-split';
 import { partnerBanner } from './partner';
 import { proPortrait } from '../draw/pro-photo';
-import { shareBox, type ShareOption } from './share';
+import { resultShare, shareBox } from './share';
 
 const k = (s: string) => s as Key;
 type FullPick = RecPick & { offers: Offer[] };
@@ -123,17 +123,6 @@ function matchView(f: Fit, v: Variant): HTMLElement {
 }
 
 /** The price classes for the share picture: the one holding your best match first, then by match. */
-function shareOptions(r: FitResult, bestId: string): ShareOption[] {
-  const all = TIERS.flatMap((tier) => {
-    const sv = r.tiers?.[tier];
-    return sv ? [{ tier, v: sv.variant, pct: matchPct(sv.cost) }] : [];
-  });
-  return [
-    ...all.filter((x) => x.v.id === bestId),
-    ...all.filter((x) => x.v.id !== bestId).sort((a, b) => b.pct - a.pct),
-  ];
-}
-
 /** The big product view: photo or model match, with the switch. */
 const productMedia = (f: Fit, v: Variant) =>
   dartMedia(v, { width: 800, toggle: true, model: matchView(f, v), modelLabel: t('media.match') });
@@ -335,6 +324,7 @@ export async function resultView(root: HTMLElement, params: Record<string, strin
     h('details', { class: 'more' }, h('summary', null, title), h('div', null, ...body));
 
   const twin = r.proTwin;
+  const share = resultShare(r);
   const v = best?.variant;
   const copyBtn = h('button', { class: 'btn ghost', type: 'button' }, t('r.share'));
   copyBtn.addEventListener('click', async () => {
@@ -385,16 +375,8 @@ export async function resultView(root: HTMLElement, params: Record<string, strin
             h('h1', null, t('r.title')),
             h('p', { class: 'callout' }, t('r.none', { tip: t(k(`q.tip.${f.tip}`)) })),
           )),
-    best && session().giftRequest
-      ? shareBox({
-          v: best.variant,
-          pct: matchPct(best.cost),
-          proId: twin?.pro.id,
-          proName: twin?.pro.name,
-          options: shareOptions(r, best.variant.id),
-          ideal: f.barrel,
-        })
-      : null,
+    // Share first, then the pro (owner, 18 Nov); for a gift request it is the send-back box.
+    share ? shareBox(share) : null,
     twin
       ? h(
           'a',
@@ -409,17 +391,6 @@ export async function resultView(root: HTMLElement, params: Record<string, strin
           h('p', null, `${dartName(twin.scored.variant)} ${num(twin.scored.variant.weightG)} g`),
           h('span', { class: 'twin-more' }, t('pm.open')),
         )
-      : null,
-    // Share: right under the hero for a gift request (send it back), after the pro otherwise.
-    best && !session().giftRequest
-      ? shareBox({
-          v: best.variant,
-          pct: matchPct(best.cost),
-          proId: twin?.pro.id,
-          proName: twin?.pro.name,
-          options: shareOptions(r, best.variant.id),
-          ideal: f.barrel,
-        })
       : null,
     picks.length > 1
       ? h(

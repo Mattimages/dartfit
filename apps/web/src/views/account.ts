@@ -2,6 +2,7 @@ import { h } from '../h';
 import { t } from '../i18n';
 import { go } from '../router';
 import { DEMO, deleteAccount, logout, me, requestLogin, setOptins } from '../api';
+import { localFits } from './save-fit';
 
 export function signinView(root: HTMLElement, _p: Record<string, string>, query: URLSearchParams) {
   if (DEMO) return go('/');
@@ -66,6 +67,27 @@ export function signinView(root: HTMLElement, _p: Record<string, string>, query:
 export async function meView(root: HTMLElement) {
   if (DEMO) return go('/');
   const data = await me().catch(() => ({ user: null }));
+  const local = localFits();
+  // Not signed in, but fits were saved on this browser: list those, with the way to sign in.
+  if (!data.user && local.length) {
+    root.append(
+      h(
+        'section',
+        { class: 'stack' },
+        h('h1', null, t('me.title')),
+        h('p', { class: 'small' }, t('me.local')),
+        h(
+          'ul',
+          { class: 'whatif' },
+          ...local.map((f) =>
+            h('li', null, h('a', { href: `#/fit/${f.id}` }, f.name || new Date(f.at).toLocaleDateString())),
+          ),
+        ),
+        h('a', { class: 'btn ghost', href: '#/signin' }, t('me.signin')),
+      ),
+    );
+    return;
+  }
   if (!data.user) return go('/signin');
   const u = data.user;
   const toggle = (id: string, label: string, on: boolean, key: 'alertsEmail' | 'feedbackEmail') => {
@@ -102,7 +124,7 @@ export async function meView(root: HTMLElement) {
                 h(
                   'a',
                   { href: `#/fit/${f.id}` },
-                  `${new Date(f.created_at).toLocaleDateString()} · ${f.brand ?? ''} ${f.name ?? ''} ${f.weight_g ? `${f.weight_g} g` : ''}`,
+                  `${f.label ? `${f.label} · ` : ''}${new Date(f.created_at).toLocaleDateString()} · ${f.brand ?? ''} ${f.name ?? ''} ${f.weight_g ? `${f.weight_g} g` : ''}`,
                 ),
               ),
             ),

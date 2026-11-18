@@ -8,10 +8,11 @@ import { h, reducedMotion, s } from '../h';
 import { t } from '../i18n';
 import { go } from '../router';
 import { session, update } from '../store';
-import { alertSignup } from './alert-signup';
+import { saveFitPopup } from './save-fit';
 import { createFit, variants } from '../api';
 import { templateHand } from '../draw/art';
 import { castFor, fitFilm } from './hero-scan';
+import { resultShare, shareResultButton } from './share';
 
 const wait = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
@@ -76,33 +77,16 @@ export async function fittingView(root: HTMLElement) {
     holder.append(loader);
     shownAt = performance.now();
   };
-  let showLoader = setTimeout(showLoaderNow, 250);
+  const showLoader = setTimeout(showLoaderNow, 250);
   const cta = h('a', { class: 'btn block fit-cta', hidden: true }, t('fit.see'));
   const skip = h('a', { class: 'btn link fit-skip', hidden: true }, t('fit.skip'));
   const err = h('p', { class: 'error', role: 'alert', hidden: true }, t('q.error'));
-  root.append(h('section', { class: 'fit-screen' }, title, status, holder, cta, skip, err));
+  // After the film: "Bekijk jouw darts" and, beside it, "Deel mijn resultaat".
+  const ends = h('div', { class: 'fit-ends', hidden: true }, cta);
+  root.append(h('section', { class: 'fit-screen' }, title, status, holder, ends, skip, err));
 
-  // The fit is calculated while the player looks at the email sign-up.
   const fitP = createFit(m, a);
   fitP.catch(() => {});
-
-  // First: the email sign-up (once per visit). The film starts when they sign up or say "not now".
-  if (!s0.alertsAsked) {
-    clearTimeout(showLoader);
-    update({ alertsAsked: true });
-    await new Promise<void>((done) => {
-      const box = alertSignup(
-        fitP.then((r) => r.id ?? undefined).catch(() => undefined),
-        { saved: false, justConfirmed: false, onDone: done },
-      );
-      box.classList.add('fit-alert');
-      holder.replaceChildren(box);
-      box.querySelector<HTMLInputElement>('input[type=email]')?.focus({ preventScroll: true });
-    });
-    if (location.hash !== '#/fitting') return;
-    holder.replaceChildren();
-    showLoader = setTimeout(showLoaderNow, 250);
-  }
 
   let result;
   try {
@@ -120,7 +104,15 @@ export async function fittingView(root: HTMLElement) {
   skip.setAttribute('href', target);
   const best = result.recommendation.picks[0];
   status.textContent = best ? t('fit.found') : t('fit.none');
-  if (reducedMotion() || !best) return go(target.slice(1));
+  const askSave = () => {
+    if (session().saveAsked || result.saved) return false;
+    update({ saveAsked: true });
+    saveFitPopup(result.id, () => go(target.slice(1)));
+    return true;
+  };
+  if (!best) return go(target.slice(1));
+  // Reduced motion: no film, so the save question comes straight away.
+  if (reducedMotion()) return askSave() ? undefined : go(target.slice(1));
 
   // Your hand: the scanned landmarks when there are any, otherwise a hand of your size.
   const est = f.reasons.find((x) => x.code === 'hand_from_height')?.params.handLengthMm;
@@ -150,9 +142,13 @@ export async function fittingView(root: HTMLElement) {
   skip.hidden = false;
   await film.done;
   skip.hidden = true;
+  const share = resultShare(result);
+  if (share) ends.append(shareResultButton(share));
+  // "Bekijk jouw darts" first asks to save the fit (once per visit, not when already signed in).
+  cta.addEventListener('click', (e) => {
+    if (askSave()) e.preventDefault();
+  });
   cta.hidden = false;
+  ends.hidden = false;
   cta.focus({ preventScroll: true });
-  // Give the stacked options a moment, then open the result unless the player already moved on.
-  await wait(5000);
-  if (location.hash === '#/fitting') go(target.slice(1));
 }

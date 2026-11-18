@@ -3569,6 +3569,13 @@ a.card {
 .fit-cta {
   animation: fit-cta-in 0.45s var(--ease);
 }
+.fit-ends {
+  display: grid;
+  gap: var(--s2);
+}
+.fit-ends .btn {
+  animation: fit-cta-in 0.45s var(--ease);
+}
 @keyframes fit-cta-in {
   from {
     opacity: 0;
@@ -4958,4 +4965,22 @@ a.card {
   .hs-tap.on .hs-tap-pill::after {
     animation: none;
   }
+}
+
+/* "Sla je fit op" (views/save-fit.ts), inside the shared pop-up. */
+.save-fit .save-field {
+  display: grid;
+  gap: 0.35rem;
+}
+.save-fit input[type='email'],
+.save-fit input[type='text'] {
+  width: 100%;
+}
+.save-fit .alert-fine {
+  margin: 0;
+  text-align: center;
+  color: var(--ink-3);
+}
+.save-fit .alert-msg:empty {
+  display: none;
 }

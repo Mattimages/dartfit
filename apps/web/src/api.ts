@@ -223,6 +223,7 @@ export interface Me {
   fits?: Array<{
     id: string;
     created_at: string;
+    label?: string | null;
     brand: string | null;
     name: string | null;
     weight_g: number | null;
@@ -234,7 +235,9 @@ export const me = (): Promise<Me> => (DEMO ? Promise.resolve({ user: null }) : j
 export const requestLogin = (body: {
   email: string;
   fitId?: string;
-  purpose?: 'login' | 'alerts';
+  purpose?: 'login' | 'alerts' | 'save';
+  fitName?: string;
+  remember?: boolean;
   alertsEmail: boolean;
   feedbackEmail: boolean;
   confirmsAge16: boolean;

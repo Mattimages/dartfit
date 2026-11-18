@@ -331,6 +331,44 @@ describe('accounts, saving and alerts (Phase 4 end-to-end)', () => {
     expect(f!.user_id).toBeNull();
   });
 
+  it('"save your fit": named, still opens before confirming, no alerts; the link signs in', async () => {
+    const saver = request.agent(app);
+    const fit = await saver.post('/api/fit').send({ measurements, answers }).expect(200);
+    const mail = 'saver@example.com';
+    await saver
+      .post('/api/auth/request')
+      .send({
+        email: mail,
+        fitId: fit.body.id,
+        purpose: 'save',
+        fitName: 'Mijn nieuwe darts',
+        remember: false,
+        confirmsAge16: true,
+      })
+      .expect(200);
+    const [u] = await db.query<{ id: string; alerts_email: boolean }>(
+      'SELECT id, alerts_email FROM users WHERE email=$1',
+      [mail],
+    );
+    expect(u!.alerts_email).toBe(false);
+    const [f] = await db.query<{ user_id: string; label: string }>('SELECT user_id, label FROM fits WHERE id=$1', [
+      fit.body.id,
+    ]);
+    expect(f).toEqual({ user_id: u!.id, label: 'Mijn nieuwe darts' });
+    // Not confirmed yet: the fit still opens from its own link (the result page right after).
+    await request(app).get(`/api/fit/${fit.body.id}`).expect(200);
+    const token = (await outbox(mail))[0]!.body_text.match(/token=([\w-]+)/)![1];
+    const r = await saver.get(`/api/auth/verify?token=${token}`).expect(302);
+    expect(r.headers.location).toBe(`/#/fit/${fit.body.id}?saved=1`);
+    // "Stay signed in" unticked: a browser-session cookie (no Max-Age / Expires).
+    const cookie = String(r.headers['set-cookie']);
+    expect(cookie).not.toMatch(/Max-Age|Expires/i);
+    // Confirmed: private now, and listed with its name.
+    await request(app).get(`/api/fit/${fit.body.id}`).expect(404);
+    const me = await saver.get('/api/me').expect(200);
+    expect(me.body.fits[0]).toMatchObject({ id: fit.body.id, label: 'Mijn nieuwe darts' });
+  });
+
   it('a login link works once only', async () => {
     const mails = await outbox(email);
     const token = mails.find((m) => m.kind === 'login')!.body_text.match(/token=([\w-]+)/)![1];

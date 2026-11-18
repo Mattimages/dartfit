@@ -11,7 +11,8 @@ import { h } from '../h';
 import { num, t } from '../i18n';
 import { go } from '../router';
 import { session, update } from '../store';
-import { pros, shopFor, variants } from '../api';
+import { pros, shopFor, variants, type FitResult } from '../api';
+import { matchPct } from '../score';
 import { dartMedia, photoUrl } from '../media';
 import { dartName } from './words';
 import { approxEur } from '../money';
@@ -384,7 +385,7 @@ async function resultCard(o: {
 }
 
 /** The share box on a result. In a gift request it leads, addressed to the buyer. */
-export function shareBox(o: {
+type ShareInput = {
   v: Variant;
   pct: number;
   proId?: string;
@@ -393,7 +394,30 @@ export function shareBox(o: {
   options?: ShareOption[];
   /** Your ideal dart, drawn between the pro and the darts on the share picture. */
   ideal?: Parameters<typeof idealDartPaths>[0] & { massG?: number };
-}): HTMLElement {
+};
+
+/** What a fit result shares: the best dart, its %, the pro and the price classes. */
+export function resultShare(r: FitResult): ShareInput | null {
+  const best = r.recommendation.picks[0];
+  if (!best) return null;
+  const all = (['budget', 'standard', 'premium'] as const).flatMap((tier) => {
+    const sv = r.tiers?.[tier];
+    return sv ? [{ tier, v: sv.variant, pct: matchPct(sv.cost) }] : [];
+  });
+  return {
+    v: best.variant,
+    pct: matchPct(best.cost),
+    proId: r.proTwin?.pro.id,
+    proName: r.proTwin?.pro.name,
+    options: [
+      ...all.filter((x) => x.v.id === best.variant.id),
+      ...all.filter((x) => x.v.id !== best.variant.id).sort((a, b) => b.pct - a.pct),
+    ],
+    ideal: r.fit.barrel,
+  };
+}
+
+function shareParts(o: ShareInput) {
   const req = session().giftRequest;
   const url = sharedLink({ variantId: o.v.id, pct: o.pct, proId: o.proId, gift: !!req });
   const text = req
@@ -401,6 +425,52 @@ export function shareBox(o: {
     : o.proName
       ? t('share.text.like', { pro: o.proName, pct: Math.round(o.pct) })
       : t('share.text.mine', { dart: dartName(o.v), pct: Math.round(o.pct) });
+  const card = () =>
+    resultCard({
+      v: o.v,
+      pct: o.pct,
+      pro: o.proName,
+      proId: o.proId,
+      options: o.options,
+      ideal: o.ideal,
+      proCountry: pros().find((p) => p.id === o.proId)?.country,
+    });
+  return { req, url, text, card };
+}
+
+/**
+ * One "Deel mijn resultaat" button (the end of the fitting film): the phone's share sheet with the
+ * picture, or the link copied where there is no share sheet. `onUse` fires on tap.
+ */
+export function shareResultButton(o: ShareInput, onUse?: () => void): HTMLElement {
+  const { url, text, card } = shareParts(o);
+  const btn = h('button', { class: 'btn ghost block', type: 'button' }, t('share.result'));
+  btn.addEventListener('click', async () => {
+    onUse?.();
+    if (typeof navigator.share === 'function') {
+      const data: ShareData = { title: 'DartFit', text, url };
+      try {
+        const blob = await card();
+        const file = blob ? new File([blob], 'dartfit.png', { type: 'image/png' }) : null;
+        if (file && navigator.canShare?.({ files: [file] })) data.files = [file];
+        await navigator.share(data);
+      } catch {
+        /* cancelled, or the share sheet refused the picture */
+      }
+      return;
+    }
+    try {
+      await navigator.clipboard.writeText(`${text} ${url}`);
+      btn.textContent = t('share.copied');
+    } catch {
+      /* clipboard blocked */
+    }
+  });
+  return btn;
+}
+
+export function shareBox(o: ShareInput): HTMLElement {
+  const { req, url, text, card } = shareParts(o);
   return h(
     'section',
     { class: `share-box${req ? ' gift' : ''}`, 'aria-labelledby': 'share-title' },
@@ -414,17 +484,7 @@ export function shareBox(o: {
         : t('share.title'),
     ),
     h('p', null, req ? t('share.gift.sub') : t('share.sub')),
-    shareButtons(text, url, () =>
-      resultCard({
-        v: o.v,
-        pct: o.pct,
-        pro: o.proName,
-        proId: o.proId,
-        options: o.options,
-        ideal: o.ideal,
-        proCountry: pros().find((p) => p.id === o.proId)?.country,
-      }),
-    ),
+    shareButtons(text, url, card),
   );
 }
 
@@ -489,21 +549,11 @@ export function sharedView(root: HTMLElement, _p: Record<string, string>, q: URL
 
 /** #/gift : estimate it yourself, or send the player a link to measure their own hand. */
 export function giftChoiceView(root: HTMLElement) {
-  const name = h('input', {
-    type: 'text',
-    id: 'gift-from',
-    autocomplete: 'given-name',
-    maxlength: 40,
-    placeholder: t('gift.from.placeholder'),
-  }) as HTMLInputElement;
   const linkBox = h('div', { class: 'gift-link', hidden: true });
   const make = h('button', { class: 'btn ghost block', type: 'button' }, t('gift.send.make'));
   make.addEventListener('click', () => {
-    const from = name.value.trim();
-    const url = giftRequestLink(from);
-    linkBox.replaceChildren(
-      shareButtons(from ? t('gift.send.text.named', { name: from }) : t('gift.send.text'), url),
-    );
+    // No name field (owner, 18 Nov): the player knows who sent it.
+    linkBox.replaceChildren(shareButtons(t('gift.send.text'), giftRequestLink('')));
     linkBox.hidden = false;
     make.hidden = true;
   });
@@ -536,8 +586,6 @@ export function giftChoiceView(root: HTMLElement) {
         { class: 'gift-opt' },
         h('h2', null, t('gift.send.title')),
         h('p', null, t('gift.send.sub')),
-        h('label', { class: 'label', for: 'gift-from' }, t('gift.from')),
-        name,
         make,
         linkBox,
       ),

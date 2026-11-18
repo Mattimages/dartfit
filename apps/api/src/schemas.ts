@@ -61,8 +61,13 @@ export const LoginRequest = z.object({
   email: z.string().trim().toLowerCase().email().max(200),
   lang: z.enum(['nl', 'en']).default('nl'),
   fitId: z.string().uuid().optional(),
-  /** 'alerts': the "keep me posted" box under a result. Same double opt-in, different email wording. */
-  purpose: z.enum(['login', 'alerts']).default('login'),
+  /** 'alerts': the "keep me posted" box under a result. 'save': the "save your fit" pop-up after
+   *  the fitting film (no alerts). Both subscribe/attach at once and mail a 24-hour confirm link. */
+  purpose: z.enum(['login', 'alerts', 'save']).default('login'),
+  /** A name for this fit, shown under "Mijn fits". */
+  fitName: z.string().trim().max(60).optional(),
+  /** "Stay signed in on this browser": false makes the session end when the browser closes. */
+  remember: z.boolean().optional(),
   alertsEmail: z.boolean().default(false),
   feedbackEmail: z.boolean().default(false),
   /** Wording version of the consent text the person saw, stored with the consent. */

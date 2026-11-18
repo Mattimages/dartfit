@@ -290,15 +290,18 @@ export function createApp(deps: AppDeps) {
           answers: Answers;
           country: string;
           lang: Lang;
-        }>('SELECT user_id, measurements, answers, country, lang FROM fits WHERE id=$1', [id])
+          verified_at: string | null;
+        }>(
+          `SELECT f.user_id, f.measurements, f.answers, f.country, f.lang, u.verified_at
+           FROM fits f LEFT JOIN users u ON u.id = f.user_id WHERE f.id=$1`,
+          [id],
+        )
       )[0];
-      // Saved fits are private to their owner; anonymous fits are reachable only by their unguessable id.
-      if (!row || (row.user_id && row.user_id !== req.user?.id))
-        return res.status(404).json({ error: 'not_found' });
+      if (!row || hidden(row, req)) return res.status(404).json({ error: 'not_found' });
       const f = runFit(row.measurements ?? undefined, row.answers);
       res.json({
         id,
-        saved: !!row.user_id,
+        saved: !!row.user_id && row.user_id === req.user?.id,
         lang: row.lang,
         measurements: row.measurements,
         answers: row.answers,
@@ -320,10 +323,14 @@ export function createApp(deps: AppDeps) {
           measurements: Measurements | null;
           answers: Answers;
           lang: Lang;
-        }>('SELECT user_id, measurements, answers, lang FROM fits WHERE id=$1', [body.fitId])
+          verified_at: string | null;
+        }>(
+          `SELECT f.user_id, f.measurements, f.answers, f.lang, u.verified_at
+           FROM fits f LEFT JOIN users u ON u.id = f.user_id WHERE f.id=$1`,
+          [body.fitId],
+        )
       )[0];
-      if (!row || (row.user_id && row.user_id !== req.user?.id))
-        return res.status(404).json({ error: 'not_found' });
+      if (!row || hidden(row, req)) return res.status(404).json({ error: 'not_found' });
       const lang = body.lang ?? row.lang;
       const variants = await activeVariants(db);
       const f = runFit(row.measurements ?? undefined, row.answers);
@@ -413,7 +420,9 @@ export function createApp(deps: AppDeps) {
       // "Keep me posted" is a direct opt-in (owner's decision 24 Oct: no confirmation link).
       // It never signs anyone in, and it only attaches the fit to a brand-new address, so typing
       // someone else's email can't touch their account; every alert has a one-click unsubscribe.
-      if (body.purpose === 'alerts') {
+      // "Save your fit" works the same way, without the alerts.
+      if (body.purpose === 'alerts' || body.purpose === 'save') {
+        const alerts = body.purpose === 'alerts';
         let user = (await db.query<{ id: string }>('SELECT id FROM users WHERE email=$1', [body.email]))[0];
         const isNew = !user;
         if (!user) {
@@ -424,9 +433,13 @@ export function createApp(deps: AppDeps) {
             body.lang,
           ]);
         }
-        await setOptins(user.id, { alertsEmail: true }, body.consentVersion, true);
+        if (alerts) await setOptins(user.id, { alertsEmail: true }, body.consentVersion, true);
         if (isNew && body.fitId)
-          await db.query('UPDATE fits SET user_id=$1 WHERE id=$2 AND user_id IS NULL', [user.id, body.fitId]);
+          await db.query('UPDATE fits SET user_id=$1, label=$3 WHERE id=$2 AND user_id IS NULL', [
+            user.id,
+            body.fitId,
+            body.fitName || null,
+          ]);
         // Optional: confirm the address to keep the account (signed in, fit saved, no re-measuring).
         // At most 3 such links per address per hour (24-hour links issued within the last hour).
         const sent = await db.query(
@@ -442,11 +455,13 @@ export function createApp(deps: AppDeps) {
               body.email,
               JSON.stringify({
                 fitId: body.fitId,
+                fitName: body.fitName || undefined,
+                remember: body.remember,
                 lang: body.lang,
-                alertsEmail: true,
+                alertsEmail: alerts ? true : undefined,
                 feedbackEmail: false,
                 consentVersion: body.consentVersion,
-                purpose: 'alerts',
+                purpose: body.purpose,
               }),
             ],
           );
@@ -505,7 +520,9 @@ export function createApp(deps: AppDeps) {
             alertsEmail?: boolean;
             feedbackEmail?: boolean;
             consentVersion?: string;
-            purpose?: 'login' | 'alerts';
+            purpose?: 'login' | 'alerts' | 'save';
+            fitName?: string;
+            remember?: boolean;
           };
         }>(
           `UPDATE login_tokens SET used_at=now() WHERE token_hash=$1 AND used_at IS NULL AND expires_at > now() RETURNING email, payload`,
@@ -529,19 +546,26 @@ export function createApp(deps: AppDeps) {
         p.consentVersion ?? 'unknown',
         true,
       );
-      await db.query('UPDATE users SET last_seen_at=now() WHERE id=$1', [user.id]);
+      await db.query('UPDATE users SET last_seen_at=now(), verified_at=COALESCE(verified_at, now()) WHERE id=$1', [
+        user.id,
+      ]);
       if (p.fitId)
-        await db.query('UPDATE fits SET user_id=$1 WHERE id=$2 AND user_id IS NULL', [user.id, p.fitId]);
+        await db.query(
+          'UPDATE fits SET user_id=$1, label=COALESCE($3, label) WHERE id=$2 AND (user_id IS NULL OR user_id=$1)',
+          [user.id, p.fitId, p.fitName ?? null],
+        );
+      // "Stay signed in on this browser" unticked: a cookie that ends with the browser, one day at most.
+      const remember = p.remember !== false;
       const sid = randomToken();
       await db.query(
-        `INSERT INTO sessions(id_hash, user_id, expires_at) VALUES ($1,$2, now() + interval '${SESSION_DAYS} days')`,
+        `INSERT INTO sessions(id_hash, user_id, expires_at) VALUES ($1,$2, now() + interval '${remember ? `${SESSION_DAYS} days` : '1 day'}')`,
         [sha256(sid), user.id],
       );
       res.cookie(COOKIE, sid, {
         httpOnly: true,
         secure,
         sameSite: 'lax',
-        maxAge: SESSION_DAYS * 864e5,
+        ...(remember ? { maxAge: SESSION_DAYS * 864e5 } : {}),
         path: '/',
       });
       res.redirect(
@@ -560,6 +584,15 @@ export function createApp(deps: AppDeps) {
       res.json({ ok: true });
     }),
   );
+
+  /**
+   * Saved fits are private to their owner once that owner has confirmed their address. Before that
+   * (an address typed into "save your fit" or "keep me posted", link not clicked yet) the fit stays
+   * reachable by its unguessable id, as it was, so the person who made it can still open it.
+   */
+  function hidden(row: { user_id: string | null; verified_at: string | null }, req: Req): boolean {
+    return !!row.user_id && !!row.verified_at && row.user_id !== req.user?.id;
+  }
 
   async function setOptins(
     userId: string,
@@ -598,7 +631,7 @@ export function createApp(deps: AppDeps) {
     wrap(async (req, res) => {
       if (!req.user) return res.json({ user: null });
       const fits = await db.query(
-        `SELECT f.id, f.created_at, f.best_variant_id, m.brand, m.name, v.weight_g
+        `SELECT f.id, f.created_at, f.label, f.best_variant_id, m.brand, m.name, v.weight_g
          FROM fits f LEFT JOIN dart_variants v ON v.id=f.best_variant_id LEFT JOIN dart_models m ON m.id=v.model_id
          WHERE f.user_id=$1 ORDER BY f.created_at DESC LIMIT 20`,
         [req.user.id],
