@@ -216,6 +216,77 @@ function soundtrack(cues, seconds) {
         put(at + j * 0.045, 0.3, (t) => Math.sin(2 * Math.PI * f * t) * Math.exp(-t / 0.08) * 0.05);
       }
     },
+    // ── Owner, 19 Nov: "more variation". Every cut, tap and counter gets its own voice; cues may carry
+    // a step (name:n) that moves the pitch, so a run of taps climbs instead of repeating.
+    glock: (at, n = 0) => {
+      const f = [1046.5, 1174.7, 1318.5, 1568, 1760, 2093][n % 6];
+      put(at, 0.9, (t) => (Math.sin(2 * Math.PI * f * t) + 0.25 * Math.sin(2 * Math.PI * 2.76 * f * t) * Math.exp(-t / 0.05)) * Math.exp(-t / 0.3) * 0.16);
+    },
+    tom: (at, n = 0) => {
+      let ph = 0;
+      const f0 = [140, 175, 210, 120][n % 4];
+      put(at, 0.3, (t) => {
+        ph += (2 * Math.PI * f0 * (1 + 0.6 * Math.exp(-t / 0.04))) / SR;
+        return Math.sin(ph) * Math.exp(-t / 0.09) * 0.4;
+      });
+    },
+    click: (at) => put(at, 0.02, (t) => (rnd() * 0.6 + Math.sin(2 * Math.PI * 3300 * t)) * Math.exp(-t / 0.003) * 0.25),
+    // A pitched pop: taps that climb.
+    pip: (at, n = 0) => {
+      let ph = 0;
+      const f = 520 * 2 ** ((n % 8) / 6);
+      put(at, 0.12, (t) => {
+        ph += (2 * Math.PI * f * (1 + 2.5 * t)) / SR;
+        return Math.sin(ph) * Math.exp(-t / 0.03) * 0.3;
+      });
+    },
+    // A calculator beep, a little higher each time.
+    beep: (at, n = 0) => {
+      const f = 1200 + 90 * (n % 12);
+      put(at, 0.05, (t) => Math.sign(Math.sin(2 * Math.PI * f * t)) * Math.exp(-t / 0.02) * 0.05);
+    },
+    // A woodblock knock for each dart tried.
+    tock: (at, n = 0) => {
+      const f = [880, 740, 988, 660][n % 4];
+      put(at, 0.12, (t) => (Math.sin(2 * Math.PI * f * t) + 0.5 * Math.sin(2 * Math.PI * 2.3 * f * t)) * Math.exp(-t / 0.025) * 0.3);
+    },
+    // The % counter: a soft tick that rises with the number.
+    cnt: (at, n = 0) => put(at, 0.02, (t) => Math.sin(2 * Math.PI * (900 + 14 * n) * t) * Math.exp(-t / 0.006) * 0.09),
+    // A cartoon drop: a quick falling blip, then a soft plop.
+    plop: (at) => {
+      let ph = 0;
+      put(at, 0.45, (t) => {
+        ph += (2 * Math.PI * (1400 * Math.exp(-t / 0.12) + 160)) / SR;
+        return Math.sin(ph) * Math.exp(-t / 0.2) * 0.18;
+      });
+      sounds.tom(at + 0.4, 3);
+    },
+    // A bright major fanfare (C E G C) for the big moments.
+    tada: (at) =>
+      [523.25, 659.25, 783.99, 1046.5].forEach((f, i) =>
+        put(at + i * 0.05, 1.1, (t) => {
+          const saw = 2 * ((f * t) % 1) - 1;
+          return (0.6 * Math.sin(2 * Math.PI * f * t) + 0.25 * saw) * Math.min(1, t / 0.01) * Math.exp(-t / 0.45) * 0.07;
+        }),
+      ),
+    // A crowd "ooh-yeah": filtered noise that swells and fades.
+    cheer: (at) => {
+      let lp = 0;
+      let lp2 = 0;
+      put(at, 1.6, (t) => {
+        lp += 0.18 * (rnd() - lp);
+        lp2 += 0.05 * (lp - lp2);
+        return (lp - lp2) * Math.sin(Math.PI * Math.min(1, t / 1.6)) ** 1.5 * 0.55;
+      });
+    },
+    // Sleigh bells in different shakes for Christmas cuts.
+    jingle: (at, n = 0) => {
+      const hits = [3, 5, 2, 4][n % 4];
+      for (let j = 0; j < hits; j++)
+        [2793, 3520, 4186, 5274].forEach((f, i) =>
+          put(at - 0.03 + j * (0.045 + 0.01 * (n % 2)) + i * 0.003, 0.2, (t) => Math.sin(2 * Math.PI * f * t) * Math.exp(-t / 0.04) * 0.04),
+        );
+    },
     win: (at) =>
       [523.25, 659.25, 783.99, 1046.5].forEach((f, i) =>
         put(
@@ -226,7 +297,10 @@ function soundtrack(cues, seconds) {
         ),
       ),
   };
-  for (const c of cues) sounds[c.k]?.(c.t);
+  for (const c of cues) {
+    const [name, step] = c.k.split(':');
+    sounds[name]?.(c.t, step ? Number(step) : 0);
+  }
   if (THEME === 'xmas') {
     // The bed: celesta melody, a soft bass on the beat and sleigh bells, looped to the end.
     const beat = 60 / 138;
@@ -237,15 +311,15 @@ function soundtrack(cues, seconds) {
         if (at >= seconds) break;
         put(at, Math.min(1.2, d * beat + 0.4), (t) =>
           (Math.sin(2 * Math.PI * f * t) + 0.3 * Math.sin(4 * Math.PI * f * t) + 0.12 * Math.sin(6 * Math.PI * f * t)) *
-          Math.exp(-t / 0.35) * 0.055,
+          Math.exp(-t / 0.35) * 0.085,
         );
         at += d * beat;
       }
     }
     for (let i = 0, t0 = 0.35; t0 < seconds; i++, t0 += beat) {
       const bf = bass[Math.floor(i / 2) % 2];
-      put(t0, 0.35, (t) => Math.sin(2 * Math.PI * bf * t) * Math.exp(-t / 0.15) * 0.07);
-      [3520, 4435].forEach((f) => put(t0 + 0.002, 0.12, (t) => Math.sin(2 * Math.PI * f * t) * Math.exp(-t / 0.03) * (i % 2 ? 0.018 : 0.03)));
+      put(t0, 0.35, (t) => Math.sin(2 * Math.PI * bf * t) * Math.exp(-t / 0.15) * 0.09);
+      [3520, 4435].forEach((f) => put(t0 + 0.002, 0.12, (t) => Math.sin(2 * Math.PI * f * t) * Math.exp(-t / 0.03) * (i % 2 ? 0.026 : 0.042)));
     }
   }
   const buf = Buffer.alloc(44 + out.length * 2);

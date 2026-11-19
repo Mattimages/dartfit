@@ -366,7 +366,26 @@ const CSS = `
 .ad-w{display:inline-block}
 `;
 
-const wait = (ms: number) => new Promise((r) => setTimeout(r, ms));
+/** Everything 10 % more time (owner, 19 Nov): every pause and every animation runs at this pace. */
+const PACE = 1.1;
+const wait = (ms: number) => new Promise((r) => setTimeout(r, ms * PACE));
+const later = (fn: () => void, ms: number) => setTimeout(fn, ms * PACE);
+/** Element.animate at the ad's pace (the ad view is the only page that installs it). */
+function paceAnimations() {
+  const orig = Element.prototype.animate;
+  if ((orig as { paced?: boolean }).paced) return;
+  const paced = function (this: Element, k: Keyframe[] | PropertyIndexedKeyframes | null, o?: number | KeyframeAnimationOptions) {
+    const opts =
+      typeof o === 'number'
+        ? o * PACE
+        : o
+          ? { ...o, duration: typeof o.duration === 'number' ? o.duration * PACE : o.duration, delay: (o.delay ?? 0) * PACE }
+          : o;
+    return orig.call(this, k, opts);
+  };
+  (paced as { paced?: boolean }).paced = true;
+  Element.prototype.animate = paced as typeof orig;
+}
 const OUT = 'cubic-bezier(0.2, 0.8, 0.2, 1)';
 const POP = 'cubic-bezier(0.34, 1.56, 0.64, 1)';
 /** A sound cue for the renderer (thud, tick, pop, whoosh, win), on the page's own clock. */
@@ -410,6 +429,7 @@ const picture = (v: Variant): Element => {
 };
 
 export async function adView(root: HTMLElement, _p: Record<string, string>, q: URLSearchParams) {
+  paceAnimations();
   const lang = (getLang() as keyof typeof COPY) in COPY ? (getLang() as keyof typeof COPY) : 'en';
   const C = COPY[lang];
   const V = VARIANT[lang];
@@ -566,9 +586,16 @@ export async function adView(root: HTMLElement, _p: Record<string, string>, q: U
   // A long hook, or one with the dates under it, needs the board lower.
   const roomy = longHook || theme === 'wc';
   /** A cut: the old scene pushes towards the viewer and is gone, the new one settles in. */
+  // Each cut sounds different (owner, 19 Nov: the one sliding sound got boring).
+  const CUT_SOUNDS =
+    theme === 'xmas'
+      ? ['jingle:0', 'glock:2', 'jingle:1', 'tom:1', 'jingle:2', 'glock:4', 'jingle:3', 'tom:2']
+      : ['swish', 'tom:0', 'click', 'glock:1', 'tom:2', 'swish', 'glock:3', 'tom:1'];
+  let cutN = 0;
+  let pipN = 0;
   const cut = async (from: HTMLElement, to: HTMLElement, ms = 200) => {
     ad.append(to);
-    cue(theme === 'xmas' ? 'shake' : 'swish');
+    cue(CUT_SOUNDS[cutN++ % CUT_SOUNDS.length]!);
     from.animate(
       [
         { opacity: 1, transform: 'scale(1)' },
@@ -639,6 +666,7 @@ export async function adView(root: HTMLElement, _p: Record<string, string>, q: U
     // Never rest on the twin before the reveal.
     while (performance.now() - t0 < ms) {
       face((at + 1) % (faces.length - 1));
+      cue('click');
       await wait(step);
     }
   };
@@ -713,7 +741,8 @@ export async function adView(root: HTMLElement, _p: Record<string, string>, q: U
     { duration: 520, easing: 'cubic-bezier(0.5, 0, 0.9, 0.5)', fill: 'forwards' },
   ).finished;
   // A question takes longer to read than "Verkeerde dart?".
-  await wait(gift ? 650 : 120);
+  // The gift hook is the line people love: twice the time on screen (owner, 18 Nov).
+  await wait(gift ? 2600 : 120);
 
   // ── Promise: the faces spin. "Welke prof ben jij?"
   const promise = scene();
@@ -743,7 +772,7 @@ export async function adView(root: HTMLElement, _p: Record<string, string>, q: U
     const imgs = [...dartRing.querySelectorAll('img')];
     for (let i = 0; i < 14; i++) {
       imgs.forEach((im, j) => im.classList.toggle('on', j === i % imgs.length));
-      cue('tick');
+      cue(i % 2 ? 'click' : `glock:${i % 6}`);
       await wait(95);
     }
   } else {
@@ -794,7 +823,7 @@ export async function adView(root: HTMLElement, _p: Record<string, string>, q: U
         ],
         { duration: 300, easing: OUT, fill: 'forwards' },
       );
-      cue('pop');
+      cue(`pip:${pipN++}`);
       ghand.animate([{ transform: from }, { transform: shape[x] }], {
         duration: 260,
         easing: POP,
@@ -804,7 +833,7 @@ export async function adView(root: HTMLElement, _p: Record<string, string>, q: U
       await wait(420);
     }
     show(hnote, 260, 'translateX(-6vw) scale(.8)');
-    cue('pop');
+    cue('glock:3');
     await wait(700);
   } else {
     const hand = handArt({ lengthMm: L, dots: true });
@@ -872,7 +901,7 @@ export async function adView(root: HTMLElement, _p: Record<string, string>, q: U
       drawIn(dim.querySelector('path')!, 220);
       await wait(140);
       show(label, 220);
-      cue('pop');
+      cue(`pip:${pipN++ + 2}`);
       await wait(200);
     }
     await wait(340);
@@ -965,7 +994,7 @@ export async function adView(root: HTMLElement, _p: Record<string, string>, q: U
           ],
           { duration: 300, easing: OUT, fill: 'forwards' },
         );
-        cue('pop');
+        cue(`pip:${pipN++}`);
         cur = { ...cur, ...beat.options[idx]!.set };
         live.update(cur, beat.focus);
         await wait(beat.focus === 'gripFeel' && ti < beat.taps.length - 1 ? 160 : 320);
@@ -1053,7 +1082,7 @@ export async function adView(root: HTMLElement, _p: Record<string, string>, q: U
         ).finished,
     ),
   );
-  cue('pop');
+  cue('glock:0');
   glow.animate(
     [
       { opacity: 0.25, transform: 'scale(1)' },
@@ -1113,7 +1142,7 @@ export async function adView(root: HTMLElement, _p: Record<string, string>, q: U
     await wait(30);
   }
   curves.forEach((x) => punch(x.val, 1.14));
-  cue('pop');
+  cue('glock:5');
   await wait(380);
 
   let beforeFinal: HTMLElement;
@@ -1177,7 +1206,7 @@ export async function adView(root: HTMLElement, _p: Record<string, string>, q: U
       fitPic.replaceChildren(picture(b.v));
       fitName.textContent = dartName(b.v);
       fitPct.textContent = '0%';
-      cue('slide');
+      cue(`tock:${i}`);
       overlay.animate(
         [
           { transform: 'translateX(320px)', opacity: 0 },
@@ -1193,10 +1222,16 @@ export async function adView(root: HTMLElement, _p: Record<string, string>, q: U
         { duration: 240, easing: OUT, fill: 'forwards' },
       );
       await wait(200);
+      let lastTick = 0;
       const t1 = performance.now();
       for (;;) {
         const p = Math.min(1, (performance.now() - t1) / (last ? 600 : 420));
-        fitPct.textContent = `${Math.round(b.m.total * (1 - Math.pow(1 - p, 3)))}%`;
+        const shown = Math.round(b.m.total * (1 - Math.pow(1 - p, 3)));
+        if (shown >= lastTick + 7) {
+          cue(`cnt:${shown}`);
+          lastTick = shown;
+        }
+        fitPct.textContent = `${shown}%`;
         if (p >= 1) break;
         await wait(30);
       }
@@ -1225,7 +1260,8 @@ export async function adView(root: HTMLElement, _p: Record<string, string>, q: U
         overlay.classList.add('hit');
         fitRow.classList.add('hit');
         cue('ding');
-        cue(theme === 'xmas' ? 'bell' : 'chime');
+        cue('tada');
+        if (theme === 'xmas') cue('bell');
         bang(0.35);
         punch(fitRow, 1.06, 300);
         await wait(950);
@@ -1241,7 +1277,8 @@ export async function adView(root: HTMLElement, _p: Record<string, string>, q: U
     match.append(h('div', { class: 'ad-stage' }, win.el));
     hide(cap, 100);
     await cut(model, match, 160);
-    for (const d of [150, 500, 850]) setTimeout(() => cue('thud'), d);
+    [150, 500, 850].forEach((d, i) => later(() => cue(`thud:${i}`), d));
+    later(() => cue('cheer'), 1100);
     await wait(Math.max(900, win.ms - 950));
 
     // ── The pro: the faces spin again, slow down, and land. The hook, answered.
@@ -1262,6 +1299,7 @@ export async function adView(root: HTMLElement, _p: Record<string, string>, q: U
     }
     face(faces.length - 1);
     ring.classList.add('lock');
+    cue('tada');
     cue(theme === 'xmas' ? 'bell' : 'win');
     if (theme === 'wc') cue('roar');
     bang(0.45);
@@ -1347,8 +1385,7 @@ export async function adView(root: HTMLElement, _p: Record<string, string>, q: U
     cue('pluck');
     await wait(180);
   }
-  // The three darts get time to be read (owner, 18 Nov: "give that slide some time").
-  await wait(gift ? 1600 : 2800);
+  await wait(1100);
 
   // ── Gift: the top dart drops into a box, the lid comes down, the bow pops. "Ingepakt."
   let beforeAsk: HTMLElement = final;
@@ -1401,9 +1438,9 @@ export async function adView(root: HTMLElement, _p: Record<string, string>, q: U
       ],
       { duration: 320, easing: OUT, fill: 'forwards' },
     );
-    await wait(1100);
+    await wait(560);
     // In it goes, behind the front of the box.
-    cue('slide');
+    cue('plop');
     await boxPic.animate(
       [
         { transform: 'none' },
@@ -1411,9 +1448,8 @@ export async function adView(root: HTMLElement, _p: Record<string, string>, q: U
         { transform: 'translateY(24vw) scale(.7) rotate(3deg)', opacity: 1, offset: 0.85 },
         { transform: 'translateY(28vw) scale(.68) rotate(3deg)', opacity: 0 },
       ],
-      { duration: 760, easing: 'ease-in', fill: 'forwards' },
+      { duration: 420, easing: 'ease-in', fill: 'forwards' },
     ).finished;
-    await wait(220);
     // The lid comes down with a bounce.
     await lid.animate(
       [
@@ -1421,7 +1457,7 @@ export async function adView(root: HTMLElement, _p: Record<string, string>, q: U
         { transform: 'translateY(2vw) rotate(1deg)', opacity: 1, offset: 0.75 },
         { transform: 'none', opacity: 1 },
       ],
-      { duration: 640, easing: 'ease-in', fill: 'forwards' },
+      { duration: 380, easing: 'ease-in', fill: 'forwards' },
     ).finished;
     cue('boing');
     box.animate([{ transform: 'none' }, { transform: 'scale(1.04,.96)' }, { transform: 'none' }], {
@@ -1435,9 +1471,9 @@ export async function adView(root: HTMLElement, _p: Record<string, string>, q: U
       ],
       { duration: 360, easing: POP, fill: 'forwards' },
     );
-    cue('chime');
+    cue('tada');
     cue('sparkle');
-    if (theme === 'xmas') cue('bell');
+    if (theme === 'xmas') cue('jingle:1');
     bang(0.3);
     sparks.forEach((sp, i) => {
       const ang = (i / sparks.length) * Math.PI * 2;
@@ -1446,18 +1482,17 @@ export async function adView(root: HTMLElement, _p: Record<string, string>, q: U
           { transform: 'translate(0,0) scale(.3)', opacity: 1 },
           { transform: `translate(${Math.cos(ang) * 42}vw, ${Math.sin(ang) * 36}vw) scale(1)`, opacity: 0 },
         ],
-        { duration: 1200, delay: 80, easing: OUT, fill: 'forwards' },
+        { duration: 700, delay: 80, easing: OUT, fill: 'forwards' },
       );
     });
     setCap(V.wrapped);
     await wait(260);
     show(boxName, 260);
-    // Twice as long as before (owner, 18 Nov): the box is the moment.
     box.animate(
       [{ transform: 'none' }, { transform: 'rotate(-2deg) scale(1.02)' }, { transform: 'rotate(2deg) scale(1.02)' }, { transform: 'none' }],
-      { duration: 900, delay: 500, iterations: 2, easing: 'ease-in-out' },
+      { duration: 700, delay: 300, easing: 'ease-in-out' },
     );
-    await wait(2500);
+    await wait(1250);
     hide(cap, 100);
     beforeAsk = boxScene;
   }
@@ -1479,7 +1514,7 @@ export async function adView(root: HTMLElement, _p: Record<string, string>, q: U
   show(ask, 320, 'scale(.6) rotate(4deg)');
   await wait(320);
   show(url, 260);
-  cue('pop');
+  cue('tada');
   await wait(220);
   show(free, 240, 'rotate(-3deg) scale(.6)', 'rotate(-3deg)');
   if (worlds) {
@@ -1487,7 +1522,8 @@ export async function adView(root: HTMLElement, _p: Record<string, string>, q: U
     cue('sparkle');
     show(worlds, 300, 'translateY(4vw) scale(.7)');
   }
-  await wait(worlds ? 1500 : 1250);
+  // The website slide gets the time (owner, 19 Nov: "more time on the website slide").
+  await wait(worlds ? 3300 : 3000);
   const back = scene(roomy ? 'roomy' : '');
   back.append(board());
   await cut(cta, back, 260);
