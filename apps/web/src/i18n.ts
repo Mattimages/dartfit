@@ -306,7 +306,8 @@ const nl = {
   'signin.privacy': 'Zie ons privacybeleid',
 
   'save.title': 'Zullen we deze fit voor je bewaren?',
-  'save.sub': 'Vul je e-mail in, dan hoef je je hand nooit meer opnieuw te meten.',
+  'save.sub':
+    'Vul je e-mail in, dan hoef je je hand nooit meer opnieuw te meten, en hoor je als er een dart uitkomt die nog beter past.',
   'save.email': 'E-mailadres',
   'save.name': 'Naam van deze fit',
   'save.name.ph': 'Bijvoorbeeld Mijn nieuwe darts',
@@ -314,6 +315,11 @@ const nl = {
   'save.go': 'Fit opslaan',
   'save.later': 'Nu niet',
   'save.check': 'Check je mail en bevestig je adres, dan staat je fit voor altijd klaar.',
+  'save.alerts': 'Mail me als er een dart uitkomt die nog beter bij me past',
+  'save.alerts.sub':
+    'Er komen steeds nieuwe darts bij. Je hoort het alleen als er een is die beter bij je hand past.',
+  'save.check.alerts':
+    'Top, je alerts staan aan! Check je mail en bevestig je adres, dan staat je fit voor altijd klaar.',
   'me.local': 'Bewaard op deze browser.',
   'me.signin': 'Log in voor al je fits',
   'me.title': 'Mijn fits',
@@ -529,8 +535,7 @@ const nl = {
   'q.shop.other': 'Ander land…',
   'q.body': 'Hoe lang ben je?',
   'q.body.height': 'Lengte in cm',
-  'q.body.why':
-    'Je lengte bepaalt hoe vlak je kunt gooien, dus dat helpt ons het goede gewicht te kiezen.',
+  'q.body.why': 'Je lengte bepaalt hoe vlak je kunt gooien, dus dat helpt ons het goede gewicht te kiezen.',
   'q.body.range': 'Vul een lengte in tussen 130 en 220 cm.',
   'fit.r.angle': 'worphoek',
   'fit.r.speed': 'snelheid',
@@ -650,8 +655,7 @@ const nl = {
   'r.note.len.same': 'Met {L} mm lengte hebben je vingers precies genoeg ruimte.',
   'r.note.len.longer':
     'Met {L} mm is hij {d} mm langer dan je ideaal, dus je hebt wat extra ruimte als je je vingers graag spreidt.',
-  'r.note.len.shorter':
-    'Met {L} mm is hij {d} mm korter dan je ideaal, dus je grip blijft lekker compact.',
+  'r.note.len.shorter': 'Met {L} mm is hij {d} mm korter dan je ideaal, dus je grip blijft lekker compact.',
   'r.note.w.same': 'Met {w} gram weegt hij precies wat je worp vraagt.',
   'r.note.w.heavier':
     'Met {w} gram is hij {d} gram zwaarder dan je ideaal, dus hij voelt net wat steviger in je hand.',
@@ -988,7 +992,8 @@ const en: Record<Key, string> = {
   'signin.privacy': 'See our privacy policy',
 
   'save.title': 'Shall we keep this fit for you?',
-  'save.sub': 'Pop in your email and you’ll never have to measure your hand again.',
+  'save.sub':
+    'Pop in your email and you’ll never have to measure your hand again, and you can hear about darts that fit you even better.',
   'save.email': 'Email address',
   'save.name': 'Name for this fit',
   'save.name.ph': 'For example My new darts',
@@ -996,6 +1001,10 @@ const en: Record<Key, string> = {
   'save.go': 'Save fit',
   'save.later': 'Not now',
   'save.check': 'Check your email and confirm your address, and your fit is kept for good.',
+  'save.alerts': 'Email me when a dart comes out that fits me even better',
+  'save.alerts.sub': 'New darts arrive all the time. You only hear from us when one suits your hand better.',
+  'save.check.alerts':
+    'Lovely, your alerts are on! Check your email and confirm your address, and your fit is kept for good.',
   'me.local': 'Saved on this browser.',
   'me.signin': 'Sign in for all your fits',
   'me.title': 'My fits',

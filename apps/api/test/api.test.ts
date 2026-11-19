@@ -351,9 +351,10 @@ describe('accounts, saving and alerts (Phase 4 end-to-end)', () => {
       [mail],
     );
     expect(u!.alerts_email).toBe(false);
-    const [f] = await db.query<{ user_id: string; label: string }>('SELECT user_id, label FROM fits WHERE id=$1', [
-      fit.body.id,
-    ]);
+    const [f] = await db.query<{ user_id: string; label: string }>(
+      'SELECT user_id, label FROM fits WHERE id=$1',
+      [fit.body.id],
+    );
     expect(f).toEqual({ user_id: u!.id, label: 'Mijn nieuwe darts' });
     // Not confirmed yet: the fit still opens from its own link (the result page right after).
     await request(app).get(`/api/fit/${fit.body.id}`).expect(200);
@@ -370,6 +371,20 @@ describe('accounts, saving and alerts (Phase 4 end-to-end)', () => {
     await request(app).get(`/api/fit/${fit.body.id}`).expect(404);
     const me = await saver.get('/api/me').expect(200);
     expect(me.body.fits[0]).toMatchObject({ id: fit.body.id, label: 'Mijn nieuwe darts' });
+  });
+
+  it('"save your fit" with the alerts box ticked turns the new-dart alerts on', async () => {
+    const fit = await request(app).post('/api/fit').send({ measurements, answers }).expect(200);
+    const mail = 'saver-alerts@example.com';
+    await request(app)
+      .post('/api/auth/request')
+      .send({ email: mail, fitId: fit.body.id, purpose: 'save', alertsEmail: true, confirmsAge16: true })
+      .expect(200);
+    const [u] = await db.query<{ alerts_email: boolean }>('SELECT alerts_email FROM users WHERE email=$1', [
+      mail,
+    ]);
+    expect(u!.alerts_email).toBe(true);
+    expect((await outbox(mail))[0]!.body_text).toMatch(/alert/i);
   });
 
   it('a login link works once only', async () => {

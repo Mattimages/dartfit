@@ -4991,6 +4991,28 @@ a.card {
 .save-fit .alert-msg:empty {
   display: none;
 }
+/* The new-dart alerts: the sign-up we want, so it gets its own warm box. */
+.save-fit .save-alerts {
+  padding: var(--s3);
+  border: 1px solid var(--brass);
+  border-radius: var(--r-ctl);
+  background: color-mix(in srgb, var(--brass) 12%, transparent);
+  cursor: pointer;
+}
+.save-fit .save-alerts input {
+  accent-color: var(--cta);
+}
+.save-fit .save-alerts span {
+  display: grid;
+  gap: 0.2rem;
+}
+.save-fit .save-alerts b {
+  font-weight: 600;
+}
+.save-fit .save-alerts small {
+  color: var(--ink-2);
+  font-size: 0.86rem;
+}
 
 /* Jovial overhaul (18 Nov): fit notes on the result, the warm intro on home, shelf one-liners. */
 .fit-notes {

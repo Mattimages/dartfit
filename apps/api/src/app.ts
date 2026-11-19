@@ -427,9 +427,9 @@ export function createApp(deps: AppDeps) {
       // "Keep me posted" is a direct opt-in (owner's decision 24 Oct: no confirmation link).
       // It never signs anyone in, and it only attaches the fit to a brand-new address, so typing
       // someone else's email can't touch their account; every alert has a one-click unsubscribe.
-      // "Save your fit" works the same way, without the alerts.
+      // "Save your fit" works the same way; its alerts box (unticked by default) turns alerts on too.
       if (body.purpose === 'alerts' || body.purpose === 'save') {
-        const alerts = body.purpose === 'alerts';
+        const alerts = body.purpose === 'alerts' || body.alertsEmail === true;
         let user = (await db.query<{ id: string }>('SELECT id FROM users WHERE email=$1', [body.email]))[0];
         const isNew = !user;
         if (!user) {

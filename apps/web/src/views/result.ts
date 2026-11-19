@@ -186,7 +186,11 @@ function tierHero(r: FitResult, start: TierKey | null): HTMLElement | null {
     const kids: Array<HTMLElement | null> = [
       h('h2', { class: 'dart-name' }, dartName(v)),
       productMedia(r.fit, v),
-      fitNotes(sv, r.fit.barrel, !!session().gift),
+      // Price and shop first, then the sizes, then why it fits (owner, 19 Nov).
+      v.priceUsd
+        ? h('p', { class: 'price-line' }, h('b', null, priceText(v.priceUsd)), h('span', null, t('r.guide')))
+        : null,
+      h('div', { class: 'offers' }, ...sv.offers.slice(0, 2).map((o, i) => offerLink(o, r.id, i === 0))),
       h(
         'div',
         { class: 'specs3' },
@@ -194,10 +198,7 @@ function tierHero(r: FitResult, start: TierKey | null): HTMLElement | null {
         spec(num(v.lengthMm), 'mm', t('fit.r.length')),
         spec(num(v.diameterMm, 1), 'mm', t('fit.r.diameter')),
       ),
-      v.priceUsd
-        ? h('p', { class: 'price-line' }, h('b', null, priceText(v.priceUsd)), h('span', null, t('r.guide')))
-        : null,
-      h('div', { class: 'offers' }, ...sv.offers.slice(0, 2).map((o, i) => offerLink(o, r.id, i === 0))),
+      fitNotes(sv, r.fit.barrel, !!session().gift),
     ];
     panel.replaceChildren(...kids.filter((x): x is HTMLElement => x !== null));
   };

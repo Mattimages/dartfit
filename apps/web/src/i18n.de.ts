@@ -406,11 +406,13 @@ export const de: Partial<Record<Key, string>> = {
   'why.hand_type':
     'Ohne Scan: Die Form der Hand kommt vom gewählten Handtyp, die Größe aus der Körpergröße. Es bleibt eine Schätzung.',
   'share.title': 'Teile dein Ergebnis',
-  'share.sub': 'Zeig deinen Freunden, welcher Profi so wirft wie du, und fordere sie heraus, ihren zu finden.',
+  'share.sub':
+    'Zeig deinen Freunden, welcher Profi so wirft wie du, und fordere sie heraus, ihren zu finden.',
   'share.button': 'Teilen',
   'share.result': 'Mein Ergebnis teilen',
   'save.title': 'Sollen wir diesen Fit für dich speichern?',
-  'save.sub': 'Gib deine E-Mail-Adresse ein, dann musst du deine Hand nie wieder messen.',
+  'save.sub':
+    'Gib deine E-Mail-Adresse ein, dann musst du deine Hand nie wieder messen und erfährst, wenn ein Dart herauskommt, der noch besser passt.',
   'save.email': 'E-Mail-Adresse',
   'save.name': 'Name für diesen Fit',
   'save.name.ph': 'Zum Beispiel Meine neuen Darts',
@@ -418,6 +420,11 @@ export const de: Partial<Record<Key, string>> = {
   'save.go': 'Fit speichern',
   'save.later': 'Jetzt nicht',
   'save.check': 'Schau in dein Postfach und bestätige deine Adresse, dann bleibt dein Fit gespeichert.',
+  'save.alerts': 'Schreib mir, wenn ein Dart herauskommt, der noch besser zu mir passt',
+  'save.alerts.sub':
+    'Es kommen ständig neue Darts dazu. Du hörst nur von uns, wenn einer besser zu deiner Hand passt.',
+  'save.check.alerts':
+    'Super, deine Benachrichtigungen sind an! Schau in dein Postfach und bestätige deine Adresse, dann bleibt dein Fit gespeichert.',
   'me.local': 'In diesem Browser gespeichert.',
   'me.signin': 'Anmelden für alle deine Fits',
   'share.whatsapp': 'WhatsApp',
