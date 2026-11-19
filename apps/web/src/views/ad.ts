@@ -231,8 +231,8 @@ const CSS = `
 .ad-ring.lock{box-shadow:0 0 0 1.6vw ${GREEN},0 0 0 4vw #3ee6a033,0 0 14vw #3ee6a0aa,0 6vw 14vw #000a}
 .ad-qm{position:absolute;right:-3vw;top:-3vw;width:17vw;height:17vw;border-radius:50%;display:grid;place-items:center;
   background:${RED};font-family:${DISPLAY};font-weight:800;font-size:12vw;box-shadow:0 2vw 5vw #0008;transform:rotate(10deg)}
-.ad-name{margin-top:4.5vw;min-height:15vw;font-family:${DISPLAY};font-weight:800;font-size:12.5vw;letter-spacing:-.03em;line-height:.92;text-align:center;padding:0 5vw;opacity:0}
-.ad-pct{margin-top:3vw;padding:1.4vw 5vw;border-radius:9vw;background:${GREEN};color:${NAVY};font-family:${DISPLAY};font-weight:800;font-size:9vw;letter-spacing:-.03em;opacity:0}
+.ad-name{flex-shrink:0;margin-top:4.5vw;min-height:15vw;font-family:${DISPLAY};font-weight:800;font-size:12.5vw;letter-spacing:-.03em;line-height:.92;text-align:center;padding:0 5vw;opacity:0}
+.ad-pct{flex-shrink:0;margin-top:4vw;padding:1.4vw 5vw;border-radius:9vw;background:${GREEN};color:${NAVY};font-family:${DISPLAY};font-weight:800;font-size:9vw;letter-spacing:-.03em;opacity:0}
 .ad-credit{position:absolute;z-index:6;left:8vw;right:8vw;top:81vh;font-weight:500;font-size:2.3vw;line-height:1.25;color:#ffffff8c;text-align:center;opacity:0}
 .ad-handbox{position:relative;width:60vw;height:82vw;
   --skin:#e3b896;--skin-hi:#f3d5be;--skin-shade:#b9805e;--nail:#f4dbd1}
@@ -1285,7 +1285,13 @@ export async function adView(root: HTMLElement, _p: Record<string, string>, q: U
     const pro = scene();
     qm.remove();
     const name = h('div', { class: 'ad-name' }, twin.name);
-    if (twin.name.length > 14) name.style.fontSize = '10vw';
+    // Long names get a smaller face, and a name that still needs two lines gets a smaller ring, so
+    // the name and the "% match" pill never overlap (owner, 19 Nov: Luke Humphries).
+    if (twin.name.length > 12) name.style.fontSize = '10vw';
+    if (twin.name.length > 17) {
+      name.style.fontSize = '9.5vw';
+      ring.style.width = '50vw';
+    }
     const pct = h('div', { class: 'ad-pct' }, `${proPct}% match`);
     pro.append(h('div', { class: 'ad-stage' }, ring, name, pct));
     await cut(match, pro, 160);
@@ -1385,7 +1391,8 @@ export async function adView(root: HTMLElement, _p: Record<string, string>, q: U
     cue('pluck');
     await wait(180);
   }
-  await wait(1100);
+  // The final darts get an extra second (owner, 19 Nov).
+  await wait(2100);
 
   // ── Gift: the top dart drops into a box, the lid comes down, the bow pops. "Ingepakt."
   let beforeAsk: HTMLElement = final;
