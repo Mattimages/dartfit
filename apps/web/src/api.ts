@@ -207,7 +207,7 @@ export async function explain(
   if (DEMO || !r.id || r.id === 'local') {
     const m = r.measurements ?? null;
     const input = buildExplainInput(
-      lang === 'nl' ? 'nl' : 'en',
+      lang,
       r.fit,
       r.answers as Answers,
       pick,
@@ -218,7 +218,7 @@ export async function explain(
   }
   return json('/api/explain', {
     method: 'POST',
-    body: JSON.stringify({ fitId: r.id, variantId: pick.variant.id, lang: lang === 'nl' ? 'nl' : 'en' }),
+    body: JSON.stringify({ fitId: r.id, variantId: pick.variant.id, lang }),
   });
 }
 

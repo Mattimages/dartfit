@@ -357,7 +357,10 @@ describe('accounts, saving and alerts (Phase 4 end-to-end)', () => {
     expect(f).toEqual({ user_id: u!.id, label: 'Mijn nieuwe darts' });
     // Not confirmed yet: the fit still opens from its own link (the result page right after).
     await request(app).get(`/api/fit/${fit.body.id}`).expect(200);
-    const token = (await outbox(mail))[0]!.body_text.match(/token=([\w-]+)/)![1];
+    const sent = (await outbox(mail))[0]!;
+    // The mail is about the saved fit, not about alerts (none were turned on).
+    expect(sent.body_text).not.toMatch(/alert/i);
+    const token = sent.body_text.match(/token=([\w-]+)/)![1];
     const r = await saver.get(`/api/auth/verify?token=${token}`).expect(302);
     expect(r.headers.location).toBe(`/#/fit/${fit.body.id}?saved=1`);
     // "Stay signed in" unticked: a browser-session cookie (no Max-Age / Expires).

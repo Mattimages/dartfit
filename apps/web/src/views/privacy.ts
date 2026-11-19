@@ -86,10 +86,50 @@ const COPY = {
       ],
     ],
   },
+  de: {
+    title: 'Datenschutz',
+    draft: 'Entwurf: Der Text wird vor dem Start juristisch geprüft.',
+    blocks: [
+      [
+        'Was auf deinem Handy bleibt',
+        'Das Kamerabild. Die Handerkennung läuft in deinem Browser; kein Foto und kein Video wird jemals an uns oder an andere geschickt.',
+      ],
+      [
+        'Was wir speichern',
+        'Deine Handmaße in Millimetern und deine Antworten, um deinen Fit zu berechnen. Ohne Konto ist dein Fit nur über seinen eigenen Link erreichbar. Mit Konto: deine E-Mail-Adresse, deine gespeicherten Fits, deine Einwilligungen (mit Datum und dem Wortlaut, den du gesehen hast) und welche Shop-Links du angeklickt hast.',
+      ],
+      [
+        'Warum',
+        'Um deinen Fit zu berechnen und zu zeigen (das, worum du gebeten hast). E-Mails zu neuen Darts und die Feedbackfrage nur mit deiner gesonderten Einwilligung, die du mit einem Klick widerrufen kannst.',
+      ],
+      [
+        'Wer die Daten verarbeitet',
+        'Unser Hosting und unsere Datenbank in der EU, unser E-Mail-Anbieter und Anthropic für den Erklärtext. Anthropic bekommt nur die Zahlen deines Fits, nie deine E-Mail-Adresse oder Bilder.',
+      ],
+      [
+        'Wie lange',
+        'Fits ohne Konto: 90 Tage. Konten, die 24 Monate nicht genutzt wurden: gelöscht. Unter Meine Fits kannst du alles selbst herunterladen oder löschen.',
+      ],
+      [
+        'Anonyme Messungen',
+        'Von jedem Fit behalten wir außerdem eine anonyme Zeile: deine Handmaße in ganzen Millimetern, deine Größe, deine Antworten zu deinem Wurf, Land, Monat und den berechneten idealen Dart. Kein Konto, keine Verbindung zu deinem Fit, keine Uhrzeit und kein Bild. Das hilft uns, das Messen und die Empfehlungen zu verbessern.',
+      ],
+      ['Cookies', 'Nur ein Anmelde-Cookie, wenn du ein Konto nutzt. Keine Werbe- oder Tracking-Cookies.'],
+      [
+        'Besucherstatistik',
+        'Wir zählen Seitenaufrufe mit Vercel Web Analytics: ohne Cookies, ohne gespeicherte IP-Adresse, nur Summen. Für deinen Fit schicken wir nur die Art der Seite, nie deine Maße oder die Nummer deines Fits.',
+      ],
+      ['Alter', 'Konten und E-Mails ab 16. Für einen Fit brauchst du kein Konto.'],
+      [
+        'Shop-Links',
+        'Wenn du über einen Link kaufst, kann DartFit eine Provision bekommen. Sie zählt nie für die Reihenfolge.',
+      ],
+    ],
+  },
 } as const;
 
 export function privacyView(root: HTMLElement) {
-  const c = COPY[getLang() === 'nl' ? 'nl' : 'en'];
+  const c = COPY[getLang()];
   root.append(
     h(
       'section',

@@ -588,7 +588,7 @@ const nl = {
   'shared.like': 'Je vriend gooit als {pro}',
   'shared.title': 'De dart van je vriend',
   'shared.lead':
-    'Gemeten met DartFit: de hand naast een pasje, vijf vragen, en deze dart kwam er het best uit.',
+    'Gemeten met DartFit: de hand naast een pasje, een paar vragen, en deze dart kwam er het best uit.',
   'shared.gift.kicker': 'Voor je cadeau',
   'shared.gift.title': 'Deze dart past bij de speler',
   'shared.gift.lead':
@@ -660,6 +660,20 @@ const nl = {
   'r.note.shape.same': 'De vorm ({shape}) is precies wat we bij jouw grip zouden kiezen.',
   'r.note.shape.diff':
     'De vorm is {shape} waar wij {ideal} hadden getekend, dus hij ligt net iets anders onder je vingers.',
+  'r.notes.title.gift': 'Waarom deze barrel bij de speler past',
+  'r.note.len.same.gift': 'Met {L} mm lengte hebben de vingers van de speler precies genoeg ruimte.',
+  'r.note.len.longer.gift':
+    'Met {L} mm is hij {d} mm langer dan het ideaal van de speler, dus er is wat extra ruimte om de vingers te spreiden.',
+  'r.note.len.shorter.gift':
+    'Met {L} mm is hij {d} mm korter dan het ideaal van de speler, dus de grip blijft lekker compact.',
+  'r.note.w.same.gift': 'Met {w} gram weegt hij precies wat de worp van de speler vraagt.',
+  'r.note.w.heavier.gift':
+    'Met {w} gram is hij {d} gram zwaarder dan het ideaal van de speler, dus hij voelt net wat steviger in de hand.',
+  'r.note.w.lighter.gift':
+    'Met {w} gram is hij {d} gram lichter dan het ideaal van de speler, dus hij voelt net wat vlotter in de hand.',
+  'r.note.shape.same.gift': 'De vorm ({shape}) is precies wat we bij de grip van de speler zouden kiezen.',
+  'r.note.shape.diff.gift':
+    'De vorm is {shape} waar wij {ideal} hadden getekend, dus hij ligt net iets anders onder de vingers.',
   'r.note.match': '{n}% match',
   'shelf.shape.straight': 'rechte',
   'shelf.shape.torpedo': 'torpedo',
@@ -1255,7 +1269,7 @@ const en: Record<Key, string> = {
   'shared.like': 'Your friend throws like {pro}',
   'shared.title': 'Your friend’s dart',
   'shared.lead':
-    'Measured with DartFit: a hand next to a bank card, five questions, and this dart came out on top.',
+    'Measured with DartFit: a hand next to a bank card, a few questions, and this dart came out on top.',
   'shared.gift.kicker': 'For your gift',
   'shared.gift.title': 'This dart fits the player',
   'shared.gift.lead':
@@ -1326,6 +1340,20 @@ const en: Record<Key, string> = {
   'r.note.shape.same': 'It’s a {shape} barrel, the very shape we’d pick for the way you hold it.',
   'r.note.shape.diff':
     'It’s a {shape} barrel where we’d drawn a {ideal} one, so it will sit slightly differently under your fingers.',
+  'r.notes.title.gift': 'Why this barrel suits the player',
+  'r.note.len.same.gift': 'At {L} mm long it gives their fingers just the right amount of room.',
+  'r.note.len.longer.gift':
+    'At {L} mm it’s {d} mm longer than their ideal, so there’s a bit of extra room if they like to spread their fingers.',
+  'r.note.len.shorter.gift':
+    'At {L} mm it’s {d} mm shorter than their ideal, which keeps their grip nice and compact.',
+  'r.note.w.same.gift': 'At {w} g it weighs just what their throw asks for.',
+  'r.note.w.heavier.gift':
+    'At {w} g it’s {d} g heavier than their ideal, so it will feel a touch heftier in the hand.',
+  'r.note.w.lighter.gift':
+    'At {w} g it’s {d} g lighter than their ideal, so it will feel a touch nimbler in the hand.',
+  'r.note.shape.same.gift': 'It’s a {shape} barrel, the very shape we’d pick for the way they hold it.',
+  'r.note.shape.diff.gift':
+    'It’s a {shape} barrel where we’d drawn a {ideal} one, so it will sit slightly differently under their fingers.',
   'r.note.match': '{n}% match',
   'shelf.shape.straight': 'straight',
   'shelf.shape.torpedo': 'torpedo',

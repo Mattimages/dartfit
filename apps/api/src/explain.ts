@@ -29,8 +29,9 @@ export async function anthropicClient(apiKey: string, model: string): Promise<Ex
   };
 }
 
-export function systemPrompt(lang: 'nl' | 'en'): string {
-  const language = lang === 'nl' ? 'Dutch (informal "je")' : 'British English';
+export function systemPrompt(lang: 'nl' | 'en' | 'de'): string {
+  const language =
+    lang === 'nl' ? 'Dutch (informal "je")' : lang === 'de' ? 'German (informal "du")' : 'British English';
   return [
     `You explain a dart fitting result to a darts player in ${language}.`,
     'Write 3 or 4 short sentences of plain prose: no lists, no headings, no emoji.',

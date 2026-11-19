@@ -47,19 +47,19 @@ export const AnswersSchema = z.object({
 export const FitRequest = z.object({
   measurements: MeasurementsSchema.optional(),
   answers: AnswersSchema,
-  lang: z.enum(['nl', 'en']).default('nl'),
+  lang: z.enum(['nl', 'en', 'de']).default('nl'),
   country: z.string().length(2).toUpperCase().optional(),
 });
 
 export const ExplainRequest = z.object({
   fitId: z.string().uuid(),
   variantId: z.string().max(80).optional(),
-  lang: z.enum(['nl', 'en']).optional(),
+  lang: z.enum(['nl', 'en', 'de']).optional(),
 });
 
 export const LoginRequest = z.object({
   email: z.string().trim().toLowerCase().email().max(200),
-  lang: z.enum(['nl', 'en']).default('nl'),
+  lang: z.enum(['nl', 'en', 'de']).default('nl'),
   fitId: z.string().uuid().optional(),
   /** 'alerts': the "keep me posted" box under a result. 'save': the "save your fit" pop-up after
    *  the fitting film (no alerts). Both subscribe/attach at once and mail a 24-hour confirm link. */

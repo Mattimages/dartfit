@@ -5,10 +5,17 @@
  */
 import type { IdealBarrel, ScoredVariant } from '@dartfit/engine';
 import { h } from '../h';
-import { num, t, type Key } from '../i18n';
+import { num, t as tr, type Key } from '../i18n';
 import { matchPct } from '../score';
 
-export function fitNotes(sv: ScoredVariant, ideal: IdealBarrel): HTMLElement {
+export function fitNotes(sv: ScoredVariant, ideal: IdealBarrel, gift = false): HTMLElement {
+  // Buying for someone else: the notes talk about "the player", like the questions did.
+  const t = (key: Key, vars?: Record<string, string | number>) => {
+    if (!gift) return tr(key, vars);
+    const g = `${key}.gift` as Key;
+    const out = tr(g, vars);
+    return out === g ? tr(key, vars) : out;
+  };
   const v = sv.variant;
   const dL = v.lengthMm - ideal.lengthMm;
   const dW = v.weightG - ideal.massG;

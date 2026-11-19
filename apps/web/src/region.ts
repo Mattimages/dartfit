@@ -90,4 +90,4 @@ export async function guessCountryFromNetwork(): Promise<void> {
 }
 
 /** The server explains in Dutch or English; German falls back to English there. */
-export const apiLang = (): 'nl' | 'en' => (getLang() === 'nl' ? 'nl' : 'en');
+export const apiLang = (): 'nl' | 'en' | 'de' => getLang();

@@ -186,7 +186,7 @@ function tierHero(r: FitResult, start: TierKey | null): HTMLElement | null {
     const kids: Array<HTMLElement | null> = [
       h('h2', { class: 'dart-name' }, dartName(v)),
       productMedia(r.fit, v),
-      fitNotes(sv, r.fit.barrel),
+      fitNotes(sv, r.fit.barrel, !!session().gift),
       h(
         'div',
         { class: 'specs3' },
@@ -355,7 +355,7 @@ export async function resultView(root: HTMLElement, params: Record<string, strin
             { class: 'r-hero' },
             h('h1', null, dartName(v)),
             productMedia(f, v),
-            fitNotes(best, f.barrel),
+            fitNotes(best, f.barrel, !!session().gift),
             h(
               'div',
               { class: 'specs3' },

@@ -280,7 +280,9 @@ main {
 .stack > * + * {
   margin-top: var(--s4);
 }
-section + section {
+section + section,
+section + .twin-link,
+.twin-link + section {
   margin-top: var(--s7);
 }
 

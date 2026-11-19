@@ -18,17 +18,35 @@ function approxUsd(usd: number): number {
 }
 
 /**
+ * Pounds per euro for guide prices on amazon.co.uk. A rough, rounded rate: every price is shown
+ * with "≈" and the shop has the real one, so it only has to be in the right neighbourhood.
+ */
+export const GBP_PER_EUR = 0.85;
+
+/** Whole pounds, rounded to 5 above £50, like the other currencies. */
+function approxGbp(eur: number): number {
+  const p = eur * GBP_PER_EUR;
+  return p >= 50 ? Math.round(p / 5) * 5 : Math.round(p);
+}
+
+/**
  * A guide price in the visitor's currency: dollars for US visitors (the catalogue stores dollars,
- * so no conversion), euros everywhere else. "≈" marks it as a guide, never a checkout price.
+ * so no conversion), pounds for the UK (its shop is amazon.co.uk), euros everywhere else.
+ * "≈" marks it as a guide, never a checkout price.
  */
 export function priceLabel(usd: number, o: { approx?: boolean } = {}): string {
-  const s = getCountry() === 'US' ? `$${approxUsd(usd)}` : `€${approxEur(usd)}`;
+  const c = getCountry();
+  const s =
+    c === 'US' ? `$${approxUsd(usd)}` : c === 'GB' ? `£${approxGbp(usdToEur(usd))}` : `€${approxEur(usd)}`;
   return o.approx === false ? s : `≈ ${s}`;
 }
 
 /** A price-class boundary given in euros, shown in the visitor's currency. */
 export function boundLabel(eurAmount: number): string {
-  return getCountry() === 'US' ? `$${approxUsd(eurToUsd(eurAmount))}` : `€${eurAmount}`;
+  const c = getCountry();
+  if (c === 'US') return `$${approxUsd(eurToUsd(eurAmount))}`;
+  if (c === 'GB') return `£${approxGbp(eurAmount)}`;
+  return `€${eurAmount}`;
 }
 
 /** Budget choices offered on the questions screen, in euros (null = no limit). */

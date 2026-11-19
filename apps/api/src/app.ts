@@ -475,8 +475,11 @@ export function createApp(deps: AppDeps) {
           await mailer.send({
             to: body.email,
             kind: 'login',
-            subject: t(body.lang, 'confirm.subject'),
-            text: t(body.lang, 'confirm.body', { url: `${env.PUBLIC_URL}/api/auth/verify?token=${token}` }),
+            // "Save your fit" turns no alerts on, so its mail says so (play test, 19 Nov).
+            subject: t(body.lang, alerts ? 'confirm.subject' : 'save.subject'),
+            text: t(body.lang, alerts ? 'confirm.body' : 'save.body', {
+              url: `${env.PUBLIC_URL}/api/auth/verify?token=${token}`,
+            }),
           });
         }
         return res.json({ ok: true });
@@ -553,9 +556,10 @@ export function createApp(deps: AppDeps) {
         p.consentVersion ?? 'unknown',
         true,
       );
-      await db.query('UPDATE users SET last_seen_at=now(), verified_at=COALESCE(verified_at, now()) WHERE id=$1', [
-        user.id,
-      ]);
+      await db.query(
+        'UPDATE users SET last_seen_at=now(), verified_at=COALESCE(verified_at, now()) WHERE id=$1',
+        [user.id],
+      );
       if (p.fitId)
         await db.query(
           'UPDATE fits SET user_id=$1, label=COALESCE($3, label) WHERE id=$2 AND (user_id IS NULL OR user_id=$1)',

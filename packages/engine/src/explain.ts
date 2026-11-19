@@ -6,7 +6,7 @@
 import type { Fit, Answers, Pick as RecPick } from './types.js';
 import type { ProTwin } from './match.js';
 
-export type Lang = 'nl' | 'en';
+export type Lang = 'nl' | 'en' | 'de';
 
 export interface ExplainInput {
   lang: Lang;
@@ -112,7 +112,7 @@ export function buildExplainInput(
   };
 }
 
-/** Numbers in prose: Dutch writes decimals with a comma, English with a point. */
+/** Numbers in prose: Dutch and German write decimals with a comma, English with a point. */
 const NUM = /\d+(?:[.,]\d+)?/g;
 /** Numbers in JSON: commas separate array items, so only a point is a decimal. */
 const JSON_NUM = /\d+(?:\.\d+)?/g;
@@ -135,7 +135,7 @@ export function findUnsupportedNumbers(text: string, allowed: Set<number>): stri
   return (text.match(NUM) ?? []).filter((m) => !allowed.has(toNum(m)));
 }
 
-const fmt = (lang: Lang, n: number) => (lang === 'nl' ? String(n).replace('.', ',') : String(n));
+const fmt = (lang: Lang, n: number) => (lang === 'en' ? String(n) : String(n).replace('.', ','));
 const range = (lang: Lang, [a, b]: [number, number], unit: string) =>
   a === b ? `${fmt(lang, a)} ${unit}` : `${fmt(lang, a)}–${fmt(lang, b)} ${unit}`;
 
@@ -188,6 +188,28 @@ const T = {
     },
     quality: { excellent: 'excellent', good: 'good', fair: 'fair', poor: 'weak' },
   },
+  de: {
+    hold: { front: 'vorne', middle: 'in der Mitte', rear: 'hinten' },
+    balance: { front: 'frontlastig', centre: 'ausbalanciert', rear: 'hecklastig' },
+    shape: {
+      straight: 'gerade',
+      torpedo: 'Torpedo-',
+      tapered: 'konische',
+      bomb: 'Bomben-',
+      scalloped: 'taillierte',
+    },
+    shaft: { short: 'kurzen', inbetween: 'mittelkurzen', medium: 'mittellangen' },
+    flight: { slim: 'schmalen ', standard: 'Standard-' },
+    dim: {
+      weight: 'beim Gewicht',
+      length: 'bei der Länge',
+      diameter: 'bei der Dicke',
+      grip: 'beim Grip',
+      balance: 'bei der Balance',
+      shape: 'bei der Form',
+    },
+    quality: { excellent: 'hervorragend', good: 'gut', fair: 'ordentlich', poor: 'mäßig' },
+  },
 } as const;
 
 /** Deterministic, grounded explanation. Used when the AI is off, slow or fails validation. */
@@ -223,6 +245,32 @@ export function templateExplanation(i: ExplainInput): string {
     if (i.setup)
       parts.push(
         `Begin met ${t.shaft[i.setup.shaft as keyof typeof t.shaft]} shafts (${i.setup.shaftMm[0]}–${i.setup.shaftMm[1]} mm) en ${t.flight[i.setup.flight as keyof typeof t.flight]} flights.`,
+      );
+  } else if (lang === 'de') {
+    parts.push(
+      `Du hältst den Dart ${hold} mit ${i.answers.fingers} Fingern, also suchen wir ein Barrel mit ${range(lang, i.bands.lengthMm, 'mm')} und ${range(lang, i.bands.weightG, 'g')}, ${bal}.`,
+    );
+    if (i.hand)
+      parts.push(`Deine Hand misst ${i.hand.lengthMm} mm vom Handgelenk bis zur Mittelfingerspitze.`);
+    if (i.ideal) {
+      const sh = t.shape[i.ideal.shape as keyof typeof t.shape] ?? i.ideal.shape;
+      parts.push(
+        `Dein ideales Barrel ist ${sh.endsWith('-') ? `ein ${sh}Barrel` : `ein ${sh}s Barrel`} von ${i.ideal.lengthMm} mm mit dem Schwerpunkt ${i.ideal.cogMm} mm hinter der Spitze.`,
+      );
+      if (i.ideal.tungstenPct >= 95)
+        parts.push(`So schwer und so schlank geht nur mit ${i.ideal.tungstenPct} % Wolfram.`);
+    }
+    parts.push(
+      `Der ${i.pick.name} (${fmt(lang, i.pick.weightG)} g, ${fmt(lang, i.pick.lengthMm)} mm) passt ${q}${strengths.length ? `, vor allem ${strengths.join(' und ')}` : ''}.`,
+    );
+    if (i.pick.compromise) parts.push(`Der größte Kompromiss liegt ${dimName(i.pick.compromise)}.`);
+    if (i.proTwin)
+      parts.push(
+        `Von den Maßen her bist du am nächsten an ${i.proTwin.exactDart ? 'dem Dart' : 'der Signature-Serie'} von ${i.proTwin.name}.`,
+      );
+    if (i.setup)
+      parts.push(
+        `Fang mit ${t.shaft[i.setup.shaft as keyof typeof t.shaft]} Schäften (${i.setup.shaftMm[0]}–${i.setup.shaftMm[1]} mm) und ${t.flight[i.setup.flight as keyof typeof t.flight]}Flights an.`,
       );
   } else {
     parts.push(

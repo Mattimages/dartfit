@@ -19,7 +19,7 @@ const COPY = {
       ],
       [
         '2. Van antwoorden naar maten',
-        'Elke aanwijzing (je huidige dart, je grip, je handmaat, je worp) is een schatting met een onzekerheid. We combineren ze op gewicht van hun zekerheid. Je huidige dart weegt het zwaarst, want die heb je echt gegooid.',
+        'Elke aanwijzing (je handmaat, je lengte, je grip, je worp) is een schatting met een onzekerheid. We combineren ze op gewicht van hun zekerheid: wat we zeker weten telt zwaarder dan wat we moeten schatten.',
       ],
       [
         '3. Natuurkunde',
@@ -27,7 +27,7 @@ const COPY = {
       ],
       [
         'Je lengte',
-        'Zonder scan schatten we je hand uit je lengte: gemiddeld 10,75% van je lichaamslengte (mannen 10,9%, vrouwen 10,6%, studie onder 195 volwassenen, bioRxiv 2025), met een marge van ±8 mm. Met scan controleren we die twee tegen elkaar. Je lengte bepaalt ook waar je loslaat (ongeveer ooghoogte), je onderarm (geschat uit je lengte) en hand hoe snel. Met de natuurkunde van een worp (bull op 1,73 m, oche op 2,37 m, losslaatsnelheid zoals gemeten bij profs) rekenen we uit onder welke hoek jij moet gooien. Weet je niet hoe je dart vliegt, dan beslist die hoek of je richting een vlakke of een boogworp zit.',
+        'Zonder scan schatten we je hand uit je lengte: gemiddeld 10,75% van je lichaamslengte (mannen 10,9%, vrouwen 10,6%, studie onder 195 volwassenen, bioRxiv 2025), met een marge van ±8 mm. Met scan controleren we die twee tegen elkaar. Je lengte bepaalt ook waar je loslaat (ongeveer ooghoogte), je onderarm (geschat uit je lengte) en hoe snel je hand gaat. Met de natuurkunde van een worp (bull op 1,73 m, oche op 2,37 m, losslaatsnelheid zoals gemeten bij profs) rekenen we uit onder welke hoek jij moet gooien. Weet je niet hoe je dart vliegt, dan beslist die hoek of je richting een vlakke of een boogworp zit.',
       ],
       [
         '4. Je ideale barrel',
@@ -60,7 +60,7 @@ const COPY = {
       ],
       [
         '2. From answers to sizes',
-        'Every clue (your current dart, your grip, your hand size, your throw) is an estimate with an uncertainty. We combine them weighted by how certain they are. Your current dart counts most, because you have actually thrown it.',
+        'Every clue (your hand size, your height, your grip, your throw) is an estimate with an uncertainty. We combine them weighted by how certain they are: what we know for sure counts for more than what we have to guess.',
       ],
       [
         '3. Physics',
@@ -68,7 +68,7 @@ const COPY = {
       ],
       [
         'Your height',
-        'Without a scan we estimate your hand from your height: on average 10.75% of stature (men 10.9%, women 10.6%, study of 195 adults, bioRxiv 2025), give or take 8 mm. With a scan we check the two against each other. Your height also sets where you release (about eye level), your forearm (estimated from your height) and hand how fast. With the physics of a throw (bull at 1.73 m, oche at 2.37 m, release speeds as measured in professionals) we work out the angle you have to throw at. If you don’t know how your dart flies, that angle decides whether you lean towards a flat or an arcing throw.',
+        'Without a scan we estimate your hand from your height: on average 10.75% of stature (men 10.9%, women 10.6%, study of 195 adults, bioRxiv 2025), give or take 8 mm. With a scan we check the two against each other. Your height also sets where you release (about eye level), your forearm (estimated from your height) and how fast your hand moves. With the physics of a throw (bull at 1.73 m, oche at 2.37 m, release speeds as measured in professionals) we work out the angle you have to throw at. If you don’t know how your dart flies, that angle decides whether you lean towards a flat or an arcing throw.',
       ],
       [
         '4. Your ideal barrel',
@@ -91,10 +91,51 @@ const COPY = {
     p: { sourced: 'source', heuristic: 'rule of thumb', tuned: 'tuned' },
     version: 'Model version',
   },
+  de: {
+    title: 'So funktioniert DartFit',
+    lead: 'Ganz ehrlich: Es gibt keine Studie, die die Handgröße in das perfekte Dartgewicht umrechnet. Im Fachgeschäft lässt man dich ausprobieren. DartFit gibt dir einen gut begründeten Startpunkt und eine kurze Liste zum Ausprobieren, mit den Gründen dazu.',
+    sections: [
+      [
+        '1. Deine Hand messen',
+        'Dein Handy erkennt 21 Punkte auf deiner Hand (MediaPipe, auf deinem Gerät). Deine Karte ist 85,6 × 53,98 mm groß (ISO/IEC 7810 ID-1) und dient als Lineal. Wenn du die Ecken selbst antippst, korrigieren wir auch die Perspektive. Wir nehmen den Median aus 18 Bildern und verwerfen Ausreißer. Das Bild verlässt dein Handy nie.',
+      ],
+      [
+        '2. Von Antworten zu Maßen',
+        'Jeder Hinweis (deine Handgröße, deine Körpergröße, dein Grip, dein Wurf) ist eine Schätzung mit einer Unsicherheit. Wir kombinieren sie nach ihrer Sicherheit: Was wir sicher wissen, zählt mehr als das, was wir schätzen müssen.',
+      ],
+      [
+        '3. Physik',
+        'Gewicht, Länge und Dicke hängen zusammen: Ein Barrel ist Metall mit einer Dichte. Unser Modell rechnet mit der Dichte von Wolframlegierungen (ASTM B777), den Bohrungen für Spitze und Gewinde und der Form. Es sagt das angegebene Gewicht von 34 geraden Barrels aus dem Katalog auf etwa 7 % genau voraus. Wünschst du dir etwas, das sich nicht bauen lässt, gehen wir zum nächstliegenden Barrel, das es gibt, oder sagen dir, dass du 95 % Wolfram brauchst.',
+      ],
+      [
+        'Deine Körpergröße',
+        'Ohne Scan schätzen wir deine Hand aus deiner Körpergröße: im Schnitt 10,75 % davon (Männer 10,9 %, Frauen 10,6 %, Studie mit 195 Erwachsenen, bioRxiv 2025), plus oder minus 8 mm. Mit Scan prüfen wir beides gegeneinander. Deine Größe bestimmt auch, wo du loslässt (etwa auf Augenhöhe), deinen Unterarm (aus deiner Größe geschätzt) und wie schnell deine Hand ist. Mit der Physik eines Wurfs (Bull auf 1,73 m, Abwurflinie bei 2,37 m, Abwurfgeschwindigkeiten wie bei Profis gemessen) berechnen wir, in welchem Winkel du werfen musst. Weißt du nicht, wie dein Dart fliegt, entscheidet dieser Winkel, ob du eher flach oder im Bogen wirfst.',
+      ],
+      [
+        '4. Dein ideales Barrel',
+        'Wir suchen die Form (wie weit Vorder- und Hinterteil zulaufen), die genau dein Gewicht trifft und den Schwerpunkt dorthin legt, wo dein Griff ihn haben will. Das ist die Zeichnung deines idealen Barrels.',
+      ],
+      [
+        '5. Vergleichen',
+        'Jeder Dart im Katalog bekommt, Gewicht für Gewicht, einen Abstand zu deinem Ideal: wie viele Standardabweichungen er bei jedem Maß danebenliegt, gewichtet danach, wie stark du es spüren würdest. Darts, deren angegebenes Gewicht nicht zu ihren Maßen passt, lassen wir aus, bis die Angaben geprüft sind.',
+      ],
+      [
+        '6. Was wir nicht wissen',
+        'Ob du flach oder im Bogen wirfst, ändert Schaft und Flight, aber der Einfluss auf das Gewicht ist klein und unsicher. Jede Regel, die unten als „Faustregel“ markiert ist, ist ein Startpunkt; wir verfeinern sie mit dem, was uns Spieler nach dem Kauf erzählen.',
+      ],
+    ],
+    table: 'Jeder Wert, den das Modell nutzt',
+    photos: 'Fotos der Profis',
+    photosLead:
+      'Die Fotos stammen von Wikimedia Commons und werden unter ihrer Creative-Commons-Lizenz genutzt. Wir haben sie zugeschnitten; tippe auf den Namen des Fotografen für das Original.',
+    cols: ['Wert', 'Quelle', 'Hinweis'],
+    p: { sourced: 'Quelle', heuristic: 'Faustregel', tuned: 'abgestimmt' },
+    version: 'Modellversion',
+  },
 } as const;
 
 export function methodView(root: HTMLElement) {
-  const c = COPY[getLang() === 'nl' ? 'nl' : 'en'];
+  const c = COPY[getLang()];
   const leaves = numericLeaves(config);
   // One row per provenance entry, listing its values.
   const groups = new Map<string, { p: string; note: string; values: string[] }>();

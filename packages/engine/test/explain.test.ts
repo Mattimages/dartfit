@@ -17,7 +17,7 @@ const { variants, pros } = loadCatalogue();
 /** 50 fixtures: 20 personas × 2 languages + 10 extra with every pick role. */
 function fixtures() {
   const out: Array<ReturnType<typeof buildExplainInput>> = [];
-  for (const lang of ['nl', 'en'] as Lang[]) {
+  for (const lang of ['nl', 'en', 'de'] as Lang[]) {
     for (const p of personas) {
       const f = fit(p.m, p.a);
       const r = recommend(f, variants, { budgetUsd: p.a.budgetUsd });
@@ -38,7 +38,7 @@ function fixtures() {
   const p = personas[2]!;
   const f = fit(p.m, p.a);
   for (const pick of recommend(f, variants).picks) {
-    for (const lang of ['nl', 'en'] as Lang[]) {
+    for (const lang of ['nl', 'en', 'de'] as Lang[]) {
       out.push(buildExplainInput(lang, f, p.a, pick, proTwin(f, pros, variants), null));
     }
   }
