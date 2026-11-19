@@ -356,9 +356,9 @@ const CSS = `
 .ad-pcard .ph img,.ad-pcard .ph svg,.ad-tile svg,.ad-hero svg{position:absolute;inset:6%;width:88%;height:88%;object-fit:contain}
 .ad-pcard div{display:grid;gap:.8vw;min-width:0}
 .ad-pcard b{font-weight:650;font-size:3.9vw;line-height:1.08;letter-spacing:-.025em;text-wrap:balance}
-.ad-pcard p{margin:0;display:flex;align-items:center;gap:1.6vw;font-size:3.7vw;color:#5b6b82;white-space:nowrap}
+.ad-pcard p{margin:0;display:flex;flex-wrap:wrap;align-items:center;gap:.6vw 1.6vw;font-size:3.7vw;color:#5b6b82;white-space:nowrap}
 .ad-pcard em{padding:.5vw 2.4vw;border-radius:9vw;color:#fff;font-style:normal;font-weight:600;font-size:3.3vw}
-.ad-pcard strong{font-family:${DISPLAY};font-weight:800;font-size:8.4vw;letter-spacing:-.03em;color:#0a8f5a}
+.ad-pcard strong{font-family:${DISPLAY};font-weight:800;font-size:8vw;padding-left:1vw;letter-spacing:-.03em;color:#0a8f5a}
 .ad-ask{font-family:${DISPLAY};font-weight:800;font-size:17vw;letter-spacing:-.03em;line-height:.9;text-align:center;text-wrap:balance;padding:0 5vw;opacity:0}
 .ad-url{margin-top:8vw;padding:2.8vw 7vw;border-radius:9vw;background:${GREEN};color:${NAVY};font-weight:700;font-size:8vw;letter-spacing:-.03em;opacity:0;box-shadow:0 2vw 8vw #3ee6a055}
 .ad-free{margin-top:4vw;font-family:${HAND};font-weight:700;font-size:8vw;color:${SUN};transform:rotate(-3deg);opacity:0}
