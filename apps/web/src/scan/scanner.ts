@@ -17,7 +17,9 @@ import {
   handDimensionsFromMm,
   handOnCard,
   landmarksToMm,
+  median,
   medianLandmarks,
+  robustSigma,
   scaleProblem,
   toGray,
   type CardDetection,
@@ -84,6 +86,23 @@ export function unscaledResult(m: Measurements, px: Pt[][]): ScanResult {
     landmarksMm: lm,
   };
 }
+/** Scales one frame's landmarks so wrist → middle fingertip is the reference hand length. */
+function toUnitHand(px: Pt[]): Pt[] {
+  const len = handDimensionsFromMm(px).handLength;
+  if (!(len > 0)) return px;
+  const k = config.reference.handLength.mu / len;
+  return px.map((p) => ({ x: p.x * k, y: p.y * k }));
+}
+
+/** Drops frames whose palm-to-hand proportion is far off the rest (a wobble, a half-turned hand). */
+function steadyProportions(frames: Dims[]): Dims[] {
+  const r = frames.map((f) => f.palmWidth / f.handLength);
+  const m = median(r);
+  const s = Math.max(robustSigma(r), 0.004);
+  const kept = frames.filter((_, i) => Math.abs((r[i] as number) - m) <= 3 * s);
+  return kept.length >= 3 ? kept : frames;
+}
+
 const TAP_AFTER_MS = 8000;
 const MAX_TILT_DEG = 14;
 
@@ -166,7 +185,7 @@ export class Scanner {
       const lm = await this.detector.detect(this.video, now).catch(() => null);
       if (!this.running) break;
       this.view.landmarks(lm);
-      const gate = checkHandFrame(lm ?? undefined);
+      const gate = checkHandFrame(lm ?? undefined, { free: this.noCard });
       if (gate) {
         this.handOkSince = 0;
         this.view.status(gate, this.frames.length / NEEDED);
@@ -180,19 +199,15 @@ export class Scanner {
       const w = this.video.videoWidth;
       const h = this.video.videoHeight;
       if (this.noCard) {
-        if (
-          this.tilt &&
-          (Math.abs(this.tilt.beta) > MAX_TILT_DEG || Math.abs(this.tilt.gamma) > MAX_TILT_DEG)
-        ) {
-          this.view.status('phone_tilt', this.frames.length / NEEDED);
-          continue;
-        }
-        const px = landmarksToMm(hand, w, h, PIXELS);
+        // No card, so no table needed: the hand may lie flat or be held up to the camera, and the
+        // phone may point any way. Each frame is set to one hand length, so moving the hand closer
+        // or further away doesn't matter; only the proportions are kept.
+        const px = toUnitHand(landmarksToMm(hand, w, h, PIXELS));
         this.frames.push(handDimensionsFromMm(px));
         this.framesMm.push(px);
         this.view.status('measuring', this.frames.length / NEEDED);
         if (this.frames.length >= NEEDED) {
-          const m = aggregate(this.frames, false);
+          const m = aggregate(steadyProportions(this.frames), false);
           if (m) {
             this.finish(unscaledResult(m, this.framesMm));
             return;

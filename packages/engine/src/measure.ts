@@ -43,8 +43,14 @@ export function handDimensionsPx(lm: Landmark[], w: number, h: number): Dims {
 
 export type Gate = 'no_hand' | 'out_of_frame' | 'fingers_closed' | 'fingers_bent' | 'hand_tilted';
 
-/** Quality gates for one frame. Returns the first failing gate, or null when the frame is usable. */
-export function checkHandFrame(lm: Landmark[] | undefined): Gate | null {
+/**
+ * Quality gates for one frame. Returns the first failing gate, or null when the frame is usable.
+ * `free`: a scan without a card, hand held up to the camera rather than laid on a table. Only the
+ * proportions count there, so slightly bent fingers and a little tilt are allowed.
+ */
+export function checkHandFrame(lm: Landmark[] | undefined, opts: { free?: boolean } = {}): Gate | null {
+  const minStraight = opts.free ? 0.86 : 0.9;
+  const maxDepth = opts.free ? 0.45 : 0.35;
   if (!lm || lm.length < 21) return 'no_hand';
   if (lm.some((p) => p.x < 0.02 || p.x > 0.98 || p.y < 0.02 || p.y > 0.98)) return 'out_of_frame';
   const v = (a: number, b: number) => {
@@ -63,13 +69,13 @@ export function checkHandFrame(lm: Landmark[] | undefined): Gate | null {
     const pts = [lm[i], lm[i + 1], lm[i + 2], lm[i + 3]] as Pt[];
     return dist(pts[0] as Pt, pts[3] as Pt) / chain(pts);
   };
-  if (straight(5) < 0.9 || straight(9) < 0.9) return 'fingers_bent';
+  if (straight(5) < minStraight || straight(9) < minStraight) return 'fingers_bent';
   // Relative depth: on a flat hand the fingertips sit at roughly the wrist's depth.
   const span = dist(lm[0] as Pt, lm[12] as Pt);
   const zRange = Math.max(
     ...[4, 8, 12, 16, 20].map((i) => Math.abs((lm[i] as Landmark).z - (lm[0] as Landmark).z)),
   );
-  if (span > 0 && zRange / span > 0.35) return 'hand_tilted';
+  if (span > 0 && zRange / span > maxDepth) return 'hand_tilted';
   return null;
 }
 

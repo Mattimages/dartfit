@@ -7,13 +7,12 @@ import {
   type Variant,
 } from '@dartfit/engine';
 import { h } from '../h';
-import { getLang, num, range, t, type Key } from '../i18n';
+import { num, range, t, type Key } from '../i18n';
 import { go } from '../router';
 import { session } from '../store';
-import { DEMO, explain, getFit, type FitResult, type Offer } from '../api';
+import { DEMO, getFit, type FitResult, type Offer } from '../api';
 import { dartDrawing } from '../draw/dart';
-import { bandRow } from '../draw/bands';
-import { balanceName, dartName, reasonText, shapeName } from './words';
+import { dartName } from './words';
 import { priceLabel } from '../money';
 import { matchPct } from '../score';
 import { dartMedia } from '../media';
@@ -216,71 +215,10 @@ export async function resultView(root: HTMLElement, params: Record<string, strin
   const f = r.fit;
   const picks = r.recommendation.picks as FullPick[];
   const best = picks[0];
-  const lang = getLang();
-
-  // ── Explanation (AI, grounded; template in the demo) ───────────────
-  const explainP = h('p', { class: 'explain', 'aria-busy': 'true' }, t('r.explain.loading'));
-  if (best)
-    explain(r, best, lang)
-      .then((e) => {
-        explainP.textContent = e.text;
-        explainP.setAttribute('aria-busy', 'false');
-      })
-      .catch(() => {
-        explainP.textContent = t('error.generic');
-        explainP.setAttribute('aria-busy', 'false');
-      });
 
   const pc = session().priceClass;
   const hero = tierHero(r, pc && pc !== 'any' ? pc : tierOf(best?.variant.priceUsd ?? null));
 
-  const why = (dim: string) =>
-    f.reasons
-      .filter((x) => x.dim === dim && !['weight_prior', 'length_fingers', 'grip_feel'].includes(x.code))
-      .map(reasonText)
-      .filter(Boolean)
-      .join(' ');
-  const bands = h(
-    'div',
-    { class: 'bands' },
-    bandRow({
-      label: t('r.weight'),
-      unit: 'g',
-      scale: [16, 28],
-      ticks: [18, 20, 22, 24, 26],
-      band: f.weight.band,
-      match: best?.variant.weightG,
-      why: why('weight'),
-    }),
-    bandRow({
-      label: t('r.length'),
-      unit: 'mm',
-      scale: [36, 60],
-      ticks: [40, 45, 50, 55],
-      band: f.length.band,
-      match: best?.variant.lengthMm,
-      why: why('length'),
-    }),
-    bandRow({
-      label: t('r.diameter'),
-      unit: 'mm',
-      digits: 1,
-      scale: [5.6, 8.5],
-      ticks: [6, 6.5, 7, 7.5, 8],
-      band: f.diameter.band,
-      match: best?.variant.diameterMm,
-      why: why('diameter'),
-    }),
-    bandRow({
-      label: t('r.grip'),
-      unit: '',
-      scale: [1, 5],
-      ticks: [2, 3, 4],
-      band: f.grip.band,
-      match: best?.variant.gripIntensity,
-      why: why('grip'),
-    }),
-  );
   const su = f.setup;
   const setup = h(
     'div',
@@ -305,25 +243,6 @@ export async function resultView(root: HTMLElement, params: Record<string, strin
       h('b', { class: 'num' }, range(su.pointMm, 'mm', 0)),
     ),
   );
-  const whatIf = r.whatIf.slice(0, 3).map((w) => {
-    const a =
-      w.question === 'hold'
-        ? t(k(`q.hold.${w.answer}`)).toLowerCase()
-        : w.question === 'throwStyle'
-          ? t(k(`word.${w.answer}`))
-          : w.question === 'thickness'
-            ? t(k(`q.thickness.${w.answer}`)).toLowerCase()
-            : String(w.answer);
-    return h('li', null, `${t(k(`r.whatif.${w.question}`), { a })}: ${w.newBestName}`);
-  });
-  const physics = f.reasons
-    .filter((x) => x.code.startsWith('physics'))
-    .map(reasonText)
-    .filter(Boolean) as string[];
-
-  const more = (title: string, ...body: Array<HTMLElement | null | false>) =>
-    h('details', { class: 'more' }, h('summary', null, title), h('div', null, ...body));
-
   const twin = r.proTwin;
   const share = resultShare(r);
   const v = best?.variant;
@@ -401,29 +320,8 @@ export async function resultView(root: HTMLElement, params: Record<string, strin
           h('div', { class: 'rail' }, ...picks.slice(1).map((p) => altCard(r, p))),
         )
       : null,
-    h(
-      'section',
-      null,
-      best ? more(t('r.explain'), explainP) : null,
-      more(
-        t('r.more.sizes'),
-        h(
-          'p',
-          { class: 'small' },
-          t('r.ideal.short', {
-            L: num(f.barrel.lengthMm),
-            D: num(f.barrel.diameterMm),
-            g: num(f.barrel.massG, 0),
-            shape: shapeName(f.barrel.shape),
-          }),
-        ),
-        ...physics.map((n) => h('p', { class: 'callout' }, n)),
-        bands,
-        h('p', { class: 'small' }, `${t('r.balance')}: ${balanceName(f.preferredBalance)}`),
-      ),
-      more(t('r.setup.title'), setup),
-      whatIf.length ? more(t('r.whatif'), h('ul', { class: 'whatif' }, ...whatIf)) : null,
-    ),
+    // Shaft and flight tips stay; the other expanders are gone (owner, 21 Nov).
+    h('section', { class: 'stack r-setup' }, h('h2', null, t('r.setup.title')), setup),
     partnerBanner(),
     // Keep me posted: at the end of the result.
     alertSignup(r.id ?? undefined, { saved: !!r.saved, justConfirmed: query?.get('alerts') === '1' }),

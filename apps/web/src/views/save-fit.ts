@@ -89,7 +89,7 @@ export function saveFitPopup(fitId: string | null, done: () => void): void {
   );
   const dialog = h(
     'dialog',
-    { class: 'pop-dialog', 'aria-labelledby': 'save-title' },
+    { class: 'pop-dialog', 'aria-labelledby': 'save-title', tabindex: -1, autofocus: true },
     form,
   ) as HTMLDialogElement;
   dialog.addEventListener('cancel', (e) => {
@@ -135,5 +135,7 @@ export function saveFitPopup(fitId: string | null, done: () => void): void {
 
   document.body.append(dialog);
   dialog.showModal();
-  email.focus();
+  // Focus the pop-up itself, not the email field: on phones that would pop up the keyboard
+  // and cover the pop-up before anyone has read it.
+  dialog.focus();
 }

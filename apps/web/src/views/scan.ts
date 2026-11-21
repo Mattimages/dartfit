@@ -132,7 +132,19 @@ export function scanView(root: HTMLElement, _params?: Record<string, string>, qu
     role: 'application',
     'aria-label': t('scan.tap_hint'),
   });
-  const camera = h('div', { class: 'camera', hidden: true }, video, freeze, overlay, guide, tapLayer);
+  // A standing hint in the viewfinder: how to hold the hand (on the table with a card; any flat
+  // way without one).
+  const vfHint = h('p', { class: 'vf-hint', 'aria-hidden': 'true' });
+  const camera = h(
+    'div',
+    { class: 'camera', hidden: true },
+    video,
+    freeze,
+    overlay,
+    guide,
+    vfHint,
+    tapLayer,
+  );
   const tapBtn = h('button', { class: 'btn ghost', type: 'button', hidden: true }, t('scan.tap_fallback'));
 
   // The flow (owner, 18 Nov): "Start scan" → with or without a pasje → a pop-up for each (keep
@@ -402,6 +414,7 @@ export function scanView(root: HTMLElement, _params?: Record<string, string>, qu
         ? r(null)
         : video.addEventListener('loadedmetadata', () => r(null), { once: true }),
     );
+    vfHint.textContent = t(noCard ? 'scan.vf.free' : 'scan.vf.table');
     if (noCard) {
       guide.hidden = true;
       camera.classList.add('nocard-live');
@@ -429,6 +442,9 @@ export function scanView(root: HTMLElement, _params?: Record<string, string>, qu
           if (s === 'measuring')
             say('scan.status.measuring', { n: Math.round(progress * 18), total: 18 }, true);
           else if (s === 'done') say('scan.status.done', {}, true);
+          // Without a card the hand needn't lie on a table, so those hints don't say "lay".
+          else if (noCard && (s === 'no_hand' || s === 'fingers_bent' || s === 'hand_tilted'))
+            say(`scan.status.${s}.free` as Key);
           else say(`scan.status.${s}` as Key);
           tapBtn.hidden = s !== 'tap_needed';
         },

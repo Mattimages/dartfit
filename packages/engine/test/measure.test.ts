@@ -60,6 +60,18 @@ describe('hand geometry', () => {
     expect(checkHandFrame(tilted)).toBe('hand_tilted');
   });
 
+  it('allows a little tilt for a free-hand scan (no card), but not a turned hand', () => {
+    const base = syntheticHand();
+    const a = base[0] as Landmark;
+    const b = base[12] as Landmark;
+    const span = Math.hypot(a.x - b.x, a.y - b.y);
+    const tip = (zr: number) =>
+      base.map((p, i) => ([4, 8, 12, 16, 20].includes(i) ? { ...p, z: -zr * span } : p));
+    expect(checkHandFrame(tip(0.4))).toBe('hand_tilted');
+    expect(checkHandFrame(tip(0.4), { free: true })).toBeNull();
+    expect(checkHandFrame(tip(0.6), { free: true })).toBe('hand_tilted');
+  });
+
   it('rejects bent fingers', () => {
     const lm = syntheticHand();
     lm[11] = { ...(lm[11] as Landmark), x: (lm[11] as Landmark).x + 0.05 };
