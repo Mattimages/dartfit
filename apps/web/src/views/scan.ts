@@ -1,4 +1,4 @@
-import { doors, giftPicture } from '../draw/doors';
+import { cardPicture, doors, giftPicture, noCardPicture } from '../draw/doors';
 import { handArt } from '../draw/art';
 import { checkHandFrame, type Landmark, type Pt } from '@dartfit/engine';
 import { h, s } from '../h';
@@ -125,7 +125,13 @@ export function scanView(root: HTMLElement, _params?: Record<string, string>, qu
   const video = h('video', { playsinline: true, muted: true, autoplay: true }) as HTMLVideoElement;
   const overlay = h('canvas', { 'aria-hidden': 'true' }) as HTMLCanvasElement;
   const freeze = h('canvas', { hidden: true, 'aria-hidden': 'true' }) as HTMLCanvasElement;
-  const guide = h('div', { class: 'guide', 'aria-hidden': 'true' }, t('scan.card_here'));
+  // The card guide also carries the privacy line, where the card goes (owner, 22 Nov).
+  const guide = h(
+    'div',
+    { class: 'guide', 'aria-hidden': 'true' },
+    h('span', null, t('scan.card_here')),
+    h('small', null, t('scan.vf.cover')),
+  );
   const tapLayer = h('div', {
     class: 'tap-layer',
     hidden: true,
@@ -147,19 +153,21 @@ export function scanView(root: HTMLElement, _params?: Record<string, string>, qu
   );
   const tapBtn = h('button', { class: 'btn ghost', type: 'button', hidden: true }, t('scan.tap_fallback'));
 
-  // The flow (owner, 22 Nov: only a third of visitors got through the scan, so fewer taps): "Start
-  // the scan" opens the camera straight away, with the cover-your-details line right under it; a
-  // photo and "no card at hand" (with its "the card is our ruler" pop-up) are one tap aside.
-  const startScan = h('button', { class: 'btn block', type: 'button' }, t('scan.start'));
+  // The flow (owner, 22 Nov: only a third of visitors got through the scan, so fewer taps): the two
+  // picture buttons sit on the page itself. "With a card" opens the camera straight away (the
+  // cover-your-details line is in the viewfinder, on the card guide); "no card" opens its "the card
+  // is our ruler" pop-up. A photo is one tap aside.
   const photoIntro = h('label', { class: 'btn ghost block', for: 'photo' }, t('scan.photo'));
-  const withoutLink = h('button', { class: 'btn link', type: 'button' }, t('scan.without'));
+  const choice = doors([
+    { label: t('scan.with'), picture: cardPicture(), onclick: () => withCard() },
+    { label: t('scan.without'), picture: noCardPicture(), onclick: () => withoutDlg.showModal() },
+  ]);
   const startRow = h(
     'div',
     { class: 'stack scan-start' },
-    startScan,
-    h('p', { class: 'small scan-cover' }, t('scan.privacy')),
+    h('h2', null, t('scan.choose')),
+    choice,
     photoIntro,
-    withoutLink,
   );
   const giftOnly = doors([{ label: t('start.gift'), picture: giftPicture(), href: '#/gift' }]);
   const photoInput = h('input', {
@@ -358,7 +366,6 @@ export function scanView(root: HTMLElement, _params?: Record<string, string>, qu
   // ── Start ───────────────────────────────────────────────────────────
   let noCard = false;
   let stuckTimer: ReturnType<typeof setTimeout> | undefined;
-  withoutLink.addEventListener('click', () => withoutDlg.showModal());
   getCard.addEventListener('click', () => {
     withoutDlg.close();
     noCard = false;
@@ -371,12 +378,15 @@ export function scanView(root: HTMLElement, _params?: Record<string, string>, qu
     withoutDlg.close();
     void startCamera();
   });
-  startScan.addEventListener('click', () => {
+  function withCard() {
     noCard = false;
     void startCamera();
-  });
+  }
+  let starting = false;
   const startCamera = async () => {
-    startScan.setAttribute('disabled', '');
+    // One camera at a time: a second tap while the permission prompt is up does nothing.
+    if (starting) return;
+    starting = true;
     await askOrientation();
     try {
       stream = await navigator.mediaDevices.getUserMedia({
@@ -385,7 +395,7 @@ export function scanView(root: HTMLElement, _params?: Record<string, string>, qu
       });
     } catch {
       say('scan.no_camera');
-      startScan.removeAttribute('disabled');
+      starting = false;
       noCard = false;
       intro.hidden = false;
       return;

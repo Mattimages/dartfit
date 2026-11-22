@@ -63,6 +63,7 @@ export const de: Partial<Record<Key, string>> = {
   'why.hand_unscaled_height':
     'Ohne Karte gescannt: Die Größe deiner Hand ({handLengthMm} mm) ist aus deiner Körpergröße ({heightCm} cm) geschätzt.',
   'scan.card_here': 'Karte hierhin legen',
+  'scan.vf.cover': 'Name und Kartennummer abdecken',
   'scan.card_any': 'Jede normale Karte',
   'scan.status.no_hand': 'Leg deine Hand flach ins Bild, damit wir sie sehen',
   'scan.status.out_of_frame': 'Ein Stück deiner Hand ist nicht im Bild',

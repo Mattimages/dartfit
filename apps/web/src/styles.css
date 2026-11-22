@@ -1621,10 +1621,22 @@ details.more > div {
   color: #fff;
   font-size: 0.875rem;
   display: flex;
-  align-items: flex-end;
-  justify-content: center;
-  padding-bottom: var(--s1);
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 2px;
+  padding: 0 var(--s1) var(--s1);
+  text-align: center;
   text-shadow: 0 1px 2px #000;
+}
+.camera .guide small {
+  padding: 0.15rem 0.6rem;
+  border-radius: 999px;
+  background: rgb(15 27 45 / 0.72);
+  font-size: 0.75rem;
+  font-weight: 600;
+  line-height: 1.3;
+  text-shadow: none;
 }
 .camera .vf-hint {
   position: absolute;
@@ -5155,13 +5167,10 @@ a.card {
 .scan-start {
   gap: var(--s2);
 }
-.scan-start .scan-cover {
+.scan-start h2 {
   margin: 0;
-  color: var(--ink-2);
+  font-size: 1.15rem;
   text-align: center;
-}
-.scan-start .btn.link {
-  justify-self: center;
 }
 .scan-stuck {
   position: absolute;

@@ -484,7 +484,9 @@ export function heroScan(pool: Variant[]): HTMLElement | null {
   void (async () => {
     let c: Cast = first;
     for (;;) {
-      const finished = await play(root, c);
+      // The film opens on the ask too (owner, 22 Nov), then plays; every round still ends on it.
+      const finished = await play(root, c, 'hero', c === first && !root.dataset.opened);
+      root.dataset.opened = '1';
       if (!finished) return;
       await wait(2400);
       if (!root.isConnected) return;
@@ -632,7 +634,13 @@ function layoutEnd(root: HTMLElement, box: HTMLElement) {
 }
 
 /** One round of the film. Resolves true when it reached the shop card, false when it should stop. */
-async function play(root: HTMLElement, c: Cast, mode: 'hero' | 'fit' = 'hero'): Promise<boolean> {
+async function play(
+  root: HTMLElement,
+  c: Cast,
+  mode: 'hero' | 'fit' = 'hero',
+  /** Open on "Tik hier om je eigen hand te meten" over the first frame before the round runs. */
+  intro = false,
+): Promise<boolean> {
   // The fitting screen tells the same story about you: "your hand", "your answers", "your best match".
   const label = (k: 'scan' | 'measure' | 'ask' | 'model' | 'best') =>
     mode === 'fit' ? t(`fit.s.${k}`) : t(`hs.step.${k}`);
@@ -667,6 +675,15 @@ async function play(root: HTMLElement, c: Cast, mode: 'hero' | 'fit' = 'hero'): 
 
   const still = typeof matchMedia === 'function' && matchMedia('(prefers-reduced-motion: reduce)').matches;
   const alive = () => root.isConnected || !root.dataset.started;
+  if (intro) {
+    const tap = h('div', { class: 'hs-tap on' }, h('span', { class: 'hs-tap-pill' }, t('hs.tap')));
+    root.append(tap);
+    await wait(2800);
+    if (!alive()) return false;
+    tap.classList.remove('on');
+    await wait(380);
+    tap.remove();
+  }
   const setStep = (text: string) => (step.textContent = text);
   const last = model.cands.length - 1;
   const cell = (key: keyof Split) => chip.querySelector<HTMLElement>(`[data-k="${key}"]`)!;

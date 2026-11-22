@@ -127,6 +127,7 @@ const nl = {
   'why.hand_unscaled_height':
     'Gescand zonder pasje: de grootte van je hand ({handLengthMm} mm) is geschat uit je lengte ({heightCm} cm).',
   'scan.card_here': 'Leg je pasje hier',
+  'scan.vf.cover': 'Dek je naam en pasnummer af',
   'scan.card_any': 'Elk gewoon pasje',
   'scan.status.no_hand': 'Leg je hand plat in beeld',
   'scan.status.out_of_frame': 'Een stukje van je hand valt buiten beeld',
@@ -827,6 +828,7 @@ const en: Record<Key, string> = {
   'why.hand_unscaled_height':
     'Scanned without a card: your hand size ({handLengthMm} mm) is estimated from your height ({heightCm} cm).',
   'scan.card_here': 'Put your card here',
+  'scan.vf.cover': 'Cover your name and card number',
   'scan.card_any': 'Any regular card',
   'scan.status.no_hand': 'Lay your hand flat where we can see it',
   'scan.status.out_of_frame': 'A bit of your hand is out of the picture',
