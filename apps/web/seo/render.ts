@@ -25,7 +25,7 @@ export const SITES: Site[] = [nl, en, de].map((s) => ({
 }));
 export const LANGS: Lang[] = ['nl', 'en', 'de'];
 /** Shown on every page and used as dateModified; bump when the guides change. */
-export const UPDATED = '2026-11-18';
+export const UPDATED = '2026-11-22';
 
 /** Catalogue facts quoted in the guides, computed from the live catalogue at build time. */
 export interface Stats {
