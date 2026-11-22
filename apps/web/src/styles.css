@@ -1630,8 +1630,9 @@ details.more > div {
   text-shadow: 0 1px 2px #000;
 }
 .camera .guide small {
-  padding: 0.15rem 0.6rem;
-  border-radius: 999px;
+  padding: 0.2rem 0.7rem;
+  border-radius: 10px;
+  white-space: pre-line;
   background: rgb(15 27 45 / 0.72);
   font-size: 0.75rem;
   font-weight: 600;
