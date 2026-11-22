@@ -260,7 +260,7 @@ export const de: Site = {
       slug: 'welches-dartgewicht',
       title: 'Welches Dartgewicht ist richtig? Ratgeber für Steeldarts',
       description:
-        'Welches Dartgewicht wählen: die meisten Steeldarts wiegen 20 bis 26 Gramm. Wie Wurf, Griff und Hand das richtige Gewicht bestimmen, mit Daten von {darts} Darts.',
+        'Welches Dartgewicht? Die meisten Steeldarts wiegen 20 bis 26 Gramm. Wie Wurf, Griff und Hand das richtige Gewicht bestimmen, mit Daten von {darts} Darts.',
       h1: 'Welches Dartgewicht ist das richtige für mich?',
       answer:
         'Fang bei Steeldarts mit 22 bis 24 Gramm an: {share2224} der {darts} Darts im DartFit-Katalog liegen in diesem Bereich, der Median liegt bei {medW} Gramm. Ein flacher, schneller Wurf passt oft zu einem etwas schwereren Dart, ein Wurf im Bogen zu einem etwas leichteren. Dein aktueller Dart ist der beste Hinweis: Fühlt er sich zu leicht oder zu schwer an, geh etwa 2 Gramm weiter.',
@@ -319,9 +319,9 @@ export const de: Site = {
     {
       key: 'gift',
       slug: 'darts-als-geschenk',
-      title: 'Darts als Geschenk: passend wählen, ohne die Hand zu messen',
+      title: 'Darts als Geschenk: passend wählen, ohne Hand zu messen',
       description:
-        'Darts verschenken? Wähle ein Set, das passt, anhand von Körpergröße, Handtyp und wie der Spieler den Dart hält. Kostenloses Geschenk-Fitting mit DartFit.',
+        'Darts verschenken? Wähle ein Set, das passt: nach Körpergröße, Handtyp und wie der Spieler den Dart hält. Kostenloses Geschenk-Fitting mit DartFit.',
       h1: 'Darts als Geschenk kaufen',
       answer:
         'Um Darts zu kaufen, die zu jemand anderem passen, brauchst du vier Dinge, die du wahrscheinlich weißt: wie groß der Spieler ist, ob seine Hände lang und schlank oder kurz und kräftig sind, wo er den Dart hält und wie er fliegt. DartFit hat einen Geschenkmodus, der genau das fragt, ohne Handscan, und die am besten passenden Darts in drei Preisklassen zeigt.',

@@ -14,6 +14,8 @@ import { EVENTS, SOURCES } from './events';
 import { ARTICLES } from './articles';
 import { checkout, hitLabel } from '../src/draw/checkout';
 import { proHubItem, renderProIndex, renderProPage, proPaths, type CatalogueRows } from './pro-pages';
+import { LANDING, UTILITY_CTA, type EngineFacts } from './landing';
+import { proExamples } from './pro-links';
 
 export const SITES: Site[] = [nl, en, de].map((s) => ({
   ...s,
@@ -126,13 +128,16 @@ export function head(o: {
   jsonld: object[];
   /** A page's own picture (a pro's photo); the site's og.png otherwise. */
   image?: { url: string; width: number; height: number };
+  /** The x-default path: the English page by default; the root (the adaptive app) for the landing pages. */
+  xDefault?: string;
+  ogType?: 'article' | 'website';
 }): string {
   const url = o.base + o.path;
   const img = o.image ?? { url: `${o.base}/og.png`, width: 1200, height: 630 };
   const alt = o.alternates
     .map((a) => `<link rel="alternate" hreflang="${a.lang}" href="${o.base}${a.path}">`)
     .join('\n');
-  const xDefault = o.alternates.find((a) => a.lang === 'en');
+  const xDefault = o.xDefault ?? o.alternates.find((a) => a.lang === 'en')?.path;
   return `<!doctype html>
 <html lang="${o.site.lang}">
 <head>
@@ -143,8 +148,8 @@ export function head(o: {
 <meta name="robots" content="index, follow, max-snippet:-1, max-image-preview:large">
 <link rel="canonical" href="${url}">
 ${alt}
-${xDefault ? `<link rel="alternate" hreflang="x-default" href="${o.base}${xDefault.path}">` : ''}
-<meta property="og:type" content="article">
+${xDefault ? `<link rel="alternate" hreflang="x-default" href="${o.base}${xDefault}">` : ''}
+<meta property="og:type" content="${o.ogType ?? 'article'}">
 <meta property="og:site_name" content="DartFit">
 <meta property="og:title" content="${esc(o.title)}">
 <meta property="og:description" content="${esc(o.description)}">
@@ -168,14 +173,14 @@ export function chrome(site: Site, inner: string, langLinks: string, crumbs: str
   return `<body>
 <a class="skip" href="#main">${esc(u.skip)}</a>
 <header class="top"><div class="wrap top-row">
-<a class="brand" href="/">${LOGO}<span>DartFit</span></a>
+<a class="brand" href="${pathOf(site.lang, '')}">${LOGO}<span>DartFit</span></a>
 <nav class="langs" aria-label="Language">${langLinks}</nav>
 </div></header>
 <aside class="welcome" aria-label="${esc(u.welcome.title)}"><div class="wrap">
 <p class="welcome-kicker">${esc(u.welcome.kicker)}</p>
 <p class="welcome-title">${esc(u.welcome.title)}</p>
 <p class="welcome-sub">${esc(u.welcome.sub)}</p>
-<a class="welcome-cta" href="/#/scan">${esc(u.welcome.cta)}</a>
+<a class="welcome-cta" href="${appLink(site.lang, 'scan')}">${esc(u.welcome.cta)}</a>
 </div></aside>
 <main id="main" class="wrap">
 ${crumbs}
@@ -183,19 +188,25 @@ ${inner}
 </main>
 <footer class="wrap foot">
 <p>${esc(u.disclosure)}</p>
-<p><a href="/">${esc(u.home)}</a> · <a href="${pathOf(site.lang, '')}">${esc(u.guides)}</a> · <a href="/#/privacy">Privacy</a></p>
+<p><a href="${pathOf(site.lang, '')}">${esc(u.home)}</a> · <a href="${proPaths.index(site.lang)}">${esc(PROS_LABEL[site.lang])}</a> · <a href="${appLink(site.lang, 'method')}">${esc(METHOD_LABEL[site.lang])}</a> · <a href="${appLink(site.lang, 'privacy')}">Privacy</a></p>
 </footer>
 </body>
 </html>
 `;
 }
 
-export function cta(site: Site): string {
+/** A link into the app (hash routes), carrying the page's language so the app opens in it. */
+export const appLink = (lang: Lang, route: 'scan' | 'gift' | 'method' | 'privacy' | '') =>
+  `/#/${route}?lang=${lang}`;
+const PROS_LABEL: Record<Lang, string> = { en: 'Darts of the pros', nl: 'Darts van de profs', de: 'Darts der Profis' };
+const METHOD_LABEL: Record<Lang, string> = { en: 'Method', nl: 'Methode', de: 'Methode' };
+
+export function cta(site: Site, sub?: string): string {
   const u = site.ui;
   return `<aside class="cta" aria-label="${esc(u.cta)}">
-<p class="cta-sub">${esc(u.ctaSub)}</p>
-<a class="btn" href="/#/scan">${esc(u.cta)}</a>
-<a class="btn alt" href="/#/gift">${esc(u.ctaGift)}</a>
+<p class="cta-sub">${esc(sub ?? u.ctaSub)}</p>
+<a class="btn" href="${appLink(site.lang, 'scan')}">${esc(u.cta)}</a>
+<a class="btn alt" href="${appLink(site.lang, 'gift')}">${esc(u.ctaGift)}</a>
 </aside>`;
 }
 
@@ -227,28 +238,49 @@ function section(s: Section, st: Stats, lang: Lang): string {
   return `<section>${parts.join('\n')}</section>`;
 }
 
+/** Set by buildGuides: the catalogue facts the shared structured data quotes. */
+let current: Stats | null = null;
+
 export const org = (base: string) => ({
   '@type': 'Organization',
   '@id': `${base}/#org`,
   name: 'DartFit',
+  alternateName: 'Find Your Darts',
   url: `${base}/`,
   logo: `${base}/icons/icon-512.png`,
+  description: 'Free dart fitting: steel-tip darts matched to a measured hand.',
+  knowsAbout: ['Steel-tip darts', 'Dart barrel design', 'Dart fitting', 'Darts equipment'],
 });
-export const app = (base: string, site: Site) => ({
-  '@type': 'WebApplication',
-  '@id': `${base}/#app`,
+export const website = (base: string) => ({
+  '@type': 'WebSite',
+  '@id': `${base}/#website`,
   name: 'DartFit',
+  alternateName: 'Find Your Darts',
   url: `${base}/`,
-  applicationCategory: 'SportsApplication',
-  operatingSystem: 'Any (web browser)',
-  browserRequirements: 'A phone with a camera',
   inLanguage: LANGS,
-  description: site.hub.description,
-  offers: { '@type': 'Offer', price: '0', priceCurrency: 'EUR' },
   publisher: { '@id': `${base}/#org` },
 });
+export const app = (base: string, site: Site) => {
+  const L = LANDING[site.lang];
+  const f = (x: string) => (current ? fill(x, current, site.lang) : x.replace(/\{darts\}\s*/g, ''));
+  return {
+    '@type': 'WebApplication',
+    '@id': `${base}/#app`,
+    name: 'DartFit',
+    url: `${base}/`,
+    applicationCategory: 'SportsApplication',
+    operatingSystem: 'Any (web browser)',
+    browserRequirements: 'A phone with a camera',
+    inLanguage: LANGS,
+    isAccessibleForFree: true,
+    description: f(L.appDescription),
+    featureList: L.features.map(f),
+    offers: { '@type': 'Offer', price: '0', priceCurrency: 'EUR' },
+    publisher: { '@id': `${base}/#org` },
+  };
+};
 
-export function renderPage(site: Site, page: Page, st: Stats, base: string): string {
+export function renderPage(site: Site, page: Page, st: Stats, base: string, cat?: CatalogueRows): string {
   const f = (x: string) => fill(x, st, site.lang);
   const path = pathOf(site.lang, page.slug);
   const alternates = LANGS.map((l) => ({ lang: l, path: pathOf(l, pageOf(l, page.key).slug) }));
@@ -260,7 +292,10 @@ export function renderPage(site: Site, page: Page, st: Stats, base: string): str
     )
     .join('');
   const u = site.ui;
-  const crumbs = `<nav class="crumbs" aria-label="Breadcrumb"><a href="/">DartFit</a> › <a href="${pathOf(site.lang, '')}">${esc(u.guides)}</a></nav>`;
+  const crumbs = `<nav class="crumbs" aria-label="Breadcrumb"><a href="${pathOf(site.lang, '')}">DartFit</a> › <span aria-current="page">${esc(f(page.h1))}</span></nav>`;
+  const util = UTILITY_CTA[site.lang];
+  const ctaSub =
+    page.key === 'checkout' ? f(util.checkout) : page.key === 'rules' || page.key === 'events' ? f(util.other) : undefined;
   const related = site.pages
     .filter((p) => p.key !== page.key)
     .map(
@@ -271,9 +306,10 @@ export function renderPage(site: Site, page: Page, st: Stats, base: string): str
   const inner = `<article>
 <h1>${esc(f(page.h1))}</h1>
 <p class="answer">${esc(f(page.answer))}</p>
-${cta(site)}
+${cta(site, ctaSub)}
 ${page.sections.map((s) => section(s, st, site.lang)).join('\n')}
 ${page.key === 'checkout' ? checkoutTable(site.lang) : ''}
+${cat ? proExamples(page.key, site.lang, cat) : ''}
 <section class="faq">
 <h2 id="faq">${esc(u.faq)}</h2>
 ${page.faq.map(([q, a]) => `<h3>${esc(f(q))}</h3>\n<p>${esc(f(a))}</p>`).join('\n')}
@@ -281,7 +317,7 @@ ${page.faq.map(([q, a]) => `<h3>${esc(f(q))}</h3>\n<p>${esc(f(a))}</p>`).join('\
 ${sourcesList(page.key, site.lang)}
 <p class="updated">${esc(u.updated)}: <time datetime="${UPDATED}">${new Date(UPDATED).toLocaleDateString(site.locale.replace('_', '-'), { day: 'numeric', month: 'long', year: 'numeric' })}</time> · DartFit</p>
 </article>
-${cta(site)}
+${cta(site, ctaSub)}
 <nav class="related" aria-label="${esc(u.related)}"><h2>${esc(u.related)}</h2><ul>${related}</ul></nav>`;
   const url = base + path;
   const jsonld = [
@@ -289,6 +325,7 @@ ${cta(site)}
       '@context': 'https://schema.org',
       '@graph': [
         org(base),
+        website(base),
         app(base, site),
         {
           '@type': 'Article',
@@ -316,9 +353,8 @@ ${cta(site)}
         {
           '@type': 'BreadcrumbList',
           itemListElement: [
-            { '@type': 'ListItem', position: 1, name: 'DartFit', item: `${base}/` },
-            { '@type': 'ListItem', position: 2, name: u.guides, item: base + pathOf(site.lang, '') },
-            { '@type': 'ListItem', position: 3, name: f(page.h1), item: url },
+            { '@type': 'ListItem', position: 1, name: 'DartFit', item: base + pathOf(site.lang, '') },
+            { '@type': 'ListItem', position: 2, name: f(page.h1), item: url },
           ],
         },
       ],
@@ -359,44 +395,86 @@ function sourcesList(key: Page['key'], lang: Lang): string {
     .join('')}</ul></section>`;
 }
 
-export function renderHub(site: Site, st: Stats, base: string): string {
-  const f = (x: string) => fill(x, st, site.lang);
-  const path = pathOf(site.lang, '');
+/**
+ * The locale landing page (/en/, /nl/, /de/): the tool first (what it does, how it measures, what
+ * the engine suggests for three heights and three grips), then every guide and the pros.
+ */
+export function renderLanding(site: Site, st: Stats, base: string, facts?: EngineFacts): string {
+  const lang = site.lang;
+  const L = LANDING[lang];
+  const f = (x: string) => fill(x, st, lang);
+  const path = pathOf(lang, '');
+  const url = base + path;
   const alternates = LANGS.map((l) => ({ lang: l, path: pathOf(l, '') }));
   const langLinks = alternates
     .map((a) =>
-      a.lang === site.lang
+      a.lang === lang
         ? `<span aria-current="page">${a.lang.toUpperCase()}</span>`
         : `<a href="${a.path}" hreflang="${a.lang}" lang="${a.lang}">${a.lang.toUpperCase()}</a>`,
     )
     .join('');
+  const loc = site.locale.replace('_', '-');
+  const n = (x: number) => x.toLocaleString(loc, { maximumFractionDigits: 1 });
+  const span = ([lo, hi]: [number, number], unit: string) => (lo === hi ? `${n(lo)} ${unit}` : `${n(lo)}–${n(hi)} ${unit}`);
+  const samples = facts?.samples ?? [];
+  const table = samples.length
+    ? `<section><h2 id="samples">${esc(L.samplesH2)}</h2>
+<p>${esc(L.samplesP)}</p>
+<div class="table"><table><thead><tr>${L.cols.map((c) => `<th scope="col">${esc(c)}</th>`).join('')}</tr></thead><tbody>${samples
+        .map(
+          (x) =>
+            `<tr><th scope="row">${x.heightCm} cm, ${esc(L.holds[x.hold])}</th><td><span class="nw">${span(x.weight, 'g')}</span> · <span class="nw">${span(x.length, 'mm')}</span></td><td>${esc(`${x.dart.brand} ${x.dart.model}`)}, ${n(x.dart.weightG)} g <span class="nw">(${x.matchPct}% ${esc(L.match)})</span></td></tr>`,
+        )
+        .join('')}</tbody></table></div></section>`
+    : '';
   const list = site.pages
     .map(
       (p) =>
-        `<li><a href="${pathOf(site.lang, p.slug)}"><b>${esc(f(p.h1))}</b><span>${esc(f(p.description))}</span></a></li>`,
+        `<li><a href="${pathOf(lang, p.slug)}"><b>${esc(f(p.h1))}</b><span>${esc(f(p.description))}</span></a></li>`,
     )
     .join('');
-  const inner = `<h1>${esc(f(site.hub.h1))}</h1>
-<p class="answer">${esc(f(site.hub.intro))}</p>
+  const faq = L.faq.map(([q, a]) => [f(q), f(a)] as const);
+  const inner = `<h1>${esc(f(L.h1))}</h1>
+<p class="answer">${esc(f(L.answer))}</p>
 ${cta(site)}
-<ul class="hub">${list}${proHubItem(site)}</ul>`;
+<section><h2 id="how">${esc(L.stepsH2)}</h2><ol class="steps">${L.steps.map((x) => `<li>${esc(f(x))}</li>`).join('')}</ol></section>
+${table}
+<section><h2 id="guides">${esc(L.guidesH2)}</h2><ul class="hub">${list}${proHubItem(site)}</ul></section>
+<section class="faq"><h2 id="faq">${esc(site.ui.faq)}</h2>
+${faq.map(([q, a]) => `<h3>${esc(q)}</h3>\n<p>${esc(a)}</p>`).join('\n')}
+</section>
+${cta(site)}`;
   const jsonld = [
     {
       '@context': 'https://schema.org',
       '@graph': [
         org(base),
+        website(base),
         app(base, site),
         {
-          '@type': 'CollectionPage',
-          '@id': `${base}${path}#page`,
-          name: f(site.hub.title),
-          description: f(site.hub.description),
-          inLanguage: site.lang,
+          '@type': 'WebPage',
+          '@id': `${url}#page`,
+          url,
+          name: f(L.title),
+          description: f(L.description),
+          inLanguage: lang,
           dateModified: UPDATED,
+          isPartOf: { '@id': `${base}/#website` },
+          about: { '@id': `${base}/#app` },
           hasPart: site.pages.map((p) => ({
             '@type': 'Article',
             headline: f(p.h1),
-            url: base + pathOf(site.lang, p.slug),
+            url: base + pathOf(lang, p.slug),
+          })),
+        },
+        {
+          '@type': 'FAQPage',
+          '@id': `${url}#faq`,
+          inLanguage: lang,
+          mainEntity: faq.map(([q, a]) => ({
+            '@type': 'Question',
+            name: q,
+            acceptedAnswer: { '@type': 'Answer', text: a },
           })),
         },
       ],
@@ -405,77 +483,95 @@ ${cta(site)}
   return (
     head({
       site,
-      title: f(site.hub.title),
-      description: f(site.hub.description),
+      title: f(L.title),
+      description: f(L.description),
       path,
       alternates,
       base,
       jsonld,
+      xDefault: '/',
+      ogType: 'website',
     }) + chrome(site, inner, langLinks, '')
   );
 }
+/** @deprecated The guide hub became the landing page; kept for callers outside the build. */
+export const renderHub = (site: Site, st: Stats, base: string) => renderLanding(site, st, base);
 
 /** Every guide file: path (without leading slash) → contents. */
-export function buildGuides(st: Stats, base: string, cat: CatalogueRows): Record<string, string> {
+export function buildGuides(
+  st: Stats,
+  base: string,
+  cat: CatalogueRows,
+  facts?: EngineFacts,
+): Record<string, string> {
+  current = st;
   const out: Record<string, string> = {};
   for (const site of SITES) {
-    out[`${site.lang}/index.html`] = renderHub(site, st, base);
-    for (const p of site.pages) out[`${site.lang}/${p.slug}/index.html`] = renderPage(site, p, st, base);
+    out[`${site.lang}/index.html`] = renderLanding(site, st, base, facts);
+    for (const p of site.pages) out[`${site.lang}/${p.slug}/index.html`] = renderPage(site, p, st, base, cat);
     out[`${proPaths.index(site.lang).slice(1)}index.html`] = renderProIndex(site, cat, base);
     for (const pro of cat.pros)
-      out[`${proPaths.pro(site.lang, pro).slice(1)}index.html`] = renderProPage(site, pro, cat, base);
+      out[`${proPaths.pro(site.lang, pro).slice(1)}index.html`] = renderProPage(site, pro, cat, base, facts);
   }
-  out['sitemap.xml'] = sitemap(base, cat);
+  const maps = sitemaps(base, cat);
+  for (const [name, xml] of Object.entries(maps)) out[name] = xml;
   out['robots.txt'] = robots(base);
   out['llms.txt'] = llms(st, base, cat);
+  out['llms-full.txt'] = llmsFull(st, base, cat);
   return out;
 }
 
-function sitemap(base: string, cat: CatalogueRows): string {
-  const entry = (loc: string, alts: Array<{ lang: Lang; path: string }>, prio: string) =>
+type Alt = { lang: Lang | 'x-default'; path: string };
+/**
+ * Sitemaps: an index (at /sitemap.xml, where Search Console already has it, and /sitemap-index.xml)
+ * over core (root + landing pages), guides and pros, each URL with its hreflang cluster. lastmod is
+ * the guides' content date (UPDATED), not the build time.
+ */
+function sitemaps(base: string, cat: CatalogueRows): Record<string, string> {
+  const entry = (loc: string, alts: Alt[], prio: string) =>
     `<url><loc>${base}${loc}</loc><lastmod>${UPDATED}</lastmod><priority>${prio}</priority>${alts
       .map((a) => `<xhtml:link rel="alternate" hreflang="${a.lang}" href="${base}${a.path}"/>`)
       .join('')}</url>`;
-  const urls = [`<url><loc>${base}/</loc><lastmod>${UPDATED}</lastmod><priority>1.0</priority></url>`];
-  for (const site of SITES) {
-    urls.push(
-      entry(
-        pathOf(site.lang, ''),
-        LANGS.map((l) => ({ lang: l, path: pathOf(l, '') })),
-        '0.8',
-      ),
-    );
+  const landing: Alt[] = [...LANGS.map((l) => ({ lang: l, path: pathOf(l, '') })), { lang: 'x-default', path: '/' }];
+  const withEnDefault = (alts: Array<{ lang: Lang; path: string }>): Alt[] => [
+    ...alts,
+    { lang: 'x-default', path: alts.find((a) => a.lang === 'en')!.path },
+  ];
+  const core = [entry('/', landing, '1.0'), ...SITES.map((s) => entry(pathOf(s.lang, ''), landing, '0.9'))];
+  const guides: string[] = [];
+  for (const site of SITES)
     for (const p of site.pages)
-      urls.push(
+      guides.push(
         entry(
           pathOf(site.lang, p.slug),
-          LANGS.map((l) => ({ lang: l, path: pathOf(l, pageOf(l, p.key).slug) })),
+          withEnDefault(LANGS.map((l) => ({ lang: l, path: pathOf(l, pageOf(l, p.key).slug) }))),
           p.key === 'guide' ? '0.9' : '0.7',
         ),
       );
-  }
+  const pros: string[] = [];
   for (const site of SITES) {
-    urls.push(
-      entry(
-        proPaths.index(site.lang),
-        LANGS.map((l) => ({ lang: l, path: proPaths.index(l) })),
-        '0.7',
-      ),
-    );
+    pros.push(entry(proPaths.index(site.lang), withEnDefault(LANGS.map((l) => ({ lang: l, path: proPaths.index(l) }))), '0.7'));
     for (const pro of cat.pros)
-      urls.push(
-        entry(
-          proPaths.pro(site.lang, pro),
-          LANGS.map((l) => ({ lang: l, path: proPaths.pro(l, pro) })),
-          '0.6',
-        ),
-      );
+      pros.push(entry(proPaths.pro(site.lang, pro), withEnDefault(LANGS.map((l) => ({ lang: l, path: proPaths.pro(l, pro) }))), '0.6'));
   }
-  return `<?xml version="1.0" encoding="UTF-8"?>
+  const set = (urls: string[]) => `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml">
 ${urls.join('\n')}
 </urlset>
 `;
+  const children = ['sitemap-core.xml', 'sitemap-guides.xml', 'sitemap-pros.xml'];
+  const index = `<?xml version="1.0" encoding="UTF-8"?>
+<sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+${children.map((c) => `<sitemap><loc>${base}/${c}</loc><lastmod>${UPDATED}</lastmod></sitemap>`).join('\n')}
+</sitemapindex>
+`;
+  return {
+    'sitemap.xml': index,
+    'sitemap-index.xml': index,
+    'sitemap-core.xml': set(core),
+    'sitemap-guides.xml': set(guides),
+    'sitemap-pros.xml': set(pros),
+  };
 }
 
 /** Search engines and AI assistants are welcome on the guides and the app; not on the API. */
@@ -548,6 +644,56 @@ ${cat.pros
 `;
 }
 
+/**
+ * llms-full.txt: everything an assistant needs to answer from DartFit without crawling — the
+ * method, every English guide's direct answer and FAQ, every pro's dart with its specs, and how to cite.
+ */
+function llmsFull(st: Stats, base: string, cat: CatalogueRows): string {
+  const e = siteOf('en');
+  const f = (x: string) => fill(x, st, 'en');
+  const guides = e.pages
+    .map(
+      (p) =>
+        `## ${f(p.h1)}\n\nURL: ${base}${pathOf('en', p.slug)}\n\n${f(p.answer)}\n\n${p.faq.map(([q, a]) => `- Q: ${f(q)}\n  A: ${f(a)}`).join('\n')}`,
+    )
+    .join('\n\n');
+  const pros = cat.pros
+    .map((p) => {
+      const v = cat.variants.find((x) => x.id === p.variantId);
+      return v
+        ? `| ${p.name} | ${v.brand} ${v.model} | ${v.weight} g | ${v.length} mm | ${v.diameter} mm | ${v.shape || '–'} | ${v.tungsten}% | ${base}${proPaths.pro('en', p)} |`
+        : '';
+    })
+    .filter(Boolean)
+    .join('\n');
+  return `# DartFit (full)
+
+> ${f(LANDING.en.answer)}
+
+Home: ${base}/ (adaptive; English at ${base}/en/, Dutch at ${base}/nl/, German at ${base}/de/). Updated ${UPDATED}.
+
+## How DartFit works
+
+${LANDING.en.steps.map((x, i) => `${i + 1}. ${f(x)}`).join('\n')}
+
+Catalogue: ${f('{darts}')} steel-tip darts, ${f('{models}')} models, ${f('{brands}')} brands; weights ${f('{minW}')}–${f('{maxW}')} g, median ${f('{medW}')} g; ${f('{share2224}')} weigh 22–24 g; median barrel length ${f('{medL}')} mm.
+
+Method details: ${base}/en/how-dartfit-works/
+
+${guides}
+
+## Darts of the pros
+
+| Pro | Dart in the DartFit catalogue | Weight | Length | Thickness | Shape | Tungsten | Page |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+${pros}
+
+## Citing DartFit
+
+Cite as "DartFit (findyourdarts.com)" with the page URL. Catalogue figures change as darts are added; the date above is the content date.
+`;
+}
+
 export const GUIDES_CSS = `@font-face{font-family:'Geist Variable';font-style:normal;font-display:swap;font-weight:100 900;src:url(/guides/geist.woff2) format('woff2')}
 :root{--ink:#0d1626;--ink-2:#5d6676;--line:#e7e9ee;--ground:#fff;--stage:#edf2f9;--red:#e3122c;--red-ink:#c10f25;--navy:#0f1b2d;color-scheme:light}
 *{box-sizing:border-box}
@@ -595,5 +741,8 @@ th,td{text-align:left;padding:.6rem .5rem;border-bottom:1px solid var(--line);ve
 .related span,.hub span{display:block;color:var(--ink-2);font-size:.9rem;font-weight:450;margin-top:.2rem}
 .hub a{padding:1rem 1.1rem;border:1px solid var(--line);border-radius:16px}.hub a:hover,.related li:hover{border-color:var(--ink-2)}
 .hub b{font-size:1.15rem;letter-spacing:-.02em;font-weight:620}
+.nw{white-space:nowrap}.steps{padding-left:1.4rem}.steps li{margin:.5rem 0}
+.pro-examples .pro-ex{padding-left:1.1rem}.pro-examples span{color:var(--ink-2)}.pro-examples .note,.bench-note{color:var(--ink-2);font-size:.9rem}
+.crumbs span{color:var(--ink)}
 .foot{border-top:1px solid var(--line);margin-top:3rem;padding-block:1.5rem 3rem;color:var(--ink-2);font-size:.9rem}.foot a{color:var(--ink-2)}
 `;

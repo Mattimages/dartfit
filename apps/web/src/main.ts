@@ -1,3 +1,4 @@
+import { GUIDE_LINKS } from './guide-links';
 import '@fontsource-variable/geist/wght.css';
 import './styles.css';
 import { h, mount } from './h';
@@ -104,6 +105,16 @@ function layout() {
     h(
       'footer',
       { class: 'site-footer' },
+      h(
+        'nav',
+        { class: 'footer-guides small', 'aria-label': t('footer.popular') },
+        h('b', null, t('footer.popular')),
+        h(
+          'ul',
+          null,
+          ...GUIDE_LINKS[getLang()].map(([href, label]) => h('li', null, h('a', { href }, label))),
+        ),
+      ),
       h('p', { class: 'small' }, t('footer.disclosure')),
       h(
         'div',

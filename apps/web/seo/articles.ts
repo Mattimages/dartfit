@@ -204,7 +204,7 @@ export const ARTICLES: Record<Lang, Page[]> = {
       slug: 'steel-tip-vs-soft-tip-darts',
       title: 'Steel-tip vs soft-tip darts: the differences',
       description:
-        'Steel tip or soft tip? How the darts, boards, weights and throwing distance differ, which one the televised tours play, and what that means for your first set.',
+        'Steel tip or soft tip? How the darts, boards, weights and throwing distance differ, which one the TV tours play, and what it means for your first set.',
       h1: 'Steel-tip vs soft-tip darts',
       answer:
         'Steel-tip darts have metal points and are thrown at a sisal board from 2.37 m; it is what the televised PDC and WDF events play. Soft-tip darts have plastic points for electronic boards that keep the score; they are lighter (usually no more than about 18 to 20 g) and the throwing distance is often 2.44 m. DartFit fits steel-tip darts.',
@@ -261,7 +261,7 @@ export const ARTICLES: Record<Lang, Page[]> = {
       slug: 'dart-barrel-length-and-thickness',
       title: 'Dart barrel length and thickness: what fits you',
       description:
-        'Long or short, slim or thick? What barrel length and diameter do to your grip and grouping, the usual sizes across {darts} darts, and how your hand sets them.',
+        'Long or short, slim or thick? What barrel length and diameter do to your grip and grouping, the usual sizes of {darts} darts and what your hand decides.',
       h1: 'Dart barrel length and thickness',
       answer:
         'Barrel length decides how much room your fingers get; thickness decides how much there is to hold. The median steel-tip barrel in the DartFit catalogue is {medL} mm long, and the middle half is {q25D} to {q75D} mm thick. Long fingers that spread along the dart suit a longer barrel, a compact grip a shorter one; slimmer barrels group tighter, thicker ones are easier to feel.',
@@ -504,7 +504,7 @@ export const ARTICLES: Record<Lang, Page[]> = {
       slug: 'shafts-en-flights',
       title: 'Shafts en flights uitgelegd: lengte en vorm',
       description:
-        'Korte, medium of lange shafts; standaard, slim of kite flights: hoe de achterkant van je dart de vlucht verandert, en hoe je die afstemt op barrel en worp.',
+        'Korte, medium of lange shafts; standaard, slim of kite flights: hoe de achterkant van je dart de vlucht verandert en hoe je die afstemt op je worp.',
       h1: 'Shafts en flights uitgelegd',
       answer:
         'De shaft en de flight sturen de achterkant van de dart. Een langere shaft of een grotere flight geeft meer weerstand achter de barrel, zodat de dart snel rechttrekt en met een hogere boog vliegt; een kortere shaft of kleinere flight vliegt sneller en vlakker maar vergeeft minder. De meeste spelers beginnen met medium shafts en standaard flights en veranderen één ding tegelijk.',
@@ -566,7 +566,7 @@ export const ARTICLES: Record<Lang, Page[]> = {
       slug: 'beter-darts-gooien',
       title: 'Beter darts gooien: stand, grip en release',
       description:
-        'Zo gooi je beter darts: een stevige stand, een grip die je kunt herhalen, een schone release en doorzwaaien. Simpele checks voor beginners en clubspelers.',
+        'Zo gooi je beter darts: een stevige stand, een grip die je kunt herhalen, een schone release en doorzwaaien. Simpele checks voor elke speler.',
       h1: 'Hoe gooi je beter darts?',
       answer:
         'Goed darten is dezelfde worp herhalen. Sta zijwaarts met je werpvoet voor, houd de dart vast met een grip die je elke keer kunt nadoen, houd je bovenarm stil en beweeg je onderarm in één vloeiende lijn naar het doel. Laat elke worp op hetzelfde punt los en zwaai je hand door.',
@@ -686,7 +686,7 @@ export const ARTICLES: Record<Lang, Page[]> = {
       slug: 'dart-lengte-en-dikte',
       title: 'Lengte en dikte van een dart: wat past bij jou?',
       description:
-        'Lang of kort, dun of dik? Wat de lengte en dikte van een barrel doen met je grip en je groepering, de gangbare maten van {darts} darts, en hoe je hand ze bepaalt.',
+        'Lang of kort, dun of dik? Wat lengte en dikte van een barrel doen met je grip en groepering, de gangbare maten van {darts} darts en wat je hand bepaalt.',
       h1: 'Lengte en dikte van een dart',
       answer:
         'De lengte van de barrel bepaalt hoeveel ruimte je vingers krijgen, de dikte hoeveel je vastpakt. De mediane steeltip-barrel in de DartFit-catalogus is {medL} mm lang, en de middelste helft is {q25D} tot {q75D} mm dik. Lange vingers die zich over de dart spreiden, passen bij een langere barrel, een compacte grip bij een kortere; dunnere barrels groeperen strakker, dikkere voel je beter.',
@@ -803,7 +803,7 @@ export const ARTICLES: Record<Lang, Page[]> = {
       slug: 'dartbord-ophangen',
       title: 'Dartbord ophangen: hoogte en afstand',
       description:
-        'Zo hang je een dartbord goed op: 1,73 m tot de bull, 2,37 m tot de oche, de controle met de diagonaal van 2,93 m, licht zonder schaduw en een beschermde muur.',
+        'Zo hang je een dartbord goed op: 1,73 m tot de bull, 2,37 m tot de oche, de diagonaal van 2,93 m als controle, licht zonder schaduw en een veilige muur.',
       h1: 'Hoe hang je een dartbord op?',
       answer:
         'Hang het bord zo dat het midden van de bull 1,73 m boven de vloer zit, met de 20 bovenaan, en leg de oche op 2,37 m van de voorkant van het bord. Controleer het met de diagonaal: van de bull tot de achterkant van de oche op de vloer is 2,93 m. Verlicht het bord van voren of van twee kanten zodat de darts geen schaduw geven, en bescherm de muur met een surround.',
@@ -929,7 +929,7 @@ export const ARTICLES: Record<Lang, Page[]> = {
       slug: 'schaefte-und-flights',
       title: 'Dart-Schäfte und Flights erklärt: Länge und Form',
       description:
-        'Kurze, mittlere oder lange Schäfte; Standard-, Slim- oder Kite-Flights: wie das Heck des Darts den Flug verändert und wie du es auf Barrel und Wurf abstimmst.',
+        'Kurze, mittlere oder lange Schäfte; Standard-, Slim- oder Kite-Flights: wie das Heck des Darts den Flug ändert und wie du es auf deinen Wurf abstimmst.',
       h1: 'Dart-Schäfte und Flights erklärt',
       answer:
         'Schaft und Flight steuern das Heck des Darts. Ein längerer Schaft oder ein größerer Flight bringt mehr Luftwiderstand hinter das Barrel, der Dart richtet sich schnell aus und fliegt in einem höheren Bogen; ein kürzerer Schaft oder kleinerer Flight fliegt schneller und flacher, verzeiht aber weniger. Die meisten fangen mit mittleren Schäften und Standard-Flights an und ändern immer nur eine Sache.',
@@ -1111,7 +1111,7 @@ export const ARTICLES: Record<Lang, Page[]> = {
       slug: 'dart-laenge-und-dicke',
       title: 'Länge und Dicke eines Darts: was passt zu dir?',
       description:
-        'Lang oder kurz, schlank oder dick? Was Länge und Durchmesser des Barrels mit Griff und Gruppierung machen, die üblichen Maße und wie deine Hand sie bestimmt.',
+        'Lang oder kurz, schlank oder dick? Was Länge und Durchmesser des Barrels mit Griff und Gruppierung machen, übliche Maße und was deine Hand bestimmt.',
       h1: 'Länge und Dicke eines Darts',
       answer:
         'Die Barrellänge bestimmt, wie viel Platz deine Finger haben, die Dicke, wie viel du in der Hand hast. Das mittlere Steeldart-Barrel im DartFit-Katalog ist {medL} mm lang, und die mittlere Hälfte ist {q25D} bis {q75D} mm dick. Lange Finger, die sich über den Dart verteilen, passen zu einem längeren Barrel, ein kompakter Griff zu einem kürzeren; schlanke Barrels gruppieren enger, dicke spürt man besser.',
@@ -1169,7 +1169,7 @@ export const ARTICLES: Record<Lang, Page[]> = {
       slug: 'darts-pflegen',
       title: 'Darts pflegen: Spitzen, Griff, Schäfte, Scheibe',
       description:
-        'So pflegst du Darts und Dartscheibe: Spitzen richtig schärfen, die Rändelung reinigen, Schäfte fest halten und die Scheibe drehen, damit sie länger hält.',
+        'So pflegst du Darts und Dartscheibe: Spitzen schärfen, die Rändelung reinigen, Schäfte fest halten und die Scheibe drehen, damit sie länger hält.',
       h1: 'Wie pflegt man seine Darts?',
       answer:
         'Halte Stahlspitzen leicht abgerundet statt nadelspitz, reinige den Griff ab und zu mit einer weichen Bürste und etwas Seifenwasser, sichere deine Schäfte mit Ringen, wechsle Flights, sobald sie verbogen sind, und dreh deine Sisalscheibe regelmäßig, damit die 20 nicht zuerst verschleißt.',
@@ -1228,7 +1228,7 @@ export const ARTICLES: Record<Lang, Page[]> = {
       slug: 'dartscheibe-aufhaengen',
       title: 'Dartscheibe aufhängen: Höhe und Abstand',
       description:
-        'So hängst du eine Dartscheibe richtig auf: 1,73 m bis zum Bull, 2,37 m bis zur Abwurflinie, die Diagonale von 2,93 m, Licht ohne Schatten und Wandschutz.',
+        'So hängst du eine Dartscheibe auf: 1,73 m bis zum Bull, 2,37 m bis zur Abwurflinie, die Diagonale von 2,93 m, Licht ohne Schatten und Wandschutz.',
       h1: 'Wie hängt man eine Dartscheibe auf?',
       answer:
         'Häng die Scheibe so auf, dass die Mitte des Bulls 1,73 m über dem Boden liegt, mit der 20 oben, und markier die Abwurflinie 2,37 m vor der Vorderseite der Scheibe. Prüf es mit der Diagonale: vom Bull bis zur Hinterkante der Abwurflinie am Boden sind es 2,93 m. Beleuchte die Scheibe von vorne oder von zwei Seiten, damit die Darts keine Schatten werfen, und schütze die Wand mit einem Surround.',

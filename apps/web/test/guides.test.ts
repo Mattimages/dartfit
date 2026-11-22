@@ -3,6 +3,8 @@ import { join } from 'node:path';
 import { describe, expect, it } from 'vitest';
 import { buildGuides, LANGS, SITES, statsFromCsv } from '../seo/render';
 import { catalogueRows } from '../seo/pro-pages';
+import { engineFacts } from '../seo/samples';
+import { GUIDE_LINKS } from '../src/guide-links';
 
 const data = join(__dirname, '..', '..', '..', 'packages', 'catalogue', 'data');
 const csv = readFileSync(join(data, 'variants.csv'), 'utf8');
@@ -10,7 +12,8 @@ const prosJson = readFileSync(join(data, 'pros.json'), 'utf8');
 const stats = statsFromCsv(csv, (JSON.parse(prosJson) as unknown[]).length);
 const cat = catalogueRows(csv, prosJson, readFileSync(join(data, 'pro-photos.json'), 'utf8'));
 const base = 'https://dartfit.example';
-const files = buildGuides(stats, base, cat);
+const facts = engineFacts();
+const files = buildGuides(stats, base, cat, facts);
 const html = Object.entries(files).filter(([f]) => f.endsWith('.html'));
 
 describe('guide pages (SEO)', () => {
@@ -41,9 +44,9 @@ describe('guide pages (SEO)', () => {
     for (const [file, page] of html) {
       const title = page.match(/<title>([^<]+)<\/title>/)![1]!;
       const desc = page.match(/<meta name="description" content="([^"]+)"/)![1]!;
-      expect(title.length, `${file} title`).toBeLessThanOrEqual(65);
+      expect(title.length, `${file} title`).toBeLessThanOrEqual(58);
       expect(desc.length, `${file} description`).toBeGreaterThanOrEqual(100);
-      expect(desc.length, `${file} description`).toBeLessThanOrEqual(165);
+      expect(desc.length, `${file} description`).toBeLessThanOrEqual(152);
       expect(page).toContain(`<link rel="canonical" href="${base}/${file.replace(/index\.html$/, '')}">`);
       for (const l of LANGS)
         expect(page, `${file} hreflang ${l}`).toMatch(new RegExp(`hreflang="${l}" href="${base}/${l}/`));
@@ -93,12 +96,59 @@ describe('guide pages (SEO)', () => {
     expect(files['en/what-weight-darts/index.html']).toContain(`${stats.darts} darts`);
   });
 
-  it('lists every guide in the sitemap and welcomes AI crawlers', () => {
+  it('lists every page in the sitemaps (an index over core, guides and pros) and welcomes AI crawlers', () => {
+    const maps = ['sitemap-core.xml', 'sitemap-guides.xml', 'sitemap-pros.xml'];
+    for (const m of maps) expect(files['sitemap.xml']).toContain(`<loc>${base}/${m}</loc>`);
+    expect(files['sitemap-index.xml']).toBe(files['sitemap.xml']);
+    const all = maps.map((m) => files[m]).join('');
+    expect(all).toContain(`<loc>${base}/</loc>`);
     for (const [file] of html)
-      expect(files['sitemap.xml']).toContain(`<loc>${base}/${file.replace(/index\.html$/, '')}</loc>`);
+      expect(all).toContain(`<loc>${base}/${file.replace(/index\.html$/, '')}</loc>`);
     for (const bot of ['GPTBot', 'ClaudeBot', 'PerplexityBot', 'Google-Extended'])
       expect(files['robots.txt']).toContain(`User-agent: ${bot}\nAllow: /`);
     expect(files['robots.txt']).toContain(`Sitemap: ${base}/sitemap.xml`);
     expect(files['llms.txt']).toMatch(/^# DartFit/);
+    expect(files['llms-full.txt']).toContain('| Luke Littler | Target Luke Littler G1 |');
+  });
+
+  it('landing pages lead with the tool, real sample fits, and the root as x-default', () => {
+    expect(facts.samples).toHaveLength(9);
+    for (const l of LANGS) {
+      const page = files[`${l}/index.html`]!;
+      expect(page).toContain(`<link rel="alternate" hreflang="x-default" href="${base}/">`);
+      expect(page).toContain('id="samples"');
+      expect(page).toContain(`href="/#/scan?lang=${l}"`);
+      expect(page).toContain('"@type":"FAQPage"');
+      expect(page).toContain('"featureList"');
+    }
+    expect(files['en/index.html']).toContain('<h1>Find darts that fit your hand</h1>');
+    expect(files['nl/index.html']).toContain('<h1>Vind darts die bij je hand passen</h1>');
+    // Guides keep the English page as x-default.
+    expect(files['nl/welk-gewicht-dart/index.html']).toContain(
+      `hreflang="x-default" href="${base}/en/what-weight-darts/"`,
+    );
+  });
+
+  it('pro pages: catalogue benchmark, spec links into the guides, alternatives with deltas, no Product schema', () => {
+    const p = files['en/pros/luke-littler/index.html']!;
+    expect(p).toContain('id="compare"');
+    expect(p).toMatch(/heavier than \d+% of the \d+ steel-tip darts/);
+    expect(p).toContain('<a href="/en/what-weight-darts/">Weight</a>');
+    expect(p).toContain('<a href="/en/barrel-shapes-explained/">Shape</a>');
+    expect(p).toMatch(/<span class="nw">\d+ g \((±0|[+−][\d.]+)\)<\/span>/);
+    expect(p).toContain('"@type":"ItemList"');
+    for (const [file, page] of html) expect(page, file).not.toContain('"@type":"Product"');
+  });
+
+  it('guides link to the pros whose darts show the topic', () => {
+    expect(files['en/what-weight-darts/index.html']).toContain('href="/en/pros/');
+    expect(files['nl/barrelvormen-uitgelegd/index.html']).toContain('href="/nl/profs/');
+    expect(files['de/wolfram-anteil-darts/index.html']).toContain('href="/de/profis/');
+    expect(files['en/darts-checkout-chart/index.html']).toContain('Know your outs?');
+  });
+
+  it('the app footer links only to built guide pages', () => {
+    for (const l of LANGS)
+      for (const [path] of GUIDE_LINKS[l]) expect(files[`${path.slice(1)}index.html`], path).toBeDefined();
   });
 });

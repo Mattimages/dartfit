@@ -30,7 +30,8 @@
     "personas": "tsx scripts/persona-report.ts",
     "calibrate": "tsx scripts/calibrate.ts",
     "fetch-model": "node scripts/fetch-model.mjs",
-    "build:preview": "node scripts/build-preview.mjs"
+    "build:preview": "node scripts/build-preview.mjs",
+    "seo:audit": "node scripts/seo-audit.mjs"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",

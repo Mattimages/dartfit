@@ -348,6 +348,8 @@ const nl = {
   'method.title': 'Hoe DartFit werkt',
   'privacy.title': 'Privacy',
   'footer.guides': 'Gidsen',
+  'footer.popular': 'Populaire gidsen',
+  'a11y.skip': 'Naar de inhoud',
   'footer.disclosure':
     'Winkellinks kunnen ons een kleine commissie opleveren, en dat verandert nooit de volgorde van de darts.',
   'footer.privacy': 'Privacy',
@@ -691,7 +693,7 @@ const nl = {
   'shelf.shape.scalloped': 'getailleerde',
   'meta.title': 'DartFit: vind steeltip darts die lekker in je hand liggen',
   'meta.desc':
-    'Maak een foto van je hand naast een pasje, beantwoord een paar makkelijke vragen en vind gratis echte darts die bij je hand en grip passen. Je foto blijft op je telefoon.',
+    'Maak een foto van je hand naast een pasje, beantwoord een paar vragen en vind gratis darts die bij je hand passen. Je foto blijft op je telefoon.',
 };
 
 type Key = keyof typeof nl;
@@ -1038,6 +1040,8 @@ const en: Record<Key, string> = {
   'method.title': 'How DartFit works',
   'privacy.title': 'Privacy',
   'footer.guides': 'Guides',
+  'footer.popular': 'Popular guides',
+  'a11y.skip': 'Skip to content',
   'footer.disclosure':
     'Shop links may earn us a small commission, which never changes the order we show darts in.',
   'footer.privacy': 'Privacy',
@@ -1381,7 +1385,7 @@ const en: Record<Key, string> = {
   'shelf.shape.scalloped': 'scalloped',
   'meta.title': 'DartFit: find steel-tip darts that feel right in your hand',
   'meta.desc':
-    'Snap your hand next to a bank card, answer a few easy questions and find real steel-tip darts that suit your hand and grip, for free. Your photo stays on your phone.',
+    'Snap your hand next to a bank card, answer a few questions and find steel-tip darts that suit your hand and grip. Free; your photo stays on your phone.',
 };
 
 const tables: Record<Lang, Partial<Record<Key, string>>> = { nl, en, de };
@@ -1396,6 +1400,16 @@ export const LANGS: Array<{ id: Lang; name: string }> = [
 const isLang = (x: string | null): x is Lang => x === 'nl' || x === 'en' || x === 'de';
 
 let lang: Lang = (() => {
+  // A guide page links into the app with its own language (`/#/scan?lang=nl`): that wins, and sticks.
+  const fromLink = new URLSearchParams(location.hash.split('?')[1] ?? '').get('lang');
+  if (isLang(fromLink)) {
+    try {
+      localStorage.setItem('df_lang', fromLink);
+    } catch {
+      /* storage unavailable */
+    }
+    return fromLink;
+  }
   try {
     const saved = localStorage.getItem('df_lang');
     if (isLang(saved)) return saved;
@@ -1411,6 +1425,8 @@ export const getLang = () => lang;
 function applyMeta() {
   document.documentElement.lang = lang;
   document.title = t('meta.title');
+  const skip = document.querySelector('.skip');
+  if (skip) skip.textContent = t('a11y.skip');
   document.querySelector('meta[name="description"]')?.setAttribute('content', t('meta.desc'));
 }
 export function setLang(l: Lang) {

@@ -7,6 +7,7 @@ import { fileURLToPath } from 'node:url';
 
 import { buildGuides, GUIDES_CSS, statsFromCsv } from './seo/render';
 import { catalogueRows } from './seo/pro-pages';
+import type { EngineFacts } from './seo/samples';
 
 const here = dirname(fileURLToPath(import.meta.url));
 const require = createRequire(import.meta.url);
@@ -155,7 +156,16 @@ function guides(): Plugin {
       base = (process.env.SITE_URL ?? 'https://findyourdarts.com').replace(/\/$/, '');
       urls.length = 0;
       urls.push(`${base}/`);
-      for (const [fileName, source] of Object.entries(buildGuides(stats, base, cat))) {
+      // Sample fits and guide prices come from the real engine, run through tsx like the catalogue.
+      const root = join(here, '..', '..');
+      const facts = JSON.parse(
+        execFileSync(
+          process.execPath,
+          [join(pkgDir('tsx'), 'dist', 'cli.mjs'), '--tsconfig', join(root, 'tsconfig.json'), join(here, 'seo', 'samples.ts')],
+          { cwd: root, encoding: 'utf8', maxBuffer: 16 * 1024 * 1024 },
+        ),
+      ) as EngineFacts;
+      for (const [fileName, source] of Object.entries(buildGuides(stats, base, cat, facts))) {
         this.emitFile({ type: 'asset', fileName, source });
         if (fileName.endsWith('index.html')) urls.push(`${base}/${fileName.replace(/index\.html$/, '')}`);
       }

@@ -261,6 +261,27 @@ main {
   font-size: 0.875rem;
   color: var(--ink-2);
 }
+.site-footer .footer-guides {
+  display: grid;
+  gap: var(--s1);
+  margin-bottom: var(--s3);
+}
+.site-footer .footer-guides b {
+  color: var(--ink);
+  font-weight: 600;
+}
+.site-footer .footer-guides ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s1) var(--s4);
+}
+.site-footer .footer-guides a {
+  color: var(--ink-2);
+  text-underline-offset: 3px;
+}
 .site-footer .links {
   display: flex;
   flex-wrap: wrap;

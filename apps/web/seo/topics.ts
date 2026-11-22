@@ -11,7 +11,7 @@ export const TOPICS: Record<Lang, Page[]> = {
       slug: 'barrel-shapes-explained',
       title: 'Straight, torpedo or bomb? Barrel shapes made simple',
       description:
-        'Every barrel shape puts the weight in a slightly different place, so here’s how each one feels in your fingers and how neatly they pack into the treble 20.',
+        'Every barrel shape puts the weight in a different place: here’s how each one feels in your fingers and how neatly they pack into the treble 20.',
       h1: 'Dart barrel shapes explained',
       answer:
         'A barrel’s shape decides where its weight sits under your fingers. Straight barrels spread it evenly and suit a middle grip; torpedoes put it at the front for a front grip; tapered barrels thin towards the back for a rear grip; a bomb has one fat point for a compact grip with short fingers; scalloped barrels add a waist to give your fingers a fixed spot. {straightPct} of the darts in the DartFit catalogue are straight.',
@@ -409,7 +409,7 @@ export const TOPICS: Record<Lang, Page[]> = {
       slug: 'dart-grip-raendelung',
       title: 'Grip und Rändelung bei Darts: wie viel Grip brauchst du?',
       description:
-        'Glatt, mit Ringen oder gerändelt: wie viel Grip deine Darts brauchen, hängt von deiner Haut und deinem Abwurf ab. So wählst du, und was zu viel Grip bewirkt.',
+        'Glatt, mit Ringen oder gerändelt: wie viel Grip deine Darts brauchen, hängt von Haut und Abwurf ab. So wählst du, und was zu viel Grip bewirkt.',
       h1: 'Wie viel Grip sollten meine Darts haben?',
       answer:
         'Genug, dass der Dart nicht rutscht, und nicht mehr: zu wenig Grip und der Dart gleitet beim Abwurf weg, zu viel und er bleibt an den Fingern hängen oder reibt die Haut auf. Trockene Hände brauchen meist mehr Grip, ebenso Spieler, die hart werfen. DartFit bewertet Grip von 1 (glatt) bis 5 (sehr griffig) und gleicht ihn mit deiner Vorliebe ab.',

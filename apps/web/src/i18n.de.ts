@@ -358,6 +358,8 @@ export const de: Partial<Record<Key, string>> = {
   'word.unsure': 'unbekannt',
 
   'footer.guides': 'Ratgeber',
+  'footer.popular': 'Beliebte Ratgeber',
+  'a11y.skip': 'Zum Inhalt',
   'footer.disclosure':
     'Shop-Links können uns eine kleine Provision bringen, und das ändert nie die Reihenfolge, in der wir dir Darts zeigen.',
   'footer.privacy': 'Datenschutz',
@@ -540,7 +542,7 @@ export const de: Partial<Record<Key, string>> = {
   'shelf.shape.scalloped': 'tailliertes',
   'meta.title': 'DartFit: Steeldarts finden, die gut in deiner Hand liegen',
   'meta.desc':
-    'Fotografiere deine Hand neben einer Bankkarte, beantworte ein paar einfache Fragen und finde kostenlos echte Steeldarts, die zu Hand und Griff passen. Dein Foto bleibt auf deinem Handy.',
+    'Fotografiere deine Hand neben einer Bankkarte, beantworte ein paar Fragen und finde kostenlos Darts, die zu dir passen. Dein Foto bleibt auf dem Handy.',
   // Filled in on 19 Nov (play test): everything the German pages still showed in English.
   'home.brands.title': 'Echte Darts, echte Maße',
   'home.brands.all': 'Alle {n} Darts ansehen',

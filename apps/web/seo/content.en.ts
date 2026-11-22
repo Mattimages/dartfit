@@ -318,7 +318,7 @@ export const en: Site = {
     {
       key: 'gift',
       slug: 'darts-as-a-gift',
-      title: 'Buying darts as a present when you know nothing about darts',
+      title: 'Buying darts as a gift when you know nothing about darts',
       description:
         'Skip the cheap brass pub sets and surprise them with proper tungsten darts they’ll love throwing: a few easy questions and we’ll handle the rest.',
       h1: 'Buying darts as a gift',
