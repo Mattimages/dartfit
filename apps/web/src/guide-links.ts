@@ -14,6 +14,7 @@ export const GUIDE_LINKS: Record<Lang, Array<[path: string, label: string]>> = {
     ['/en/darts-checkout-chart/', 'Checkout chart'],
     ['/en/darts-rules/', 'Darts rules'],
     ['/en/pros/', 'Darts of the pros'],
+    ['/en/darts/', 'All darts compared'],
   ],
   nl: [
     ['/nl/welke-dart-past-bij-mij/', 'Welke dart past bij mij?'],
@@ -23,6 +24,7 @@ export const GUIDE_LINKS: Record<Lang, Array<[path: string, label: string]>> = {
     ['/nl/uitgooitabel/', 'Uitgooitabel'],
     ['/nl/darts-regels/', 'Dartregels'],
     ['/nl/profs/', 'Darts van de profs'],
+    ['/nl/darts/', 'Alle darts vergeleken'],
   ],
   de: [
     ['/de/welcher-dart-passt-zu-mir/', 'Welcher Dart passt zu mir?'],
@@ -32,5 +34,6 @@ export const GUIDE_LINKS: Record<Lang, Array<[path: string, label: string]>> = {
     ['/de/checkout-tabelle/', 'Checkout-Tabelle'],
     ['/de/darts-regeln/', 'Darts-Regeln'],
     ['/de/profis/', 'Darts der Profis'],
+    ['/de/darts/', 'Alle Darts im Vergleich'],
   ],
 };

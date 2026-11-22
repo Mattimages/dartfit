@@ -483,6 +483,11 @@ function indexVars(cat: CatalogueRows, lang: Lang): Record<string, string> {
 }
 
 const CREDITS_H2 = { nl: 'Foto’s', en: 'Photos', de: 'Fotos' };
+const ALL_DARTS_LINK: Record<Lang, string> = {
+  en: 'Compare every dart in the catalogue',
+  nl: 'Vergelijk alle darts in de catalogus',
+  de: 'Alle Darts im Katalog vergleichen',
+};
 const CREDITS_P = {
   nl: 'De foto’s komen van Wikimedia Commons en staan hier onder hun Creative Commons-licentie, bijgesneden.',
   en: 'The photos come from Wikimedia Commons and are used under their Creative Commons licence, cropped.',
@@ -509,6 +514,7 @@ export function renderProIndex(site: Site, cat: CatalogueRows, base: string): st
 <p class="answer">${esc(f(c.index.answer))}</p>
 ${cta(site)}
 <div class="table"><table><thead><tr>${c.index.col.map((x) => `<th scope="col">${esc(x)}</th>`).join('')}</tr></thead><tbody>${rows}</tbody></table></div>
+<p><a href="${pathOf(lang, 'darts')}">${esc(ALL_DARTS_LINK[lang])}</a></p>
 <section class="credits"><h2>${esc(CREDITS_H2[lang])}</h2><p>${esc(CREDITS_P[lang])}</p><ul>${[...cat.pros]
     .sort((a, b) => a.name.localeCompare(b.name))
     .filter((p) => cat.photos[p.id])

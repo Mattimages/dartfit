@@ -177,6 +177,29 @@ function guides(): Plugin {
   };
 }
 
+/**
+ * Preload the Latin Geist file the app's CSS asks for (its name carries a hash). Without it the font
+ * only starts after the CSS is parsed, and the title repaints in Geist ~0.7 s after first paint,
+ * which becomes the LCP on phones.
+ */
+function fontPreload(): Plugin {
+  return {
+    name: 'dartfit-font-preload',
+    apply: 'build',
+    transformIndexHtml: {
+      order: 'post',
+      handler(html, ctx) {
+        const font = Object.keys(ctx.bundle ?? {}).find((f) => /geist-latin-wght-normal-[\w-]+\.woff2$/.test(f));
+        if (!font) return html;
+        return html.replace(
+          '</title>',
+          `</title>\n    <link rel="preload" href="./${font}" as="font" type="font/woff2" crossorigin />`,
+        );
+      },
+    },
+  };
+}
+
 export default defineConfig(({ mode }) => ({
   // The demo build runs from any folder (e.g. a static host or a hosted page): relative paths.
   base: mode === 'demo' ? './' : '/',
@@ -188,6 +211,7 @@ export default defineConfig(({ mode }) => ({
   plugins: [
     mediapipeAssets(),
     catalogueModule(),
+    fontPreload(),
     ...(mode === 'demo' ? [demoTrim('dist-demo')] : [guides()]),
   ],
   resolve: {

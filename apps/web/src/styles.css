@@ -5113,3 +5113,80 @@ a.card {
   color: var(--ink-2);
   line-height: 1.4;
 }
+
+/* Home: the scan button that follows you down the page (owner, 22 Nov: nudge to the scan). */
+.sticky-cta {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 20;
+  padding: var(--s2) max(var(--s4), env(safe-area-inset-right, 0px)) calc(var(--s2) + env(safe-area-inset-bottom, 0px))
+    max(var(--s4), env(safe-area-inset-left, 0px));
+  background: linear-gradient(to top, var(--ground) 70%, transparent);
+  transform: translateY(110%);
+  transition: transform 0.25s ease;
+  pointer-events: none;
+}
+.sticky-cta.on {
+  transform: none;
+  pointer-events: auto;
+}
+.sticky-cta .btn {
+  max-width: var(--col);
+  margin-inline: auto;
+  flex-direction: column;
+  gap: 0;
+  line-height: 1.15;
+  box-shadow: 0 6px 20px rgb(0 0 0 / 0.16);
+}
+.sticky-cta .btn small {
+  font-size: 0.75rem;
+  font-weight: 500;
+  opacity: 0.85;
+}
+@media (prefers-reduced-motion: reduce) {
+  .sticky-cta {
+    transition: none;
+  }
+}
+
+/* Scan page: one button to the camera, the cover-your-details line right under it (owner, 22 Nov). */
+.scan-start {
+  gap: var(--s2);
+}
+.scan-start .scan-cover {
+  margin: 0;
+  color: var(--ink-2);
+  text-align: center;
+}
+.scan-start .btn.link {
+  justify-self: center;
+}
+.scan-stuck {
+  position: absolute;
+  left: var(--s3);
+  right: var(--s3);
+  bottom: var(--s3);
+  z-index: 3;
+  display: grid;
+  gap: var(--s2);
+  padding: var(--s3) var(--s4);
+  border-radius: var(--r-tile);
+  background: rgb(255 255 255 / 0.94);
+  color: var(--ink);
+  font-size: 0.9rem;
+  line-height: 1.4;
+  box-shadow: 0 6px 20px rgb(0 0 0 / 0.18);
+}
+.scan-stuck[hidden] {
+  display: none;
+}
+.scan-stuck p {
+  margin: 0;
+}
+
+/* The title index.html paints before the app (public/pre.js shows it once Geist has loaded). */
+#pre-h1:not(.ready) {
+  visibility: hidden;
+}

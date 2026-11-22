@@ -36,6 +36,10 @@ export const de: Partial<Record<Key, string>> = {
     'Mit einer Karte im Bild messen wir deine Hand in echten Millimetern, und dann passen deine Treffer ein gutes Stück genauer.',
   'scan.nocard.go': 'Ohne Karte weitermachen',
   'scan.start': 'Scan starten',
+  'scan.stuck':
+    'Klappt es noch nicht? Sorg für gutes Licht, leg die Hand flach neben die Karte und halte das Handy gerade darüber, mit der ganzen Hand und der ganzen Karte im Bild. Oder mach einfach ein Foto.',
+  'scan.stuck.free':
+    'Klappt es noch nicht? Sorg für gutes Licht und halte die Hand flach und ganz im Bild, die Finger leicht gespreizt.',
   'scan.choose': 'Hast du eine Bankkarte zur Hand?',
   'scan.with': 'Ja, ich habe eine',
   'scan.without': 'Gerade keine Karte da',
@@ -210,6 +214,7 @@ export const de: Partial<Record<Key, string>> = {
   'hs.match': 'Match',
   'hs.replay': 'Nochmal',
   'land.title': 'Finde Darts, die richtig gut in deiner Hand liegen',
+  'land.sticky.sub': 'Kostenlos · etwa eine Minute',
   'land.lead':
     'Neue Darts auszusuchen sollte kein Glücksspiel sein, und du musst auch nicht ein halbes Monatsgehalt für einen berühmten Namen ausgeben. Mach ein schnelles Foto deiner Hand neben einer Bankkarte, beantworte ein paar einfache Fragen dazu, wie du deine Pfeile hältst, und wir zeigen dir echte Steeldarts in drei ehrlichen Preisklassen, dazu den Profi, dessen Setup deinem am nächsten kommt.',
   'land.cta': 'Hand messen',

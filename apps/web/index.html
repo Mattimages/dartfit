@@ -22,15 +22,26 @@
     <meta property="og:image:height" content="630" />
     <meta name="twitter:card" content="summary_large_image" />
     <script type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":"Organization","@id":"https://findyourdarts.com/#org","name":"DartFit","alternateName":"Find Your Darts","url":"https://findyourdarts.com/","logo":"https://findyourdarts.com/icons/icon-512.png","description":"Free dart fitting: steel-tip darts matched to a measured hand.","knowsAbout":["Steel-tip darts","Dart barrel design","Dart fitting","Darts equipment"]},{"@type":"WebSite","@id":"https://findyourdarts.com/#website","name":"DartFit","alternateName":"Find Your Darts","url":"https://findyourdarts.com/","inLanguage":["en","nl","de"],"publisher":{"@id":"https://findyourdarts.com/#org"}},{"@type":"WebApplication","@id":"https://findyourdarts.com/#app","name":"DartFit","url":"https://findyourdarts.com/","applicationCategory":"SportsApplication","operatingSystem":"Any (web browser)","browserRequirements":"A phone with a camera","inLanguage":["en","nl","de"],"isAccessibleForFree":true,"description":"Free dart fitting on your phone: measures your hand next to a bank card, asks how you hold and throw, and ranks real steel-tip darts in three price classes.","featureList":["Hand measurement from a photo next to a bank card, on the device","Questions on hold, fingers, throw and grip","Ideal weight, barrel length and thickness, each with a range","Ranking of steel-tip darts in three price classes","The pro whose dart is closest to yours","Gift mode without a hand scan"],"offers":{"@type":"Offer","price":"0","priceCurrency":"EUR"},"publisher":{"@id":"https://findyourdarts.com/#org"}}]}</script>
+    <link rel="preload" href="./pre.js" as="script" />
     <link rel="manifest" href="./manifest.webmanifest" />
     <link rel="icon" href="./icons/icon.svg" type="image/svg+xml" />
     <link rel="apple-touch-icon" href="./icons/icon-192.png" />
   </head>
   <body>
     <a class="skip" href="#main">Skip to content</a>
-    <div id="app"></div>
+    <!-- Static first paint (LCP): the same header and title the app renders, replaced in place when
+         it mounts. pre.js switches the words to the visitor's language before they paint. -->
+    <div id="app">
+      <header class="site-header">
+        <a class="wordmark" href="#/" aria-label="DartFit"><svg viewBox="0 0 32 32" aria-hidden="true"><path d="M16 16 L16 2 L24 10 Z" fill="var(--red)"></path><path d="M16 16 L30 16 L22 24 Z" fill="var(--ink)"></path><path d="M16 16 L16 30 L8 22 Z" fill="var(--red)"></path><path d="M16 16 L2 16 L10 8 Z" fill="var(--ink)"></path></svg>DartFit</a>
+        <nav aria-label="Menu"><a href="#/darts">Darts</a><a href="#/me" id="pre-me">My fits</a></nav>
+      </header>
+      <main id="main">
+        <section class="land-hero" id="pre-hero"><h1 id="pre-h1">Find darts that actually feel right in your hand</h1></section>
+      </main>
+      <script src="./pre.js"></script>
+    </div>
     <noscript>
-      <h1>Find darts that actually feel right in your hand</h1>
       <p>DartFit is a free website that finds steel-tip darts to suit your hand. You snap your hand next to a bank card (the photo stays on your phone), answer a few easy questions about how you hold and throw, and get your ideal barrel plus the real darts that fit it best, in three price classes. There is also a gift helper that needs no photo at all.</p>
       <h2>How does DartFit measure your hand?</h2>
       <ol>

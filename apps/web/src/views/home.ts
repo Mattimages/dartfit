@@ -14,6 +14,13 @@ import { partnerBanner } from './partner';
 
 type Tier = 'budget' | 'standard' | 'premium';
 
+/**
+ * The title index.html paints before the app loads (LCP). Grabbed when this module loads, before the
+ * app first mounts, and adopted by the first home render, so the largest paint is that early one and
+ * not a new node drawn after the bundle.
+ */
+let preTitle: HTMLElement | null = document.getElementById('pre-h1');
+
 const eur = (v: Variant) => (v.priceUsd ? approxEur(v.priceUsd) : null);
 const tierOf = (v: Variant): Tier | null => {
   const e = eur(v);
@@ -152,7 +159,12 @@ export function homeView(root: HTMLElement, _params?: Record<string, string>, qu
       banner,
       // Title, the film, then the buttons; no intro text (owner's call 18 Nov). The film itself
       // starts the measurement when tapped, and each round ends on "Tik om je hand te scannen".
-      h('h1', null, t('land.title')),
+      ((el) => {
+        preTitle = null;
+        el.removeAttribute('id');
+        el.textContent = t('land.title');
+        return el;
+      })(preTitle ?? h('h1', null, t('land.title'))),
       ((film) =>
         film
           ? h('a', { class: 'hs-link', href: '#/scan', onclick: start, 'aria-label': t('land.cta') }, film)
@@ -261,4 +273,36 @@ export function homeView(root: HTMLElement, _params?: Record<string, string>, qu
       h('a', { class: 'btn block', href: '#/scan', onclick: start }, t('land.cta')),
     ),
   );
+
+  // Nudge to the scan (owner, 22 Nov: only a third of visitors scanned): once the hero's button has
+  // scrolled away, a bar with the same button stays at the bottom, until the closing one shows.
+  const bar = h(
+    'div',
+    { class: 'sticky-cta', inert: true },
+    h(
+      'a',
+      { class: 'btn block', href: '#/scan', onclick: start },
+      h('span', null, t('land.cta')),
+      h('small', null, t('land.sticky.sub')),
+    ),
+  );
+  root.append(bar);
+  const watched = [...root.querySelectorAll('.hero-cta, .land-end')];
+  if ('IntersectionObserver' in window && watched.length) {
+    const seen = new Set<Element>();
+    const io = new IntersectionObserver((entries) => {
+      for (const e of entries) {
+        if (e.isIntersecting) seen.add(e.target);
+        else seen.delete(e.target);
+      }
+      // Show only below the hero's button (scrolled past it), never while a real button is in view.
+      const hero = watched[0]!;
+      const past = hero.getBoundingClientRect().bottom < 0;
+      const on = past && seen.size === 0;
+      bar.classList.toggle('on', on);
+      bar.inert = !on;
+    });
+    watched.forEach((el) => io.observe(el));
+    return () => io.disconnect();
+  }
 }

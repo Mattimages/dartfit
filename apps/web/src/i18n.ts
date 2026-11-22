@@ -35,6 +35,7 @@ const nl = {
   'hs.match': 'match',
   'hs.replay': 'Nog een keer',
   'land.title': 'Vind darts die echt lekker in je hand liggen',
+  'land.sticky.sub': 'Gratis · ongeveer een minuut',
   'land.lead':
     'Nieuwe darts kiezen hoeft geen gok te zijn, en je hoeft ook geen half salaris neer te leggen voor een bekende naam op de barrel. Maak een foto van je hand naast een pasje, beantwoord een paar makkelijke vragen over hoe je gooit, en wij zoeken echte steeltip darts voor je in drie eerlijke prijsklassen, met erbij de prof die net zo gooit als jij.',
   'land.cta': 'Meet mijn hand',
@@ -99,6 +100,10 @@ const nl = {
     'Met een pasje in beeld meten we je hand in echte millimeters, en dan kloppen je matches een stuk beter.',
   'scan.nocard.go': 'Toch verder zonder pasje',
   'scan.start': 'Start de scan',
+  'scan.stuck':
+    'Lukt het nog niet? Zorg voor goed licht, leg je hand plat naast het pasje en houd je telefoon recht erboven, met je hele hand en het hele pasje in beeld. Of maak gewoon een foto.',
+  'scan.stuck.free':
+    'Lukt het nog niet? Zorg voor goed licht en houd je hand plat en helemaal in beeld, met je vingers iets uit elkaar.',
   'scan.choose': 'Heb je een pasje bij de hand?',
   'scan.with': 'Ja, ik heb er een',
   'scan.without': 'Geen pasje bij de hand',
@@ -731,6 +736,7 @@ const en: Record<Key, string> = {
   'hs.match': 'match',
   'hs.replay': 'Play again',
   'land.title': 'Find darts that actually feel right in your hand',
+  'land.sticky.sub': 'Free · about a minute',
   'land.lead':
     'Picking new darts shouldn’t feel like a lucky dip, and you shouldn’t have to spend half your wages on a famous name either. Snap a quick photo of your hand next to a bank card, answer a few easy questions about how you hold your arrows, and we’ll match you with real steel-tip darts in three honest price brackets, along with the pro who throws a setup a lot like yours.',
   'land.cta': 'Measure my hand',
@@ -794,6 +800,10 @@ const en: Record<Key, string> = {
     'With a card in the picture we can measure your hand in real millimetres, which makes your matches a good deal more accurate.',
   'scan.nocard.go': 'Carry on without a card',
   'scan.start': 'Start the scan',
+  'scan.stuck':
+    'Not working yet? Find good light, lay your hand flat next to the card and hold your phone straight above, with your whole hand and the whole card in view. Or simply take a photo.',
+  'scan.stuck.free':
+    'Not working yet? Find good light and keep your hand flat and fully in view, with your fingers slightly apart.',
   'scan.choose': 'Have you got a bank card handy?',
   'scan.with': 'Yes, I’ve got one',
   'scan.without': 'No card at hand',

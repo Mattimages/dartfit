@@ -16,6 +16,8 @@ import { checkout, hitLabel } from '../src/draw/checkout';
 import { proHubItem, renderProIndex, renderProPage, proPaths, type CatalogueRows } from './pro-pages';
 import { LANDING, UTILITY_CTA, type EngineFacts } from './landing';
 import { proExamples } from './pro-links';
+import { LEADS } from './leads';
+import { CATALOGUE_SLUG, catalogueHubItem, cataloguePath, renderCatalogue } from './catalogue';
 
 export const SITES: Site[] = [nl, en, de].map((s) => ({
   ...s,
@@ -188,7 +190,7 @@ ${inner}
 </main>
 <footer class="wrap foot">
 <p>${esc(u.disclosure)}</p>
-<p><a href="${pathOf(site.lang, '')}">${esc(u.home)}</a> · <a href="${proPaths.index(site.lang)}">${esc(PROS_LABEL[site.lang])}</a> · <a href="${appLink(site.lang, 'method')}">${esc(METHOD_LABEL[site.lang])}</a> · <a href="${appLink(site.lang, 'privacy')}">Privacy</a></p>
+<p><a href="${pathOf(site.lang, '')}">${esc(u.home)}</a> · <a href="${proPaths.index(site.lang)}">${esc(PROS_LABEL[site.lang])}</a> · <a href="${cataloguePath(site.lang)}">${esc(ALL_DARTS[site.lang])}</a> · <a href="${appLink(site.lang, 'method')}">${esc(METHOD_LABEL[site.lang])}</a> · <a href="${appLink(site.lang, 'privacy')}">Privacy</a></p>
 </footer>
 </body>
 </html>
@@ -200,6 +202,7 @@ export const appLink = (lang: Lang, route: 'scan' | 'gift' | 'method' | 'privacy
   `/#/${route}?lang=${lang}`;
 const PROS_LABEL: Record<Lang, string> = { en: 'Darts of the pros', nl: 'Darts van de profs', de: 'Darts der Profis' };
 const METHOD_LABEL: Record<Lang, string> = { en: 'Method', nl: 'Methode', de: 'Methode' };
+const ALL_DARTS: Record<Lang, string> = { en: 'All darts', nl: 'Alle darts', de: 'Alle Darts' };
 
 export function cta(site: Site, sub?: string): string {
   const u = site.ui;
@@ -210,7 +213,8 @@ export function cta(site: Site, sub?: string): string {
 </aside>`;
 }
 
-function section(s: Section, st: Stats, lang: Lang): string {
+/** One guide section; `lead` is its answer-first paragraph (./leads.ts) when its own text opens otherwise. */
+function section(s: Section, st: Stats, lang: Lang, lead?: string): string {
   const f = (x: string) => esc(fill(x, st, lang));
   const id = fill(s.h2, st, lang)
     .toLowerCase()
@@ -219,6 +223,7 @@ function section(s: Section, st: Stats, lang: Lang): string {
     .replace(/[^a-z0-9]+/g, '-')
     .replace(/^-|-$/g, '');
   const parts = [`<h2 id="${id}">${f(s.h2)}</h2>`];
+  if (lead) parts.push(`<p class="lead-answer">${f(lead)}</p>`);
   for (const p of s.p ?? []) parts.push(`<p>${f(p)}</p>`);
   if (s.list) parts.push(`<ul>${s.list.map((x) => `<li>${f(x)}</li>`).join('')}</ul>`);
   for (const p of s.after ?? []) parts.push(`<p>${f(p)}</p>`);
@@ -307,7 +312,7 @@ export function renderPage(site: Site, page: Page, st: Stats, base: string, cat?
 <h1>${esc(f(page.h1))}</h1>
 <p class="answer">${esc(f(page.answer))}</p>
 ${cta(site, ctaSub)}
-${page.sections.map((s) => section(s, st, site.lang)).join('\n')}
+${page.sections.map((s, i) => section(s, st, site.lang, LEADS[site.lang][`${page.key}:${i}`])).join('\n')}
 ${page.key === 'checkout' ? checkoutTable(site.lang) : ''}
 ${cat ? proExamples(page.key, site.lang, cat) : ''}
 <section class="faq">
@@ -439,7 +444,7 @@ export function renderLanding(site: Site, st: Stats, base: string, facts?: Engin
 ${cta(site)}
 <section><h2 id="how">${esc(L.stepsH2)}</h2><ol class="steps">${L.steps.map((x) => `<li>${esc(f(x))}</li>`).join('')}</ol></section>
 ${table}
-<section><h2 id="guides">${esc(L.guidesH2)}</h2><ul class="hub">${list}${proHubItem(site)}</ul></section>
+<section><h2 id="guides">${esc(L.guidesH2)}</h2><ul class="hub">${list}${proHubItem(site)}${catalogueHubItem(site, st)}</ul></section>
 <section class="faq"><h2 id="faq">${esc(site.ui.faq)}</h2>
 ${faq.map(([q, a]) => `<h3>${esc(q)}</h3>\n<p>${esc(a)}</p>`).join('\n')}
 </section>
@@ -510,6 +515,7 @@ export function buildGuides(
     out[`${site.lang}/index.html`] = renderLanding(site, st, base, facts);
     for (const p of site.pages) out[`${site.lang}/${p.slug}/index.html`] = renderPage(site, p, st, base, cat);
     out[`${proPaths.index(site.lang).slice(1)}index.html`] = renderProIndex(site, cat, base);
+    out[`${site.lang}/${CATALOGUE_SLUG}/index.html`] = renderCatalogue(site, st, base, cat, facts);
     for (const pro of cat.pros)
       out[`${proPaths.pro(site.lang, pro).slice(1)}index.html`] = renderProPage(site, pro, cat, base, facts);
   }
@@ -548,6 +554,10 @@ function sitemaps(base: string, cat: CatalogueRows): Record<string, string> {
           p.key === 'guide' ? '0.9' : '0.7',
         ),
       );
+  for (const site of SITES)
+    guides.push(
+      entry(cataloguePath(site.lang), withEnDefault(LANGS.map((l) => ({ lang: l, path: cataloguePath(l) }))), '0.8'),
+    );
   const pros: string[] = [];
   for (const site of SITES) {
     pros.push(entry(proPaths.index(site.lang), withEnDefault(LANGS.map((l) => ({ lang: l, path: proPaths.index(l) }))), '0.7'));
@@ -741,8 +751,10 @@ th,td{text-align:left;padding:.6rem .5rem;border-bottom:1px solid var(--line);ve
 .related span,.hub span{display:block;color:var(--ink-2);font-size:.9rem;font-weight:450;margin-top:.2rem}
 .hub a{padding:1rem 1.1rem;border:1px solid var(--line);border-radius:16px}.hub a:hover,.related li:hover{border-color:var(--ink-2)}
 .hub b{font-size:1.15rem;letter-spacing:-.02em;font-weight:620}
-.nw{white-space:nowrap}.steps{padding-left:1.4rem}.steps li{margin:.5rem 0}
+.nw{white-space:nowrap}.lead-answer{font-size:1.05rem}.steps{padding-left:1.4rem}.steps li{margin:.5rem 0}
 .pro-examples .pro-ex{padding-left:1.1rem}.pro-examples span{color:var(--ink-2)}.pro-examples .note,.bench-note{color:var(--ink-2);font-size:.9rem}
 .crumbs span{color:var(--ink)}
+.brands ul{list-style:none;padding:0;display:flex;flex-wrap:wrap;gap:.4rem .9rem;margin:1rem 0}.brands span{color:var(--ink-2)}
+.catalogue th small{display:block;color:var(--ink-2);font-weight:450;font-size:.82rem;margin-top:.2rem}.catalogue th a{font-weight:500;font-size:.9rem}.note{color:var(--ink-2);font-size:.9rem}
 .foot{border-top:1px solid var(--line);margin-top:3rem;padding-block:1.5rem 3rem;color:var(--ink-2);font-size:.9rem}.foot a{color:var(--ink-2)}
 `;

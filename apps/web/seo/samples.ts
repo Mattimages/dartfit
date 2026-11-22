@@ -78,7 +78,15 @@ export function guidePrices(): Record<string, { eur: number; tier: PriceClass }>
 export interface EngineFacts {
   samples: SampleFit[];
   prices: Record<string, { eur: number; tier: PriceClass }>;
+  /** Listings whose stated weight fails the barrel physics check (left out of fits). */
+  flagged: string[];
 }
-export const engineFacts = (): EngineFacts => ({ samples: sampleFits(), prices: guidePrices() });
+export const engineFacts = (): EngineFacts => ({
+  samples: sampleFits(),
+  prices: guidePrices(),
+  flagged: loadCatalogue()
+    .variants.filter((v) => v.specCheck)
+    .map((v) => v.id),
+});
 
 if (process.argv[1] && /samples\.ts$/.test(process.argv[1])) process.stdout.write(JSON.stringify(engineFacts()));

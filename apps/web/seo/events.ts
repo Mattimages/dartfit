@@ -65,7 +65,8 @@ export const EVENTS: Record<Lang, Page[]> = {
         {
           h2: 'Which tournaments make up the darts year?',
           p: [
-            'The PDC year runs from the World Championship around New Year through the World Masters and the Premier League (February to May), the UK Open, the World Cup of Darts, the World Matchplay in Blackpool in July, the World Grand Prix, the European Championship, the Grand Slam and the Players Championship Finals. Around them sit the European Tour and dozens of Players Championship floor events.',
+            'The PDC year runs from the World Championship around New Year through the World Masters and the Premier League (February to May), the UK Open, the World Cup of Darts, the World Matchplay in Blackpool in July, the World Grand Prix, the European Championship, the Grand Slam and the Players Championship Finals.',
+            'Around them sit the European Tour and dozens of Players Championship floor events.',
           ],
         },
       ],

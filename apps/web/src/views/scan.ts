@@ -1,4 +1,4 @@
-import { cardPicture, doors, giftPicture, noCardPicture } from '../draw/doors';
+import { doors, giftPicture } from '../draw/doors';
 import { handArt } from '../draw/art';
 import { checkHandFrame, type Landmark, type Pt } from '@dartfit/engine';
 import { h, s } from '../h';
@@ -147,10 +147,20 @@ export function scanView(root: HTMLElement, _params?: Record<string, string>, qu
   );
   const tapBtn = h('button', { class: 'btn ghost', type: 'button', hidden: true }, t('scan.tap_fallback'));
 
-  // The flow (owner, 18 Nov): "Start scan" → with or without a pasje → a pop-up for each (keep
-  // your details out of view / the pasje is our ruler) → the camera.
-  const startScan = h('button', { class: 'btn', type: 'button' }, t('scan.start'));
-  const startRow = h('div', { class: 'actions' }, startScan);
+  // The flow (owner, 22 Nov: only a third of visitors got through the scan, so fewer taps): "Start
+  // the scan" opens the camera straight away, with the cover-your-details line right under it; a
+  // photo and "no card at hand" (with its "the card is our ruler" pop-up) are one tap aside.
+  const startScan = h('button', { class: 'btn block', type: 'button' }, t('scan.start'));
+  const photoIntro = h('label', { class: 'btn ghost block', for: 'photo' }, t('scan.photo'));
+  const withoutLink = h('button', { class: 'btn link', type: 'button' }, t('scan.without'));
+  const startRow = h(
+    'div',
+    { class: 'stack scan-start' },
+    startScan,
+    h('p', { class: 'small scan-cover' }, t('scan.privacy')),
+    photoIntro,
+    withoutLink,
+  );
   const giftOnly = doors([{ label: t('start.gift'), picture: giftPicture(), href: '#/gift' }]);
   const photoInput = h('input', {
     type: 'file',
@@ -176,23 +186,14 @@ export function scanView(root: HTMLElement, _params?: Record<string, string>, qu
     d.addEventListener('click', (e) => e.target === d && d.close());
     return d;
   };
-  const startBtn = h('button', { class: 'btn', type: 'button' }, t('scan.camera'));
-  const photoPick = h('button', { class: 'btn ghost', type: 'button' }, t('scan.photo'));
-  const withBack = h('button', { class: 'btn link', type: 'button' }, t('scan.back'));
-  const withDlg = popup('card-title', t('scan.card.title'), t('scan.card.body'), startBtn, photoPick, withBack);
   const getCard = h('button', { class: 'btn', type: 'button' }, t('scan.nocard.back'));
   const noCardGo = h('button', { class: 'btn ghost', type: 'button' }, t('scan.nocard.go'));
   const withoutDlg = popup('nocard-title', t('scan.nocard.title'), t('scan.nocard.warn'), getCard, noCardGo);
-  const choice = doors([
-    { label: t('scan.with'), picture: cardPicture(), onclick: () => withDlg.showModal() },
-    { label: t('scan.without'), picture: noCardPicture(), onclick: () => withoutDlg.showModal() },
-  ]);
-  const choiceBox = h(
-    'div',
-    { class: 'scan-choice', hidden: true },
-    h('h2', null, t('scan.choose')),
-    choice,
-  );
+  // Stuck in the viewfinder for a while: tips, and a photo as the way out (not a dead end).
+  const stuckPhoto = h('label', { class: 'btn ghost', for: 'photo' }, t('scan.photo'));
+  const stuck = h('div', { class: 'scan-stuck', hidden: true, role: 'note' }, h('p', null, t('scan.stuck')), stuckPhoto);
+  // Over the viewfinder, where the player is looking (in place of the standing hint).
+  camera.append(stuck);
   // Builds without the hand model (only the embedded preview) measure with a ruler instead; the
   // real site has no ruler option.
   const intro = NO_CAMERA
@@ -208,10 +209,7 @@ export function scanView(root: HTMLElement, _params?: Record<string, string>, qu
         { class: 'stack scan-intro' },
         h('figure', { class: 'sheet narrow' }, setupDiagram()),
         startRow,
-        choiceBox,
         giftOnly,
-        h('p', { class: 'small' }, t('scan.privacy')),
-        photoInput,
       );
 
   root.append(
@@ -224,7 +222,7 @@ export function scanView(root: HTMLElement, _params?: Record<string, string>, qu
       meter,
       status,
       h('div', { class: 'actions' }, tapBtn),
-      withDlg,
+      photoInput,
       withoutDlg,
     ),
   );
@@ -359,36 +357,26 @@ export function scanView(root: HTMLElement, _params?: Record<string, string>, qu
 
   // ── Start ───────────────────────────────────────────────────────────
   let noCard = false;
-  const showChoice = () => {
-    startRow.hidden = true;
-    choiceBox.hidden = false;
-  };
-  startScan.addEventListener('click', () => {
-    showChoice();
-    choice.querySelector('button')?.focus();
-  });
-  withBack.addEventListener('click', () => withDlg.close());
-  photoPick.addEventListener('click', () => {
-    withDlg.close();
-    photoInput.click();
-  });
+  let stuckTimer: ReturnType<typeof setTimeout> | undefined;
+  withoutLink.addEventListener('click', () => withoutDlg.showModal());
   getCard.addEventListener('click', () => {
     withoutDlg.close();
-    withDlg.showModal();
+    noCard = false;
+    void startCamera();
   });
   // From an old "No bank card?" link: straight to that pop-up.
-  if (query?.get('nocard') === '1' && !NO_CAMERA) {
-    showChoice();
-    withoutDlg.showModal();
-  }
+  if (query?.get('nocard') === '1' && !NO_CAMERA) withoutDlg.showModal();
   noCardGo.addEventListener('click', () => {
     noCard = true;
     withoutDlg.close();
-    startBtn.click();
+    void startCamera();
   });
-  startBtn.addEventListener('click', async () => {
-    withDlg.close();
-    startBtn.setAttribute('disabled', '');
+  startScan.addEventListener('click', () => {
+    noCard = false;
+    void startCamera();
+  });
+  const startCamera = async () => {
+    startScan.setAttribute('disabled', '');
     await askOrientation();
     try {
       stream = await navigator.mediaDevices.getUserMedia({
@@ -397,7 +385,7 @@ export function scanView(root: HTMLElement, _params?: Record<string, string>, qu
       });
     } catch {
       say('scan.no_camera');
-      startBtn.removeAttribute('disabled');
+      startScan.removeAttribute('disabled');
       noCard = false;
       intro.hidden = false;
       return;
@@ -454,6 +442,7 @@ export function scanView(root: HTMLElement, _params?: Record<string, string>, qu
         },
         card: () => {},
         done: (r) => {
+          clearTimeout(stuckTimer);
           update({ measurements: r.measurements, landmarksMm: r.landmarksMm });
           go('/hand');
         },
@@ -461,12 +450,24 @@ export function scanView(root: HTMLElement, _params?: Record<string, string>, qu
       noCard,
     );
     scanner.start();
-  });
+    stuckTimer = setTimeout(() => {
+      if (disposed || camera.hidden) return;
+      // A photo needs the card for its scale, so without one only the tips show.
+      stuck.querySelector('p')!.textContent = t(noCard ? 'scan.stuck.free' : 'scan.stuck');
+      stuckPhoto.hidden = noCard;
+      stuck.hidden = false;
+      vfHint.hidden = true;
+    }, 20000);
+  };
 
   // ── Photo instead of the live camera ───────────────────────────────
   photoInput.addEventListener('change', async () => {
     const file = photoInput.files?.[0];
     if (!file) return;
+    stuck.hidden = true;
+    clearTimeout(stuckTimer);
+    scanner?.stop();
+    stream?.getTracks().forEach((tr) => tr.stop());
     const img = new Image();
     const url = URL.createObjectURL(file);
     try {
@@ -521,6 +522,7 @@ export function scanView(root: HTMLElement, _params?: Record<string, string>, qu
 
   return () => {
     disposed = true;
+    clearTimeout(stuckTimer);
     scanner?.stop();
     stream?.getTracks().forEach((tr) => tr.stop());
     window.removeEventListener('resize', onResize);

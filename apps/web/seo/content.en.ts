@@ -165,7 +165,7 @@ export const en: Site = {
         {
           h2: 'Step 5: the match score',
           p: [
-            'Each real dart gets a distance to your ideal on every size, measured in standard deviations and weighted by how much you would feel the difference. That becomes three numbers: shape match (weight, length, thickness), style match (barrel type, grip, balance) and the total. The result shows the best total in each price class: budget (up to €50), standard (up to €80) and premium.',
+            'Each real dart gets a distance to your ideal on every size, weighted by how much you would feel the difference. That becomes three numbers: shape match (weight, length, thickness), style match (barrel type, grip, balance) and the total. The result shows the best total in each price class: budget (up to €50), standard (up to €80) and premium.',
           ],
         },
         {

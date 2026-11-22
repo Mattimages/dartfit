@@ -1,7 +1,8 @@
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { describe, expect, it } from 'vitest';
-import { buildGuides, LANGS, SITES, statsFromCsv } from '../seo/render';
+import { buildGuides, fill, LANGS, SITES, statsFromCsv } from '../seo/render';
+import { LEADS } from '../seo/leads';
 import { catalogueRows } from '../seo/pro-pages';
 import { engineFacts } from '../seo/samples';
 import { GUIDE_LINKS } from '../src/guide-links';
@@ -18,7 +19,7 @@ const html = Object.entries(files).filter(([f]) => f.endsWith('.html'));
 
 describe('guide pages (SEO)', () => {
   it('has a hub, eighteen guides, a pro index and a page per pro in every language', () => {
-    expect(html).toHaveLength(LANGS.length * (1 + 18 + 1 + cat.pros.length));
+    expect(html).toHaveLength(LANGS.length * (1 + 18 + 1 + 1 + cat.pros.length));
     for (const s of SITES) expect(new Set(s.pages.map((p) => p.key)).size).toBe(18);
     for (const s of SITES) expect(new Set(s.pages.map((p) => p.slug)).size).toBe(18);
     expect(cat.pros.length).toBeGreaterThan(20);
@@ -150,5 +151,44 @@ describe('guide pages (SEO)', () => {
   it('the app footer links only to built guide pages', () => {
     for (const l of LANGS)
       for (const [path] of GUIDE_LINKS[l]) expect(files[`${path.slice(1)}index.html`], path).toBeDefined();
+  });
+
+  it('opens every guide section with a 40–60 word answer, in every language (answer-first)', () => {
+    const words = (x: string) => x.split(/\s+/).filter(Boolean).length;
+    for (const site of SITES)
+      for (const page of site.pages)
+        page.sections.forEach((sec, i) => {
+          const key = `${page.key}:${i}`;
+          const lead = LEADS[site.lang][key];
+          const own = sec.p?.[0] ? words(fill(sec.p[0], stats, site.lang)) : 0;
+          const first = lead ? words(fill(lead, stats, site.lang)) : own;
+          expect(first, `${site.lang} ${key}`).toBeGreaterThanOrEqual(40);
+          expect(first, `${site.lang} ${key}`).toBeLessThanOrEqual(60);
+          // A lead only where the section's own opening isn't already the answer.
+          if (lead) expect(own >= 40 && own <= 60, `${site.lang} ${key} needs no lead`).toBe(false);
+        });
+    for (const l of LANGS)
+      for (const key of Object.keys(LEADS[l])) {
+        const [k, i] = key.split(':');
+        const page = SITES.find((x) => x.lang === l)!.pages.find((p) => p.key === k);
+        expect(page?.sections[Number(i)], `${l} ${key} points at a section`).toBeDefined();
+      }
+    expect(files['en/what-weight-darts/index.html']).toContain('<p class="lead-answer">Most steel-tip darts weigh between');
+  });
+
+  it('catalogue page: every steel-tip dart, by brand, with pros linked and flagged listings noted', () => {
+    for (const l of LANGS) {
+      const page = files[`${l}/darts/index.html`]!;
+      expect(page, l).toBeDefined();
+      const rows = page.match(/<tr><th scope="row">/g)?.length ?? 0;
+      expect(rows, l).toBe(cat.variants.length);
+      expect(page).toContain(`hreflang="x-default" href="${base}/en/darts/"`);
+      expect(page).not.toContain('"@type":"Product"');
+    }
+    const en = files['en/darts/index.html']!;
+    expect(en).toContain('<a href="/en/pros/luke-littler/">Luke Littler’s dart</a>');
+    expect(en).toContain('leaves it out of fits until it is checked');
+    expect(files['en/index.html']).toContain('href="/en/darts/"');
+    expect(files['nl/profs/index.html']).toContain('href="/nl/darts/"');
   });
 });
