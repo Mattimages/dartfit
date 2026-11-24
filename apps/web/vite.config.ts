@@ -1,6 +1,7 @@
 import { defineConfig, type Plugin } from 'vite';
 import { cpSync, existsSync, mkdirSync, readFileSync, rmSync } from 'node:fs';
 import { execFileSync } from 'node:child_process';
+import { createHash } from 'node:crypto';
 import { createRequire } from 'node:module';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -116,20 +117,30 @@ function catalogueModule(): Plugin {
  */
 /**
  * IndexNow (Bing, Yandex, Seznam, Naver; Bing feeds ChatGPT search, Copilot and DuckDuckGo): the
- * key file proves the site is ours, and each production build tells them which pages exist so
- * new and changed guides are crawled within hours instead of weeks. Not a secret.
+ * key file proves the site is ours, and each production build tells them which pages are new or changed (against the
+ * live /indexnow.json) so those are crawled within hours instead of weeks. Not a secret.
  */
 const INDEXNOW_KEY = 'ca8f9a3ab24d52b9ae60f113ee36640f';
 
 function guides(): Plugin {
-  const urls: string[] = [];
+  /** Page URL → short hash of its HTML; published as /indexnow.json so the next build pings only what changed. */
+  const pages: Record<string, string> = {};
   let base = '';
   return {
     name: 'dartfit-guides',
     apply: 'build',
     async closeBundle() {
-      if (process.env.VERCEL_ENV !== 'production' || process.env.INDEXNOW === 'off' || !urls.length) return;
+      if (process.env.VERCEL_ENV !== 'production' || process.env.INDEXNOW === 'off') return;
       try {
+        // Only new or changed pages: re-sending unchanged URLs on every deploy is what IndexNow asks
+        // sites not to do. The live manifest is the previous deploy's; none yet means first run.
+        const live = await fetch(`${base}/indexnow.json`, { signal: AbortSignal.timeout(5_000) });
+        const before = live.ok ? ((await live.json()) as Record<string, string>) : {};
+        const urls = Object.keys(pages).filter((u) => before[u] !== pages[u]);
+        if (!urls.length) {
+          console.log('IndexNow: no changed pages');
+          return;
+        }
         const res = await fetch('https://api.indexnow.org/indexnow', {
           method: 'POST',
           headers: { 'content-type': 'application/json; charset=utf-8' },
@@ -154,8 +165,8 @@ function guides(): Plugin {
       const stats = statsFromCsv(csv, (JSON.parse(prosJson) as unknown[]).length);
       const cat = catalogueRows(csv, prosJson, readFileSync(join(data, 'pro-photos.json'), 'utf8'));
       base = (process.env.SITE_URL ?? 'https://findyourdarts.com').replace(/\/$/, '');
-      urls.length = 0;
-      urls.push(`${base}/`);
+      for (const k of Object.keys(pages)) delete pages[k];
+      pages[`${base}/`] = 'app';
       // Sample fits and guide prices come from the real engine, run through tsx like the catalogue.
       const root = join(here, '..', '..');
       const facts = JSON.parse(
@@ -167,8 +178,10 @@ function guides(): Plugin {
       ) as EngineFacts;
       for (const [fileName, source] of Object.entries(buildGuides(stats, base, cat, facts))) {
         this.emitFile({ type: 'asset', fileName, source });
-        if (fileName.endsWith('index.html')) urls.push(`${base}/${fileName.replace(/index\.html$/, '')}`);
+        if (fileName.endsWith('index.html'))
+          pages[`${base}/${fileName.replace(/index\.html$/, '')}`] = createHash('sha1').update(source).digest('hex').slice(0, 12);
       }
+      this.emitFile({ type: 'asset', fileName: 'indexnow.json', source: JSON.stringify(pages) });
       this.emitFile({ type: 'asset', fileName: `${INDEXNOW_KEY}.txt`, source: INDEXNOW_KEY });
       this.emitFile({ type: 'asset', fileName: 'guides/guides.css', source: GUIDES_CSS });
       const font = join(pkgDir('@fontsource-variable/geist'), 'files', 'geist-latin-wght-normal.woff2');
